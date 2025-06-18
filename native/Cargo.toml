@@ -1,8 +1,8 @@
 [package]
-name = "zecwallet-lite"
+name = "bitcoinz-wallet-lite"
 version = "0.1.0"
 edition = "2018"
-authors = ["Zecwallet"]
+authors = ["BitcoinZ Community"]
 license = "MIT/Apache-2.0"
 
 [lib]

@@ -25,26 +25,34 @@ BitcoinZ Wallet Lite does automatic note and utxo management, which means it doe
     * When sending an outgoing transaction to a shielded address, BitcoinZ Wallet Lite can decide to use the transaction to additionally shield your transparent funds (i.e., send your transparent funds to your own shielded address in the same transaction)
 
 ## Compiling from source
-BitcoinZ Light Wallet is written in Electron/Javascript and can be built from source. It will also automatically compile the Rust SDK needed to run the wallet.
 
-#### Pre-Requisites
-You need to have the following software installed before you can build BitcoinZ Light Wallet
+**⚠️ IMPORTANT: Please follow the [detailed setup guide](SETUP.md) for complete instructions.**
 
-* [Node.js v14 or higher](https://nodejs.org) 
-* [Rust v1.62+](https://www.rust-lang.org/tools/install)
+### Quick Start
 
+BitcoinZ Light Wallet requires specific setup steps to build from source:
+
+1. **Clone BOTH required repositories** (must be in same parent directory):
 ```bash
+mkdir bitcoinz-dev && cd bitcoinz-dev
 git clone https://github.com/ztx-protocol/bitcoinz-light-wallet.git
-cd bitcoinz-light-wallet
-
-npm install
-npm run neon
+git clone https://github.com/ztx-protocol/zecwallet-light-cli-bitcoinz.git
 ```
 
-To start locally, run:
+2. **Install prerequisites**:
+   - Node.js v14 or v16 (NOT v17+ due to OpenSSL compatibility)
+   - Rust v1.62+
+   - Build tools for your platform
+
+3. **Build and run**:
 ```bash
-npm start
+cd bitcoinz-light-wallet
+yarn install
+npm install -g cargo-cp-artifact
+yarn start
 ```
+
+For detailed instructions, troubleshooting, and platform-specific requirements, see [SETUP.md](SETUP.md).
 
 #### BitcoinZ Network Parameters
 - **Coin Type**: 177 (BIP44)
