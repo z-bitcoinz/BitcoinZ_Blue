@@ -187,13 +187,34 @@ fn litelib_execute(mut cx: FunctionContext) -> JsResult<JsString> {
         };
 
         if cmd == "sync" || cmd == "rescan" || cmd == "import" || cmd == "send" {
+            println!("[DEBUG] Starting async command: {}", cmd);
             thread::spawn(move || {
+                println!("[DEBUG] Thread spawned for command: {}", cmd);
                 let args = if args_list.is_empty() {
                     vec![]
                 } else {
                     vec![&args_list[..]]
                 };
-                commands::do_user_command(&cmd, &args, lightclient.as_ref());
+                println!("[DEBUG] Calling do_user_command with args: {:?}", args);
+                
+                // Catch any panics in the thread
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    commands::do_user_command(&cmd, &args, lightclient.as_ref())
+                }));
+                
+                match result {
+                    Ok(res) => {
+                        println!("[DEBUG] Command {} completed with result: {}", cmd, res);
+                    }
+                    Err(e) => {
+                        println!("[DEBUG] Command {} PANICKED: {:?}", cmd, e);
+                        if let Some(s) = e.downcast_ref::<String>() {
+                            println!("[DEBUG] Panic message: {}", s);
+                        } else if let Some(s) = e.downcast_ref::<&str>() {
+                            println!("[DEBUG] Panic message: {}", s);
+                        }
+                    }
+                }
             });
 
             format!("OK")
