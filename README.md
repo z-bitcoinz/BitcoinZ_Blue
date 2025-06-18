@@ -56,3 +56,71 @@ npm start
 This wallet is based on [Zecwallet Lite](https://github.com/adityapk00/zecwallet-lite) and adapted for the BitcoinZ network.
 
 _Note: BitcoinZ Light Wallet is a community project._
+
+---
+
+## Development Update & Funding Request
+
+Simon has spent countless hours and weeks developing the BitcoinZ bridge infrastructure and this new light client wallet. This is a complex, professional-grade project that brings modern wallet capabilities to the BitcoinZ ecosystem.
+
+### 🎉 Current Achievements
+
+We're proud to announce major milestones have been reached:
+- ✅ **The bridge is running** - Core infrastructure is operational
+- ✅ **Lightning-fast sync** - The wallet syncs in seconds, not hours
+- ✅ **All transactions working** - Both transparent and shielded transactions are functional
+- ✅ **Historic achievement** - [First mobile z-to-z transaction](https://explorer.getbtcz.com/#/tx/17f0b27e5e69e1771eef763b043b6ee644a1d7054ed005357141c4394979350e)
+
+### 🚧 What's Still Needed
+
+While the core functionality is complete, professional software requires more than just working code:
+
+1. **Infrastructure Deployment**
+   - Deploy multiple global VPS servers to decentralize the light wallet network
+   - Ensure high availability and redundancy
+   - Set up monitoring and maintenance systems
+
+2. **Final Development Phase**
+   - Complete remaining features and edge cases
+   - Conduct extensive security testing
+   - Optimize performance for all platforms
+
+3. **User Interface**
+   - Design and implement a polished, user-friendly GUI
+   - Create intuitive workflows for all user levels
+   - Add multi-language support
+
+4. **Cross-Platform Support**
+   - Ensure flawless operation on Windows, macOS, and Linux
+   - Future mobile support (iOS and Android)
+   - Package and distribute installers
+
+### ⏱️ Timeline Reality
+
+**This is not a quick project.** Building a secure, reliable wallet infrastructure takes time, expertise, and resources. The speed of delivery directly depends on available funding. With proper support, we can accelerate development significantly. Without it, progress will be slow.
+
+### 💰 How You Can Help
+
+Your donations will directly fund:
+- **Server costs** for the decentralized network (ongoing monthly expenses)
+- **Development time** to complete the remaining features
+- **Security audits** to ensure your funds are safe
+- **UI/UX design** for a professional user experience
+
+Every contribution brings us closer to delivering a wallet that makes BitcoinZ accessible to everyone - with full privacy features, instant syncing, and complete control of your keys.
+
+### 📬 Donation Addresses
+
+Please support the completion of this project:
+
+**Litecoin (LTC):** `ltc1qwy6hd0e77srgsd2n6pvdcwe72zaj5w94mnsajs`
+
+**Bitcoin (BTC):** `bc1qwy6hd0e77srgsd2n6pvdcwe72zaj5w94l02e2q`
+
+**USDT (BEP20):** `0x32159Dffc551D9C20fb5D50bE706D20a87d62353`
+
+**Solana (SOL):** `FFZFWtsSCouSmK53hCWcpNz4JcJd2FiARLvLGjVvtPzP`
+
+---
+
+*Thank you for your patience and support. Together, we're building the future of BitcoinZ - a future where everyone can use BTCZ easily, privately, and securely.*
