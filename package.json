@@ -1,14 +1,14 @@
 {
-  "name": "zecwallet-lite",
-  "productName": "Zecwallet Lite",
-  "version": "1.8.8",
+  "name": "bitcoinz-wallet-lite",
+  "productName": "BitcoinZ Wallet Lite",
+  "version": "1.0.0",
   "private": true,
-  "description": "Zecwallet Lite",
+  "description": "BitcoinZ Wallet Lite - A lightweight wallet for BitcoinZ",
   "license": "MIT",
   "author": {
-    "name": "Aditya Kulkarni",
-    "email": "aditya@zecwallet.co",
-    "url": "https://github.com/adityapk00/zecwallet-lite"
+    "name": "BitcoinZ Community",
+    "email": "info@btcz.rocks",
+    "url": "https://github.com/btcz/bitcoinz-wallet-lite"
   },
   "dependencies": {
     "@babel/core": "7.12.3",

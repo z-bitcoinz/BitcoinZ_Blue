@@ -1,17 +1,18 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-else-return */
 /* eslint-disable no-plusplus */
-export const NO_CONNECTION: string = "Could not connect to zcashd";
+export const NO_CONNECTION: string = "Could not connect to bitcoinzd";
 
 export default class Utils {
-  // v1 LightwalletD
-  static V1_LIGHTWALLETD: string = "https://lightwalletd.zecwallet.co:1443";
+  // BitcoinZ LightwalletD servers
+  // For now, we'll use localhost since we're running our own
+  static V1_LIGHTWALLETD: string = "http://localhost:9067";
 
   // v2 LightwalletD
-  static V2_LIGHTWALLETD: string = "https://lwdv2.zecwallet.co:1443";
+  static V2_LIGHTWALLETD: string = "http://localhost:9067";
 
-  // v3 LightwalletD
-  static V3_LIGHTWALLETD: string = "https://lwdv3.zecwallet.co";
+  // v3 LightwalletD  
+  static V3_LIGHTWALLETD: string = "http://localhost:9067";
 
   static isUnified(addr: string): boolean {
     if (!addr) return false;
@@ -20,12 +21,14 @@ export default class Utils {
 
   static isSapling(addr: string): boolean {
     if (!addr) return false;
-    return new RegExp("^z[a-z0-9]{77}$").test(addr) || new RegExp("^ztestsapling[a-z0-9]{76}$").test(addr);
+    // BitcoinZ shielded addresses start with 'zc' (mainnet) or 'zt' (testnet)
+    return new RegExp("^zc[a-z0-9]{93}$").test(addr) || new RegExp("^zt[a-z0-9]{93}$").test(addr);
   }
 
   static isSprout(addr: string): boolean {
     if (!addr) return false;
-    return new RegExp("^z[a-zA-Z0-9]{94}$").test(addr);
+    // BitcoinZ doesn't use Sprout addresses
+    return false;
   }
 
   static isZaddr(addr: string): boolean {
@@ -35,7 +38,8 @@ export default class Utils {
 
   static isTransparent(addr: string): boolean {
     if (!addr) return false;
-    return new RegExp("^t[a-zA-Z0-9]{34}$").test(addr);
+    // BitcoinZ transparent addresses start with 't1' (mainnet) or 'tm' (testnet)
+    return new RegExp("^t1[a-zA-Z0-9]{33}$").test(addr) || new RegExp("^tm[a-zA-Z0-9]{33}$").test(addr);
   }
 
   static isValidSaplingPrivateKey(key: string): boolean {
