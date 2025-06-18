@@ -13,13 +13,13 @@ import cstyles from "./Common.module.css";
 import { AddressBookEntry } from "./AppState";
 import ScrollPane from "./ScrollPane";
 import Utils from "../utils/utils";
-import { ZcashURITarget } from "../utils/uris";
+import { BitcoinzURITarget } from "../utils/uris";
 import routes from "../constants/routes.json";
 
 type AddressBookItemProps = {
   item: AddressBookEntry;
   removeAddressBookEntry: (label: string) => void;
-  setSendTo: (targets: ZcashURITarget | ZcashURITarget[]) => void;
+  setSendTo: (targets: BitcoinzURITarget | BitcoinzURITarget[]) => void;
 };
 
 // Internal because we're using withRouter just below
@@ -45,7 +45,7 @@ const AddressBookItemInteral: React.FC<RouteComponentProps & AddressBookItemProp
             type="button"
             className={cstyles.primarybutton}
             onClick={() => {
-              setSendTo(new ZcashURITarget(item.address, undefined, undefined));
+              setSendTo(new BitcoinzURITarget(item.address, undefined, undefined));
               history.push(routes.SEND);
             }}
           >
@@ -65,7 +65,7 @@ type AddressBookProps = {
   addressBook: AddressBookEntry[];
   addAddressBookEntry: (label: string, address: string) => void;
   removeAddressBookEntry: (label: string) => void;
-  setSendTo: (targets: ZcashURITarget[] | ZcashURITarget) => void;
+  setSendTo: (targets: BitcoinzURITarget[] | BitcoinzURITarget) => void;
 };
 
 type AddressBookState = {

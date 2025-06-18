@@ -82,12 +82,12 @@ export default class Utils {
     return s;
   }
 
-  static splitZecAmountIntoBigSmall(zecValue: number) {
-    if (!zecValue) {
-      return { bigPart: zecValue, smallPart: "" };
+  static splitBtczAmountIntoBigSmall(btczValue: number) {
+    if (!btczValue) {
+      return { bigPart: btczValue, smallPart: "" };
     }
 
-    let bigPart = Utils.maxPrecision(zecValue);
+    let bigPart = Utils.maxPrecision(btczValue);
     let smallPart = "";
 
     if (bigPart.indexOf(".") >= 0) {
@@ -145,15 +145,15 @@ export default class Utils {
   }
 
   static getDefaultDonationMemo(testnet: boolean): string {
-    return "Thanks for supporting Zecwallet!";
+    return "Thanks for supporting BitcoinZ!";
   }
 
-  static getZecToUsdString(price: number | null, zecValue: number | null): string {
-    if (!price || !zecValue) {
+  static getBtczToUsdString(price: number | null, btczValue: number | null): string {
+    if (!price || !btczValue) {
       return "USD --";
     }
 
-    return `USD ${(price * zecValue).toFixed(2)}`;
+    return `USD ${(price * btczValue).toFixed(2)}`;
   }
 
   static utf16Split(s: string, chunksize: number): string[] {

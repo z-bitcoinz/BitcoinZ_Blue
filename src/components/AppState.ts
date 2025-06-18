@@ -91,7 +91,7 @@ export class Transaction {
   txid: string;
   time: number;
   detailedTxns: TxDetail[];
-  zecPrice: any;
+  btczPrice: any;
 
   constructor() {
     this.type = "";
@@ -162,7 +162,7 @@ export class Info {
   verificationProgress: number;
   currencyName: string;
   solps: number;
-  zecPrice: number;
+  btczPrice: number;
   zcashdVersion: string;
   encrypted: boolean;
   locked: boolean;
@@ -177,7 +177,7 @@ export class Info {
     this.verificationProgress = 0;
     this.currencyName = "";
     this.solps = 0;
-    this.zecPrice = 0;
+    this.btczPrice = 0;
     this.encrypted = false;
     this.locked = false;
     this.walletHeight = 0;

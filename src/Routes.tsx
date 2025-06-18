@@ -31,8 +31,8 @@ import AppState, {
 } from "./components/AppState";
 import RPC from "./rpc";
 import Utils from "./utils/utils";
-import { ZcashURITarget } from "./utils/uris";
-import Zcashd from "./components/Zcashd";
+import { BitcoinzURITarget } from "./utils/uris";
+import Bitcoinzd from "./components/Bitcoinzd";
 import AddressBook from "./components/Addressbook";
 import AddressbookImpl from "./utils/AddressbookImpl";
 import Sidebar from "./components/Sidebar";
@@ -283,7 +283,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
     return true;
   };
 
-  setSendTo = (targets: ZcashURITarget[] | ZcashURITarget) => {
+  setSendTo = (targets: BitcoinzURITarget[] | BitcoinzURITarget) => {
     // Clear the existing send page state and set up the new one
     const { sendPageState } = this.state;
 
@@ -294,7 +294,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
     // If a single object is passed, accept that as well.
     let tgts = targets;
     if (!Array.isArray(tgts)) {
-      tgts = [targets as ZcashURITarget];
+      tgts = [targets as BitcoinzURITarget];
     }
 
     tgts.forEach((tgt) => {
@@ -329,7 +329,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
     const newInfo = new Info();
     Object.assign(newInfo, info);
     if (price) {
-      newInfo.zecPrice = price;
+      newInfo.btczPrice = price;
     }
 
     this.setState({ info: newInfo });
@@ -343,9 +343,9 @@ export default class RouteApp extends React.Component<Props, AppState> {
   setInfo = (newInfo: Info) => {
     // If the price is not set in this object, copy it over from the current object
     const { info } = this.state;
-    if (!newInfo.zecPrice) {
+    if (!newInfo.btczPrice) {
       // eslint-disable-next-line no-param-reassign
-      newInfo.zecPrice = info.zecPrice;
+      newInfo.btczPrice = info.btczPrice;
     }
 
     console.log(newInfo);
@@ -591,7 +591,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
               <Route
                 path={routes.ZCASHD}
                 render={() => (
-                  <Zcashd
+                  <Bitcoinzd
                     info={info}
                     rpcConfig={rpcConfig}
                     refresh={this.doRefresh}

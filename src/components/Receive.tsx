@@ -20,7 +20,7 @@ const { shell, clipboard } = window.require("electron");
 type AddressBlockProps = {
   addressBalance: AddressBalance;
   currencyName: string;
-  zecPrice: number;
+  btczPrice: number;
   privateKey?: string;
   viewKey?: string;
   label?: string;
@@ -31,7 +31,7 @@ const AddressBlock = ({
   addressBalance,
   label,
   currencyName,
-  zecPrice,
+  btczPrice,
   privateKey,
   fetchAndSetSinglePrivKey,
   viewKey,
@@ -79,7 +79,7 @@ const AddressBlock = ({
             <div className={[cstyles.padtopsmall].join(" ")}>
               {currencyName} {balance}
             </div>
-            <div className={[cstyles.padtopsmall].join(" ")}>{Utils.getZecToUsdString(zecPrice, balance)}</div>
+            <div className={[cstyles.padtopsmall].join(" ")}>{Utils.getBtczToUsdString(btczPrice, balance)}</div>
 
             <div className={[cstyles.margintoplarge, cstyles.breakword].join(" ")}>
               {privateKey && (
@@ -273,7 +273,7 @@ export default class Receive extends Component<Props> {
                       addressBalance={a}
                       currencyName={info.currencyName}
                       label={addressBookMap.get(a.address)}
-                      zecPrice={info.zecPrice}
+                      btczPrice={info.btczPrice}
                       privateKey={addressPrivateKeys.get(a.address)}
                       viewKey={addressViewKeys.get(a.address)}
                       fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
@@ -302,7 +302,7 @@ export default class Receive extends Component<Props> {
                       addressBalance={a}
                       currencyName={info.currencyName}
                       label={addressBookMap.get(a.address)}
-                      zecPrice={info.zecPrice}
+                      btczPrice={info.btczPrice}
                       privateKey={addressPrivateKeys.get(a.address)}
                       viewKey={addressViewKeys.get(a.address)}
                       fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
@@ -330,7 +330,7 @@ export default class Receive extends Component<Props> {
                       key={a.address}
                       addressBalance={a}
                       currencyName={info.currencyName}
-                      zecPrice={info.zecPrice}
+                      btczPrice={info.btczPrice}
                       privateKey={addressPrivateKeys.get(a.address)}
                       viewKey={addressViewKeys.get(a.address)}
                       fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}

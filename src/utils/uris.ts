@@ -8,7 +8,7 @@ import { Base64 } from "js-base64";
 
 import Utils from "./utils";
 
-export class ZcashURITarget {
+export class BitcoinzURITarget {
   address?: string;
   amount?: number;
   label?: string;
@@ -24,32 +24,32 @@ export class ZcashURITarget {
   }
 }
 
-export const parseZcashURI = (uri: string): ZcashURITarget[] | string => {
+export const parseBitcoinzURI = (uri: string): BitcoinzURITarget[] | string => {
   if (!uri || uri === "") {
     return "Bad URI";
   }
 
   // See if it is a straight address.
   if (Utils.isTransparent(uri) || Utils.isZaddr(uri)) {
-    return [new ZcashURITarget(uri)];
+    return [new BitcoinzURITarget(uri)];
   }
 
   const parsedUri = new Url(uri, true);
-  if (!parsedUri || parsedUri.protocol !== "zcash:") {
+  if (!parsedUri || parsedUri.protocol !== "bitcoinz:") {
     return "Invalid URI or protocol";
   }
 
-  const targets: Map<number, ZcashURITarget> = new Map();
+  const targets: Map<number, BitcoinzURITarget> = new Map();
 
   // The first address is special, it can be the "host" part of the URI
   //console.log(parsedUri);
   const address = parsedUri.pathname;
   if (address && !(Utils.isTransparent(address) || Utils.isZaddr(address))) {
-    return `"${address || ""}" was not a valid zcash address`;
+    return `"${address || ""}" was not a valid bitcoinz address`;
   }
 
   // Has to have at least 1 element
-  const t = new ZcashURITarget();
+  const t = new BitcoinzURITarget();
   if (address) {
     t.address = address;
   }
@@ -70,7 +70,7 @@ export const parseZcashURI = (uri: string): ZcashURITarget[] | string => {
     const qIdx = parseInt(qIdxS, 10) || 0;
 
     if (!targets.has(qIdx)) {
-      targets.set(qIdx, new ZcashURITarget());
+      targets.set(qIdx, new BitcoinzURITarget());
     }
 
     const target = targets.get(qIdx);
@@ -154,7 +154,7 @@ export const parseZcashURI = (uri: string): ZcashURITarget[] | string => {
   }
 
   // Convert to plain array
-  const ans: (ZcashURITarget | undefined)[] = new Array(targets.size);
+  const ans: (BitcoinzURITarget | undefined)[] = new Array(targets.size);
   targets.forEach((tgt, idx) => {
     ans[idx] = tgt;
   });
@@ -163,5 +163,5 @@ export const parseZcashURI = (uri: string): ZcashURITarget[] | string => {
     return "Some indexes were missing";
   }
 
-  return ans as ZcashURITarget[];
+  return ans as BitcoinzURITarget[];
 };
