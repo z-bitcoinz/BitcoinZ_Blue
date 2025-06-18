@@ -8,7 +8,7 @@
   "author": {
     "name": "BitcoinZ Community",
     "email": "info@btcz.rocks",
-    "url": "https://github.com/btcz/bitcoinz-wallet-lite"
+    "url": "https://github.com/ztx-protocol/bitcoinz-light-wallet"
   },
   "dependencies": {
     "@babel/core": "7.12.3",
