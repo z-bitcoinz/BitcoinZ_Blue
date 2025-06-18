@@ -20,12 +20,12 @@ import { BalanceBlockHighlight, BalanceBlock } from "./BalanceBlocks";
 
 type AddressBalanceItemProps = {
   currencyName: string;
-  zecPrice: number;
+  btczPrice: number;
   item: AddressBalance;
 };
 
-const AddressBalanceItem = ({ currencyName, zecPrice, item }: AddressBalanceItemProps) => {
-  const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(Math.abs(item.balance));
+const AddressBalanceItem = ({ currencyName, btczPrice, item }: AddressBalanceItemProps) => {
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(item.balance));
 
   return (
     <AccordionItem key={item.label} className={[cstyles.well, cstyles.margintopsmall].join(" ")} uuid={item.address}>
@@ -45,10 +45,10 @@ const AddressBalanceItem = ({ currencyName, zecPrice, item }: AddressBalanceItem
                 <span>
                   {currencyName} {bigPart}
                 </span>
-                <span className={[cstyles.small, cstyles.zecsmallpart].join(" ")}>{smallPart}</span>
+                <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
               </div>
               <div className={[cstyles.sublight, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                {Utils.getZecToUsdString(zecPrice, Math.abs(item.balance))}
+                {Utils.getBtczToUsdString(btczPrice, Math.abs(item.balance))}
               </div>
             </div>
           </div>
@@ -77,25 +77,25 @@ export default class Home extends Component<Props> {
           <div className={cstyles.balancebox}>
             <BalanceBlockHighlight
               zecValue={totalBalance.total}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalBalance.total)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
               topLabel="Orchard"
               zecValue={totalBalance.uabalance}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalBalance.uabalance)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.uabalance)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
               topLabel="Sapling"
               zecValue={totalBalance.zbalance}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalBalance.zbalance)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.zbalance)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
               topLabel="Transparent"
               zecValue={totalBalance.transparent}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalBalance.transparent)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.transparent)}
               currencyName={info.currencyName}
             />
           </div>
@@ -127,7 +127,7 @@ export default class Home extends Component<Props> {
                           key={ab.address}
                           item={ab}
                           currencyName={info.currencyName}
-                          zecPrice={info.zecPrice}
+                          btczPrice={info.btczPrice}
                         />
                       ))}
                   </Accordion>

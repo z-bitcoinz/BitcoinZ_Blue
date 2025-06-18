@@ -38,9 +38,9 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
   };
 
   const servers = [
-    { name: "Zecwallet (Default)", uri: Utils.V3_LIGHTWALLETD },
-    { name: "Zecwallet Zebra (Experimental)", uri: "https://zebra-lwd.zecwallet.co:9067" },
-    { name: "Zcash Community", uri: "https://mainnet.lightwalletd.com:9067" },
+    { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
+    { name: "BitcoinZ Local", uri: "http://localhost:9067" },
+    { name: "BitcoinZ Community", uri: "http://localhost:9067" },
   ];
 
   return (

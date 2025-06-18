@@ -2,7 +2,7 @@
 import React, { Component } from "react";
 import { Info, RPCConfig } from "./AppState";
 import cstyles from "./Common.module.css";
-import styles from "./Zcashd.module.css";
+import styles from "./Bitcoinzd.module.css";
 import ScrollPane from "./ScrollPane";
 import Heart from "../assets/img/zcashdlogo.gif";
 
@@ -26,7 +26,7 @@ type Props = {
   openServerSelectModal: () => void;
 };
 
-export default class Zcashd extends Component<Props> {
+export default class Bitcoinzd extends Component<Props> {
   render() {
     const { info, rpcConfig, refresh, openServerSelectModal } = this.props;
     const { url } = rpcConfig;
@@ -65,7 +65,7 @@ export default class Zcashd extends Component<Props> {
                   <DetailLine label="Lightwallet Server" value={url} />
                   <DetailLine label="Network" value={info.testnet ? "Testnet" : "Mainnet"} />
                   <DetailLine label="Block Height" value={height} />
-                  <DetailLine label="BTCZ Price" value={`USD ${info.zecPrice.toFixed(2)}`} />
+                  <DetailLine label="BTCZ Price" value={`USD ${info.btczPrice.toFixed(2)}`} />
                 </div>
               </div>
 

@@ -23,7 +23,7 @@ export default class RPC {
   fnSetAddressesWithBalance: (abs: AddressBalance[]) => void;
   fnSetTransactionsList: (t: Transaction[]) => void;
   fnSetAllAddresses: (a: AddressDetail[]) => void;
-  fnSetZecPrice: (p?: number) => void;
+  fnSetBtczPrice: (p?: number) => void;
   fnSetWalletSettings: (settings: WalletSettings) => void;
   refreshTimerID?: NodeJS.Timeout;
   updateTimerId?: NodeJS.Timeout;
@@ -39,7 +39,7 @@ export default class RPC {
     fnSetTransactionsList: (t: Transaction[]) => void,
     fnSetAllAddresses: (a: AddressDetail[]) => void,
     fnSetInfo: (info: Info) => void,
-    fnSetZecPrice: (p?: number) => void,
+    fnSetBtczPrice: (p?: number) => void,
     fnSetWalletSettings: (settings: WalletSettings) => void
   ) {
     this.fnSetTotalBalance = fnSetTotalBalance;
@@ -47,7 +47,7 @@ export default class RPC {
     this.fnSetTransactionsList = fnSetTransactionsList;
     this.fnSetAllAddresses = fnSetAllAddresses;
     this.fnSetInfo = fnSetInfo;
-    this.fnSetZecPrice = fnSetZecPrice;
+    this.fnSetBtczPrice = fnSetBtczPrice;
     this.fnSetWalletSettings = fnSetWalletSettings;
     this.lastBlockHeight = 0;
 
@@ -202,7 +202,7 @@ export default class RPC {
       info.version = `${infoJSON.vendor}/${infoJSON.git_commit.substring(0, 6)}/${infoJSON.version}`;
       info.zcashdVersion = infoJSON.zcashd_version;
       info.verificationProgress = 1;
-      info.currencyName = info.testnet ? "TAZ" : "ZEC";
+      info.currencyName = info.testnet ? "TBTCZ" : "BTCZ";
       info.solps = 0;
 
       const encStatus = native.litelib_execute("encryptionstatus", "");
@@ -417,7 +417,7 @@ export default class RPC {
       transaction.amount = tx.amount / 10 ** 8;
       transaction.confirmations = tx.unconfirmed ? 0 : latestBlockHeight - tx.block_height + 1;
       transaction.txid = tx.txid;
-      transaction.zecPrice = tx.zec_price;
+      transaction.btczPrice = tx.zec_price;
       transaction.time = tx.datetime;
       transaction.position = tx.position;
 
@@ -658,7 +658,7 @@ export default class RPC {
 
     const resultJSON = JSON.parse(resultStr);
     if (resultJSON.zec_price) {
-      this.fnSetZecPrice(resultJSON.zec_price);
+      this.fnSetBtczPrice(resultJSON.zec_price);
     }
   }
 }

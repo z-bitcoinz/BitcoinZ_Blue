@@ -15,7 +15,7 @@ import Logo from "../assets/img/logobig.png";
 import { AddressDetail, Info, Transaction, WalletSettings } from "./AppState";
 import Utils from "../utils/utils";
 import RPC from "../rpc";
-import { parseZcashURI, ZcashURITarget } from "../utils/uris";
+import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
 import WalletSettingsModal from "./WalletSettingsModal";
 
 const { ipcRenderer, remote } = window.require("electron");
@@ -227,7 +227,7 @@ type Props = {
   transactions: Transaction[];
   setInfo: (info: Info) => void;
   clearTimers: () => void;
-  setSendTo: (targets: ZcashURITarget[] | ZcashURITarget) => void;
+  setSendTo: (targets: BitcoinzURITarget[] | BitcoinzURITarget) => void;
   getPrivKeyAsString: (address: string) => string;
   importPrivKeys: (keys: string[], birthday: string) => Promise<boolean>;
   openErrorModal: (title: string, body: string | ReactElement) => void;
@@ -313,7 +313,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       const { info } = this.props;
 
       setSendTo(
-        new ZcashURITarget(
+        new BitcoinzURITarget(
           Utils.getDonationAddress(info.testnet),
           Utils.getDefaultDonationAmount(info.testnet),
           Utils.getDefaultDonationMemo(info.testnet)
@@ -381,7 +381,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
               // Add a single quote "'" into the memo field to force interpretation as a string, rather than as a
               // formula from a rogue memo
               const escapedMemo = dt.memo ? `'${dt.memo.replace(/"/g, '""')}'` : "";
-              const price = t.zecPrice ? t.zecPrice.toFixed(2) : "--";
+              const price = t.btczPrice ? t.btczPrice.toFixed(2) : "--";
 
               return `${t.time},"${normaldate}","${t.txid}","${t.type}",${dt.amount},"${dt.address}","${price}","${escapedMemo}"`;
             });
@@ -655,7 +655,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       return;
     }
 
-    const parsedUri = parseZcashURI(uri);
+    const parsedUri = parseBitcoinzURI(uri);
     if (typeof parsedUri === "string") {
       openErrorModal(errTitle, getErrorBody(parsedUri));
       return;

@@ -29,7 +29,7 @@ import ArrowUpLight from "../assets/img/arrow_up_dark.png";
 import { BalanceBlockHighlight } from "./BalanceBlocks";
 import RPC from "../rpc";
 import routes from "../constants/routes.json";
-import { parseZcashURI, ZcashURITarget } from "../utils/uris";
+import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
 
 type OptionType = {
   value: string;
@@ -42,7 +42,7 @@ const Spacer = () => {
 
 type ToAddrBoxProps = {
   toaddr: ToAddr;
-  zecPrice: number;
+  btczPrice: number;
   updateToField: (
     id: number,
     address: React.ChangeEvent<HTMLInputElement> | null,
@@ -57,7 +57,7 @@ type ToAddrBoxProps = {
 };
 const ToAddrBox = ({
   toaddr,
-  zecPrice,
+  btczPrice,
   updateToField,
   fromAddress,
   fromAmount,
@@ -101,7 +101,7 @@ const ToAddrBox = ({
     setSendButtonEnable(buttonstate);
   }, 10);
 
-  const usdValue = Utils.getZecToUsdString(zecPrice, toaddr.amount);
+  const usdValue = Utils.getBtczToUsdString(btczPrice, toaddr.amount);
 
   const addReplyTo = () => {
     if (toaddr.memo.endsWith(fromAddress)) {
@@ -227,7 +227,7 @@ type ConfirmModalToAddrProps = {
   info: Info;
 };
 const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
-  const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(toaddr.amount);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(toaddr.amount);
 
   const memo: string = toaddr.memo ? toaddr.memo : "";
 
@@ -243,10 +243,10 @@ const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
               <span>
                 {info.currencyName} {bigPart}
               </span>
-              <span className={[cstyles.small, styles.zecsmallpart].join(" ")}>{smallPart}</span>
+              <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
             </div>
           </div>
-          <div>{Utils.getZecToUsdString(info.zecPrice, toaddr.amount)}</div>
+          <div>{Utils.getBtczToUsdString(info.btczPrice, toaddr.amount)}</div>
         </div>
       </div>
       <div className={[cstyles.sublight, cstyles.breakword, cstyles.memodiv].join(" ")}>{memo}</div>
@@ -281,7 +281,7 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
 }) => {
   const defaultFee = RPC.getDefaultFee();
   const sendingTotal = sendPageState.toaddrs.reduce((s, t) => s + t.amount, 0.0) + defaultFee;
-  const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(sendingTotal);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(sendingTotal);
 
   // Determine the tx privacy level
   let privacyLevel = "";
@@ -376,10 +376,10 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
                 <span>
                   {info.currencyName} {bigPart}
                 </span>
-                <span className={[cstyles.small, styles.zecsmallpart].join(" ")}>{smallPart}</span>
+                <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
               </div>
 
-              <div className={cstyles.normal}>{Utils.getZecToUsdString(info.zecPrice, sendingTotal)}</div>
+              <div className={cstyles.normal}>{Utils.getBtczToUsdString(info.btczPrice, sendingTotal)}</div>
             </div>
           </div>
         </div>
@@ -426,7 +426,7 @@ type Props = {
   totalBalance: TotalBalance;
   addressBook: AddressBookEntry[];
   sendPageState: SendPageState;
-  setSendTo: (targets: ZcashURITarget[] | ZcashURITarget) => void;
+  setSendTo: (targets: BitcoinzURITarget[] | BitcoinzURITarget) => void;
   sendTransaction: (sendJson: SendManyJson[], setSendProgress: (p?: SendProgress) => void) => Promise<string>;
   setSendPageState: (sendPageState: SendPageState) => void;
   openErrorModal: (title: string, body: string) => void;
@@ -501,7 +501,7 @@ export default class Send extends PureComponent<Props, SendState> {
     if (address) {
       // First, check if this is a URI
       // $FlowFixMe
-      const parsedUri = parseZcashURI(address.target.value);
+      const parsedUri = parseBitcoinzURI(address.target.value);
       if (Array.isArray(parsedUri)) {
         setSendTo(parsedUri);
         return;
@@ -626,14 +626,14 @@ export default class Send extends PureComponent<Props, SendState> {
             <BalanceBlockHighlight
               topLabel="Spendable Funds"
               zecValue={totalAmountAvailable}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalAmountAvailable)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalAmountAvailable)}
               currencyName={info.currencyName}
               tooltip={tooltip}
             />
             <BalanceBlockHighlight
               topLabel="All Funds"
               zecValue={totalBalance.total}
-              usdValue={Utils.getZecToUsdString(info.zecPrice, totalBalance.total)}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
           </div>
@@ -644,7 +644,7 @@ export default class Send extends PureComponent<Props, SendState> {
                 <ToAddrBox
                   key={toaddr.id}
                   toaddr={toaddr}
-                  zecPrice={info.zecPrice}
+                  btczPrice={info.btczPrice}
                   updateToField={this.updateToField}
                   fromAddress={fromaddr}
                   fromAmount={totalAmountAvailable}

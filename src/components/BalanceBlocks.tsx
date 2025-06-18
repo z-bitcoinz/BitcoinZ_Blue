@@ -10,7 +10,7 @@ type BalanceBlockType = {
   tooltip?: string;
 };
 export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyName, tooltip }: BalanceBlockType) => {
-  const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(zecValue);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(zecValue);
 
   return (
     <div style={{ padding: "1em" }} title={tooltip}>
@@ -30,7 +30,7 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
         <span>
           {currencyName} {bigPart}
         </span>
-        <span className={[cstyles.small, cstyles.zecsmallpart].join(" ")}>{smallPart}</span>
+        <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
       </div>
       <div className={[cstyles.sublight, cstyles.small].join(" ")}>{usdValue}</div>
     </div>
@@ -38,7 +38,7 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
 };
 
 export const BalanceBlock = ({ zecValue, usdValue, topLabel, currencyName }: BalanceBlockType) => {
-  const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(zecValue);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(zecValue);
 
   return (
     <div className={cstyles.padall}>
@@ -47,7 +47,7 @@ export const BalanceBlock = ({ zecValue, usdValue, topLabel, currencyName }: Bal
         <span>
           {currencyName} {bigPart}
         </span>
-        <span className={[cstyles.small, cstyles.zecsmallpart].join(" ")}>{smallPart}</span>
+        <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
       </div>
       <div className={[cstyles.sublight, cstyles.small].join(" ")}>{usdValue}</div>
     </div>

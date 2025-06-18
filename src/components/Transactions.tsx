@@ -11,7 +11,7 @@ import cstyles from "./Common.module.css";
 import { Transaction, Info, AddressBookEntry, TxDetail } from "./AppState";
 import ScrollPane from "./ScrollPane";
 import Utils from "../utils/utils";
-import { ZcashURITarget } from "../utils/uris";
+import { BitcoinzURITarget } from "../utils/uris";
 import routes from "../constants/routes.json";
 import RPC from "../rpc";
 
@@ -22,7 +22,7 @@ type TxModalInternalProps = {
   closeModal: () => void;
   tx?: Transaction;
   currencyName: string;
-  setSendTo: (targets: ZcashURITarget | ZcashURITarget[]) => void;
+  setSendTo: (targets: BitcoinzURITarget | BitcoinzURITarget[]) => void;
 };
 
 const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
@@ -62,7 +62,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
     confirmations = tx.confirmations;
     detailedTxns = tx.detailedTxns;
     amount = Math.abs(tx.amount);
-    price = tx.zecPrice;
+    price = tx.btczPrice;
     if (price) {
       priceString = `USD ${price.toFixed(2)} / ZEC`;
     }
@@ -78,7 +78,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
 
   const doReply = (address: string) => {
     const defaultFee = RPC.getDefaultFee();
-    setSendTo(new ZcashURITarget(address, defaultFee));
+    setSendTo(new BitcoinzURITarget(address, defaultFee));
     closeModal();
 
     history.push(routes.SEND);
@@ -106,7 +106,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
           {type}
           <BalanceBlockHighlight
             zecValue={amount}
-            usdValue={Utils.getZecToUsdString(price, Math.abs(amount))}
+            usdValue={Utils.getBtczToUsdString(price, Math.abs(amount))}
             currencyName={currencyName}
           />
         </div>
@@ -150,7 +150,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
         <hr />
 
         {detailedTxns.map((txdetail) => {
-          const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
+          const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
 
           let { address } = txdetail;
           const { memo } = txdetail;
@@ -181,9 +181,9 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
                     <span>
                       {currencyName} {bigPart}
                     </span>
-                    <span className={[cstyles.small, cstyles.zecsmallpart].join(" ")}>{smallPart}</span>
+                    <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
                   </div>
-                  <div>{Utils.getZecToUsdString(price, Math.abs(amount))}</div>
+                  <div>{Utils.getBtczToUsdString(price, Math.abs(amount))}</div>
                 </div>
                 <div className={[cstyles.verticalflex, cstyles.margintoplarge].join(" ")}>
                   <div className={[cstyles.sublight].join(" ")}>{priceString}</div>
@@ -226,11 +226,11 @@ const TxModal = withRouter(TxModalInternal);
 type TxItemBlockProps = {
   transaction: Transaction;
   currencyName: string;
-  zecPrice: number;
+  btczPrice: number;
   txClicked: (tx: Transaction) => void;
   addressBookMap: Map<string, string>;
 };
-const TxItemBlock = ({ transaction, currencyName, zecPrice, txClicked, addressBookMap }: TxItemBlockProps) => {
+const TxItemBlock = ({ transaction, currencyName, btczPrice, txClicked, addressBookMap }: TxItemBlockProps) => {
   const txDate = new Date(transaction.time * 1000);
   const datePart = dateformat(txDate, "mmm dd, yyyy");
   const timePart = dateformat(txDate, "hh:MM tt");
@@ -250,7 +250,7 @@ const TxItemBlock = ({ transaction, currencyName, zecPrice, txClicked, addressBo
         </div>
         <div className={styles.txaddressamount}>
           {transaction.detailedTxns.map((txdetail) => {
-            const { bigPart, smallPart } = Utils.splitZecAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
+            const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
 
             let { address } = txdetail;
             const { memo } = txdetail;
@@ -283,10 +283,10 @@ const TxItemBlock = ({ transaction, currencyName, zecPrice, txClicked, addressBo
                     <span>
                       {currencyName} {bigPart}
                     </span>
-                    <span className={[cstyles.small, cstyles.zecsmallpart].join(" ")}>{smallPart}</span>
+                    <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
                   </div>
                   <div className={[cstyles.sublight, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                    {Utils.getZecToUsdString(zecPrice, Math.abs(parseFloat(txdetail.amount)))}
+                    {Utils.getBtczToUsdString(btczPrice, Math.abs(parseFloat(txdetail.amount)))}
                   </div>
                 </div>
               </div>
@@ -302,7 +302,7 @@ type Props = {
   transactions: Transaction[];
   addressBook: AddressBookEntry[];
   info: Info;
-  setSendTo: (targets: ZcashURITarget[] | ZcashURITarget) => void;
+  setSendTo: (targets: BitcoinzURITarget[] | BitcoinzURITarget) => void;
 };
 
 type State = {
@@ -367,7 +367,7 @@ export default class Transactions extends Component<Props, State> {
                   key={key}
                   transaction={t}
                   currencyName={info.currencyName}
-                  zecPrice={info.zecPrice}
+                  btczPrice={info.btczPrice}
                   txClicked={this.txClicked}
                   addressBookMap={addressBookMap}
                 />
