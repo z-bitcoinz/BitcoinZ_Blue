@@ -32,6 +32,8 @@ export default class RPC {
 
   lastBlockHeight: number;
   lastTxId?: string;
+  lastBalance?: number;
+  lastTxCount?: number;
 
   constructor(
     fnSetTotalBalance: (tb: TotalBalance) => void,
@@ -50,6 +52,8 @@ export default class RPC {
     this.fnSetBtczPrice = fnSetBtczPrice;
     this.fnSetWalletSettings = fnSetWalletSettings;
     this.lastBlockHeight = 0;
+    this.lastBalance = undefined;
+    this.lastTxCount = undefined;
 
     this.refreshTimerID = undefined;
     this.updateTimerId = undefined;
@@ -126,12 +130,31 @@ export default class RPC {
     this.updateDataLock = true;
     const latest_txid = RPC.getLastTxid();
 
-    if (this.lastTxId !== latest_txid) {
-      console.log(`🔄 NEW TRANSACTION DETECTED! Latest: ${latest_txid}, prev = ${this.lastTxId}`);
+    // Also check balance and transaction count for better detection
+    const balanceStr = native.litelib_execute("balance", "");
+    const balanceJSON = JSON.parse(balanceStr);
+    const currentBalance = balanceJSON.tbalance + balanceJSON.zbalance;
+
+    const listStr = native.litelib_execute("list", "");
+    const listJSON = JSON.parse(listStr);
+    const currentTxCount = listJSON.length;
+
+    // Detect changes in txid, balance, or transaction count
+    const txidChanged = this.lastTxId !== latest_txid;
+    const balanceChanged = this.lastBalance !== currentBalance;
+    const txCountChanged = this.lastTxCount !== currentTxCount;
+
+    if (txidChanged || balanceChanged || txCountChanged) {
+      console.log(`🔄 CHANGE DETECTED!`);
+      console.log(`   TxID: ${this.lastTxId} → ${latest_txid} (changed: ${txidChanged})`);
+      console.log(`   Balance: ${this.lastBalance} → ${currentBalance} (changed: ${balanceChanged})`);
+      console.log(`   Tx Count: ${this.lastTxCount} → ${currentTxCount} (changed: ${txCountChanged})`);
 
       const latestBlockHeight = await this.fetchInfo();
       this.lastBlockHeight = latestBlockHeight;
       this.lastTxId = latest_txid;
+      this.lastBalance = currentBalance;
+      this.lastTxCount = currentTxCount;
 
       console.log("📊 Fetching updated balance and transactions...");
 
@@ -143,7 +166,7 @@ export default class RPC {
 
       console.log(`✅ Finished updating data at block ${latestBlockHeight}`);
     } else {
-      console.log(`⏳ No new transactions (txid: ${latest_txid})`);
+      console.log(`⏳ No changes detected (txid: ${latest_txid}, balance: ${currentBalance}, txs: ${currentTxCount})`);
     }
     this.updateDataLock = false;
   }
