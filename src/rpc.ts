@@ -305,17 +305,7 @@ export default class RPC {
       pendingAddressBalances.set(s.address, s.value);
     });
 
-    // Addresses with Balance. The lite client reports balances in zatoshi, so divide by 10^8;
-    const oaddresses = balanceJSON.ua_addresses
-      .map((o: any) => {
-        // If this has any unconfirmed txns, show that in the UI
-        const ab = new AddressBalance(o.address, o.balance / 10 ** 8);
-        if (pendingAddressBalances.has(ab.address)) {
-          ab.containsPending = true;
-        }
-        return ab;
-      })
-      .filter((ab: AddressBalance) => ab.balance > 0);
+    // BitcoinZ doesn't support Unified addresses, so we skip ua_addresses
 
     const zaddresses = balanceJSON.z_addresses
       .map((o: any) => {
@@ -339,17 +329,16 @@ export default class RPC {
       })
       .filter((ab: AddressBalance) => ab.balance > 0);
 
-    const addresses = oaddresses.concat(zaddresses.concat(taddresses));
+    const addresses = zaddresses.concat(taddresses);
 
     this.fnSetAddressesWithBalance(addresses);
 
-    // Also set all addresses
-    const allOAddresses = balanceJSON.ua_addresses.map((o: any) => new AddressDetail(o.address, AddressType.unified));
+    // Also set all addresses (BitcoinZ doesn't support Unified addresses)
     const allZAddresses = balanceJSON.z_addresses.map((o: any) => new AddressDetail(o.address, AddressType.sapling));
     const allTAddresses = balanceJSON.t_addresses.map(
       (o: any) => new AddressDetail(o.address, AddressType.transparent)
     );
-    const allAddresses = allOAddresses.concat(allZAddresses.concat(allTAddresses));
+    const allAddresses = allZAddresses.concat(allTAddresses);
 
     this.fnSetAllAddresses(allAddresses);
   }
@@ -376,9 +365,14 @@ export default class RPC {
   }
 
   static createNewAddress(type: AddressType) {
+    // BitcoinZ doesn't support Unified addresses
+    if (type === AddressType.unified) {
+      throw new Error("BitcoinZ does not support Unified addresses");
+    }
+
     const addrStr = native.litelib_execute(
       "new",
-      type === AddressType.unified ? "u" : type === AddressType.sapling ? "z" : "t"
+      type === AddressType.sapling ? "z" : "t"
     );
     const addrJSON = JSON.parse(addrStr);
 

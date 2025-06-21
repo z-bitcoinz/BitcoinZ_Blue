@@ -5,7 +5,7 @@ import { ErrorModalData } from "./ErrorModal";
 export enum AddressType {
   transparent,
   sapling,
-  unified,
+  // BitcoinZ does not support unified addresses
 }
 
 export class TotalBalance {

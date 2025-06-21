@@ -65,10 +65,10 @@ const ToAddrBox = ({
   setSendButtonEnable,
   totalAmountAvailable,
 }: ToAddrBoxProps) => {
-  const isMemoDisabled = !(Utils.isZaddr(toaddr.to) || Utils.isUnified(toaddr.to));
+  const isMemoDisabled = !Utils.isZaddr(toaddr.to);
 
   const addressIsValid =
-    toaddr.to === "" || Utils.isUnified(toaddr.to) || Utils.isZaddr(toaddr.to) || Utils.isTransparent(toaddr.to);
+    toaddr.to === "" || Utils.isZaddr(toaddr.to) || Utils.isTransparent(toaddr.to);
 
   let amountError = null;
   if (toaddr.amount) {
