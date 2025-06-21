@@ -64,7 +64,7 @@ export default class RPC {
     }
 
     if (!this.updateTimerId) {
-      this.updateTimerId = setInterval(() => this.updateData(), 3 * 1000); // 3 secs
+      this.updateTimerId = setInterval(() => this.updateData(), 1 * 1000); // 1 sec - faster updates for T address transactions
     }
 
     // Immediately call the refresh after configure to update the UI
@@ -117,9 +117,9 @@ export default class RPC {
   }
 
   async updateData() {
-    //console.log("Update data triggered");
+    console.log(`[${new Date().toISOString()}] Update data triggered`);
     if (this.updateDataLock) {
-      //console.log("Update lock, returning");
+      console.log("Update lock active, returning");
       return;
     }
 
@@ -127,13 +127,13 @@ export default class RPC {
     const latest_txid = RPC.getLastTxid();
 
     if (this.lastTxId !== latest_txid) {
-      console.log(`Latest: ${latest_txid}, prev = ${this.lastTxId}`);
+      console.log(`🔄 NEW TRANSACTION DETECTED! Latest: ${latest_txid}, prev = ${this.lastTxId}`);
 
       const latestBlockHeight = await this.fetchInfo();
       this.lastBlockHeight = latestBlockHeight;
       this.lastTxId = latest_txid;
 
-      //console.log("Update data fetching new txns");
+      console.log("📊 Fetching updated balance and transactions...");
 
       // And fetch the rest of the data.
       this.fetchTotalBalance();
@@ -141,7 +141,9 @@ export default class RPC {
       this.getZecPrice();
       this.fetchWalletSettings();
 
-      //console.log(`Finished update data at ${latestBlockHeight}`);
+      console.log(`✅ Finished updating data at block ${latestBlockHeight}`);
+    } else {
+      console.log(`⏳ No new transactions (txid: ${latest_txid})`);
     }
     this.updateDataLock = false;
   }
@@ -410,6 +412,11 @@ export default class RPC {
       transaction.type = type;
       transaction.amount = tx.amount / 10 ** 8;
       transaction.confirmations = tx.unconfirmed ? 0 : latestBlockHeight - tx.block_height + 1;
+
+      // Log unconfirmed transactions for debugging
+      if (tx.unconfirmed) {
+        console.log(`🔄 UNCONFIRMED TRANSACTION: ${tx.txid} - ${transaction.type} ${transaction.amount} BTCZ to ${transaction.address}`);
+      }
       transaction.txid = tx.txid;
       transaction.btczPrice = tx.zec_price;
       transaction.time = tx.datetime;
