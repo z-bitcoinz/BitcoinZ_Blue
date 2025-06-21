@@ -15,8 +15,8 @@ export default class Utils {
   static V3_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
 
   static isUnified(addr: string): boolean {
-    if (!addr) return false;
-    return addr.startsWith("u");
+    // BitcoinZ does not support Unified addresses
+    return false;
   }
 
   static isSapling(addr: string): boolean {

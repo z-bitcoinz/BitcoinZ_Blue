@@ -202,19 +202,7 @@ export default class Receive extends Component<Props> {
       return m;
     }, new Map());
 
-    const uaddrs = addresses
-      .filter((a) => a.type === AddressType.unified)
-      .slice(0, 100)
-      .map((a) => new AddressBalance(a.address, addressMap.get(a.address) || 0));
-    let defaultUaddr = uaddrs.length ? uaddrs[0].address : "";
-    if (receivePageState && Utils.isUnified(receivePageState.newAddress)) {
-      defaultUaddr = receivePageState.newAddress;
-
-      // move this address to the front, since the scrollbar will reset when we re-render
-      uaddrs.sort((x, y) => {
-        return x.address === defaultUaddr ? -1 : y.address === defaultUaddr ? 1 : 0;
-      });
-    }
+    // BitcoinZ does not support Unified addresses - removed uaddrs logic
 
     const zaddrs = addresses
       .filter((a) => Utils.isSapling(a.address))
@@ -259,41 +247,12 @@ export default class Receive extends Component<Props> {
         <div className={styles.receivecontainer}>
           <Tabs>
             <TabList>
-              <Tab>Unified</Tab>
               <Tab>Shielded</Tab>
               <Tab>Transparent</Tab>
             </TabList>
 
-            <TabPanel key={`ua${rerenderKey}`}>
-              <ScrollPane offsetHeight={100}>
-                <Accordion preExpanded={[defaultUaddr]}>
-                  {uaddrs.map((a) => (
-                    <AddressBlock
-                      key={a.address}
-                      addressBalance={a}
-                      currencyName={info.currencyName}
-                      label={addressBookMap.get(a.address)}
-                      btczPrice={info.btczPrice}
-                      privateKey={addressPrivateKeys.get(a.address)}
-                      viewKey={addressViewKeys.get(a.address)}
-                      fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
-                      fetchAndSetSingleViewKey={fetchAndSetSingleViewKey}
-                    />
-                  ))}
-                </Accordion>
-
-                <button
-                  className={[cstyles.primarybutton, cstyles.margintoplarge, cstyles.marginbottomlarge].join(" ")}
-                  onClick={() => createNewAddress(AddressType.unified)}
-                  type="button"
-                >
-                  New Unified Address
-                </button>
-              </ScrollPane>
-            </TabPanel>
-
             <TabPanel key={`z${rerenderKey}`}>
-              {/* Change the hardcoded height */}
+              {/* Shielded (Z) Addresses */}
               <ScrollPane offsetHeight={100}>
                 <Accordion preExpanded={[defaultZaddr]}>
                   {zaddrs.map((a) => (
@@ -316,7 +275,7 @@ export default class Receive extends Component<Props> {
                   onClick={() => createNewAddress(AddressType.sapling)}
                   type="button"
                 >
-                  New Sapling Address
+                  New Shielded Address
                 </button>
               </ScrollPane>
             </TabPanel>
