@@ -365,16 +365,16 @@ export default class RPC {
   }
 
   static createNewAddress(type: AddressType) {
-    // BitcoinZ doesn't support Unified addresses
-    if (type === AddressType.unified) {
-      throw new Error("BitcoinZ does not support Unified addresses");
-    }
+    console.log(`RPC.createNewAddress called with type: ${type}, AddressType.sapling: ${AddressType.sapling}`);
+    // BitcoinZ only supports transparent and sapling addresses
+    const addressTypeStr = type === AddressType.sapling ? "z" : "t";
+    console.log(`Creating address with type string: ${addressTypeStr}`);
 
-    const addrStr = native.litelib_execute(
-      "new",
-      type === AddressType.sapling ? "z" : "t"
-    );
+    const addrStr = native.litelib_execute("new", addressTypeStr);
+    console.log(`Native module returned: ${addrStr}`);
+
     const addrJSON = JSON.parse(addrStr);
+    console.log(`Parsed address JSON:`, addrJSON);
 
     return addrJSON[0];
   }
