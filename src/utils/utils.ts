@@ -5,14 +5,14 @@ export const NO_CONNECTION: string = "Could not connect to bitcoinzd";
 
 export default class Utils {
   // BitcoinZ LightwalletD servers
-  // For now, we'll use localhost since we're running our own
-  static V1_LIGHTWALLETD: string = "http://localhost:9067";
+  // Now using proper HTTPS with valid SSL certificates
+  static V1_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
 
   // v2 LightwalletD
-  static V2_LIGHTWALLETD: string = "http://localhost:9067";
+  static V2_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
 
-  // v3 LightwalletD  
-  static V3_LIGHTWALLETD: string = "http://localhost:9067";
+  // v3 LightwalletD
+  static V3_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
 
   static isUnified(addr: string): boolean {
     if (!addr) return false;

@@ -40,7 +40,8 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
   const servers = [
     { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
     { name: "BitcoinZ Local", uri: "http://localhost:9067" },
-    { name: "BitcoinZ Community", uri: "http://localhost:9067" },
+    { name: "BitcoinZ Community (9067)", uri: "https://lightd.btcz.rocks:9067" },
+    { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
   ];
 
   return (
