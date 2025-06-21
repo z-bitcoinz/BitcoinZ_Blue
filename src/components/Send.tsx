@@ -614,7 +614,10 @@ export default class Send extends PureComponent<Props, SendState> {
     // If there are unverified funds, then show a tooltip
     let tooltip: string = "";
     if (totalBalance.unverifiedZ) {
-      tooltip = `Waiting for confirmation of ZEC ${totalBalance.unverifiedZ} with 5 blocks (approx 6 minutes)`;
+      tooltip = `Waiting for confirmation of ${totalBalance.unverifiedZ} BTCZ with 1 block (approx 1-2 minutes)`;
+    }
+    if (totalBalance.totalPending > 0) {
+      tooltip += (tooltip ? " | " : "") + `${totalBalance.totalPending} BTCZ pending confirmation`;
     }
 
     return (
@@ -631,11 +634,19 @@ export default class Send extends PureComponent<Props, SendState> {
               tooltip={tooltip}
             />
             <BalanceBlockHighlight
-              topLabel="All Funds"
+              topLabel="Total Balance"
               zecValue={totalBalance.total}
               usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
+            {totalBalance.totalPending > 0 && (
+              <BalanceBlockHighlight
+                topLabel="Pending"
+                zecValue={totalBalance.totalPending}
+                usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalPending)}
+                currencyName={info.currencyName}
+              />
+            )}
           </div>
 
           <ScrollPane className={cstyles.containermargin} offsetHeight={320}>

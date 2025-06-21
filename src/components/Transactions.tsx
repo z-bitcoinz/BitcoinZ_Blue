@@ -128,7 +128,12 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
 
           <div>
             <div className={[cstyles.sublight].join(" ")}>Confirmations</div>
-            <div>{confirmations}</div>
+            <div>
+              {confirmations}
+              {confirmations === 0 && (
+                <span className={[cstyles.orange, cstyles.small].join(" ")}> (pending)</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -245,8 +250,18 @@ const TxItemBlock = ({ transaction, currencyName, btczPrice, txClicked, addressB
         }}
       >
         <div className={styles.txtype}>
-          <div>{transaction.type}</div>
-          <div className={[cstyles.padtopsmall, cstyles.sublight].join(" ")}>{timePart}</div>
+          <div>
+            {transaction.type}
+            {transaction.confirmations === 0 && (
+              <span className={[cstyles.orange, cstyles.small].join(" ")}> (pending)</span>
+            )}
+          </div>
+          <div className={[cstyles.padtopsmall, cstyles.sublight].join(" ")}>
+            {timePart}
+            {transaction.confirmations === 0 && (
+              <div className={[cstyles.orange, cstyles.small].join(" ")}>⏳ Unconfirmed</div>
+            )}
+          </div>
         </div>
         <div className={styles.txaddressamount}>
           {transaction.detailedTxns.map((txdetail) => {

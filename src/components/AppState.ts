@@ -30,6 +30,18 @@ export class TotalBalance {
   // Total unconfirmed + spendable
   total: number;
 
+  // Pending/unconfirmed transparent balance
+  pendingTransparent: number;
+
+  // Pending/unconfirmed shielded balance
+  pendingShielded: number;
+
+  // Total pending balance (transparent + shielded)
+  totalPending: number;
+
+  // Total confirmed balance (excluding pending)
+  totalConfirmed: number;
+
   constructor() {
     this.uabalance = 0;
     this.zbalance = 0;
@@ -38,6 +50,10 @@ export class TotalBalance {
     this.unverifiedZ = 0;
     this.spendableZ = 0;
     this.total = 0;
+    this.pendingTransparent = 0;
+    this.pendingShielded = 0;
+    this.totalPending = 0;
+    this.totalConfirmed = 0;
   }
 }
 
