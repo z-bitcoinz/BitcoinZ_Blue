@@ -304,6 +304,29 @@ export default class RPC {
     const balanceStr = native.litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
 
+    // Get unconfirmed transactions to calculate pending balances
+    const listStr = native.litelib_execute("list", "");
+    const listJSON = JSON.parse(listStr);
+    const unconfirmedTxs = listJSON.filter((tx: any) => tx.unconfirmed);
+
+    // Calculate pending balances from unconfirmed transactions
+    let pendingTransparent = 0;
+    let pendingShielded = 0;
+
+    unconfirmedTxs.forEach((tx: any) => {
+      const amount = tx.amount / 10 ** 8;
+      const isReceived = !tx.outgoing_metadata;
+
+      if (isReceived && amount > 0) {
+        // Incoming unconfirmed transaction
+        if (tx.address && (tx.address.startsWith('t1') || tx.address.startsWith('t3'))) {
+          pendingTransparent += amount;
+        } else if (tx.address && tx.address.startsWith('zs1')) {
+          pendingShielded += amount;
+        }
+      }
+    });
+
     // Total Balance
     const balance = new TotalBalance();
     balance.uabalance = balanceJSON.uabalance / 10 ** 8;
@@ -312,7 +335,18 @@ export default class RPC {
     balance.verifiedZ = balanceJSON.verified_zbalance / 10 ** 8;
     balance.unverifiedZ = balanceJSON.unverified_zbalance / 10 ** 8;
     balance.spendableZ = balanceJSON.spendable_zbalance / 10 ** 8;
+
+    // Set pending balances
+    balance.pendingTransparent = pendingTransparent;
+    balance.pendingShielded = pendingShielded;
+    balance.totalPending = pendingTransparent + pendingShielded;
+
+    // Calculate confirmed balances (excluding pending)
+    balance.totalConfirmed = balance.transparent + balance.zbalance + balance.uabalance - balance.totalPending;
+
+    // Total includes both confirmed and pending
     balance.total = balance.uabalance + balance.zbalance + balance.transparent;
+
     this.fnSetTotalBalance(balance);
 
     // Fetch pending notes and UTXOs

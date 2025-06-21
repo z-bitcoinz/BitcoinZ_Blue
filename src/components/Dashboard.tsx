@@ -76,14 +76,29 @@ export default class Home extends Component<Props> {
         <div className={[cstyles.well, cstyles.containermargin].join(" ")}>
           <div className={cstyles.balancebox}>
             <BalanceBlockHighlight
+              topLabel="Total Balance"
               zecValue={totalBalance.total}
               usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
-              topLabel="Orchard"
-              zecValue={totalBalance.uabalance}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.uabalance)}
+              topLabel="Confirmed"
+              zecValue={totalBalance.totalConfirmed}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalConfirmed)}
+              currencyName={info.currencyName}
+            />
+            {totalBalance.totalPending > 0 && (
+              <BalanceBlock
+                topLabel="Pending"
+                zecValue={totalBalance.totalPending}
+                usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalPending)}
+                currencyName={info.currencyName}
+              />
+            )}
+            <BalanceBlock
+              topLabel="Transparent"
+              zecValue={totalBalance.transparent}
+              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.transparent)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
@@ -92,17 +107,18 @@ export default class Home extends Component<Props> {
               usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.zbalance)}
               currencyName={info.currencyName}
             />
-            <BalanceBlock
-              topLabel="Transparent"
-              zecValue={totalBalance.transparent}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.transparent)}
-              currencyName={info.currencyName}
-            />
           </div>
           <div>
+            {totalBalance.totalPending > 0 && (
+              <div className={[cstyles.orange, cstyles.small, cstyles.padtopsmall].join(" ")}>
+                ⏳ {totalBalance.totalPending.toFixed(8)} BTCZ pending confirmation
+                {totalBalance.pendingTransparent > 0 && ` (${totalBalance.pendingTransparent.toFixed(8)} transparent)`}
+                {totalBalance.pendingShielded > 0 && ` (${totalBalance.pendingShielded.toFixed(8)} shielded)`}
+              </div>
+            )}
             {anyPending && (
-              <div className={[cstyles.red, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                Some transactions are pending. Balances may change.
+              <div className={[cstyles.sublight, cstyles.small, cstyles.padtopsmall].join(" ")}>
+                Pending transactions will be confirmed in the next block (~1-2 minutes)
               </div>
             )}
           </div>

@@ -74,6 +74,10 @@
   color: yellow;
 }
 
+.orange {
+  color: #ff8c00;
+}
+
 .breakword {
   word-break: break-all;
 }
