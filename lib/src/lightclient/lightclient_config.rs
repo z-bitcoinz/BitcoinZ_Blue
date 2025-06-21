@@ -101,7 +101,7 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
             server: http::Uri::default(),
             chain_name: params.hrp_sapling_payment_address().to_string(),
             sapling_activation_height: 1,
-            monitor_mempool: false,
+            monitor_mempool: true, // Enable mempool monitoring for T address transaction detection
             anchor_offset: 1,
             data_dir: dir,
             params: params.clone(),
@@ -136,7 +136,7 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
             let config = LightClientConfig {
                 server: s,
                 chain_name,
-                monitor_mempool: false,
+                monitor_mempool: true, // Enable mempool monitoring for T address transaction detection
                 sapling_activation_height,
                 anchor_offset: DEFAULT_ANCHOR_OFFSET,
                 data_dir: data_dir,
