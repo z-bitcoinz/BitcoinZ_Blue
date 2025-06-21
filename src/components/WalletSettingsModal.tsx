@@ -47,7 +47,7 @@ export default function WalletSettingsModal({
               value="filter"
               onClick={(e) => setWalletSpamFilterThreshold(50)}
             />
-            Don't scan spammy transactions
+            Don't scan spammy transactions (may miss some T address transactions)
           </div>
 
           <div style={{ margin: "10px" }}>
@@ -58,7 +58,7 @@ export default function WalletSettingsModal({
               defaultChecked={selected === "no_filter"}
               onClick={(e) => setWalletSpamFilterThreshold(0)}
             />
-            Scan all transactions
+            Scan all transactions (recommended for T address monitoring)
           </div>
         </div>
 

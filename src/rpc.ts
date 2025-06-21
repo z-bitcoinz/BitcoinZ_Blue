@@ -245,9 +245,10 @@ export default class RPC {
       spam_filter_threshold = JSON.parse(spam_filter_str).spam_filter_threshold;
       // console.log(`Spam filter threshold: ${spam_filter_threshold}`);
 
-      // If it is -1, i.e., it was not set, then set it to 50
+      // If it is -1, i.e., it was not set, then set it to 0 for BitcoinZ (disable spam filter)
+      // BitcoinZ needs to detect all T address transactions for proper mempool monitoring
       if (spam_filter_threshold === "-1") {
-        await RPC.setWalletSettingOption("spam_filter_threshold", "50");
+        await RPC.setWalletSettingOption("spam_filter_threshold", "0");
       }
     } catch (e) {
       console.log(`Error getting spam filter threshold: ${e}`);
