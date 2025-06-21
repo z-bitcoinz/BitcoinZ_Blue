@@ -21,8 +21,9 @@ export default class Utils {
 
   static isSapling(addr: string): boolean {
     if (!addr) return false;
-    // BitcoinZ shielded addresses start with 'zc' (mainnet) or 'zt' (testnet)
-    return new RegExp("^zc[a-z0-9]{93}$").test(addr) || new RegExp("^zt[a-z0-9]{93}$").test(addr);
+    // BitcoinZ shielded addresses start with 'zs1' (mainnet) or 'ztestsapling1' (testnet)
+    // Total length is 78 characters: zs1 (3) + 75 characters
+    return new RegExp("^zs1[a-z0-9]{75}$").test(addr) || new RegExp("^ztestsapling1[a-z0-9]+$").test(addr);
   }
 
   static isSprout(addr: string): boolean {
