@@ -15,8 +15,8 @@ default-features = false
 features = ["napi-6"]
 
 [dependencies]
-# Using BitcoinZ-specific version of the wallet library
-zecwalletlitelib = { path = "/Users/mac/Code/old/zecwallet-light-cli-bitcoinz/lib" }
+# Using BitcoinZ-specific version of the wallet library (included in repo)
+zecwalletlitelib = { path = "../lib" }
 #zecwalletlitelib = { git = "https://github.com/adityapk00/zecwallet-light-cli" }
 #zecwalletlitelib = { path = "../../zecwallet-light-cli/lib" }
 lazy_static = "1.4.0"
