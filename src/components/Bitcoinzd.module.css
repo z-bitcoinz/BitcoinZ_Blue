@@ -4,30 +4,79 @@
   flex-direction: column;
 }
 
-.imgcontainer {
+.messagecontainer {
   width: 100%;
   text-align: center;
-  margin-top: 10%;
+  margin-top: 5%;
+  margin-bottom: 5%;
 }
 
-.imgcontainer img {
-  max-width: 500px;
+.freedomMessage {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.messageTitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.messageText {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.messageHighlight {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 20px;
+  margin-bottom: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .detailcontainer {
-  width: 50%;
+  width: 60%;
   flex-direction: column;
-  margin-left: 25%;
-  margin-top: 5%;
+  margin-left: 20%;
+  margin-top: 3%;
 }
 
 .detaillines {
-  border: 1px solid grey;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .detailline {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.detailline:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detailline > div {
+  font-size: 12px;
 }

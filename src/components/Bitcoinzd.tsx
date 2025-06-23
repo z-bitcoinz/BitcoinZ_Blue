@@ -4,7 +4,6 @@ import { Info, RPCConfig } from "./AppState";
 import cstyles from "./Common.module.css";
 import styles from "./Bitcoinzd.module.css";
 import ScrollPane from "./ScrollPane";
-import Heart from "../assets/img/zcashdlogo.gif";
 
 type DetailLineProps = {
   label: string;
@@ -54,8 +53,19 @@ export default class Bitcoinzd extends Component<Props> {
         <div>
           <div className={styles.container}>
             <ScrollPane offsetHeight={0}>
-              <div className={styles.imgcontainer}>
-                <img src={Heart} alt="heart" />
+              <div className={styles.messagecontainer}>
+                <div className={styles.freedomMessage}>
+                  <h2 className={styles.messageTitle}>Your Freedom. Your Privacy. Your Community.</h2>
+                  <p className={styles.messageText}>
+                    BitcoinZ: No middlemen. No banks. Just you and the decentralized network.
+                  </p>
+                  <p className={styles.messageText}>
+                    With zk-SNARKs technology, your funds stay yours—no freezing, no censorship, no compromise.
+                  </p>
+                  <p className={styles.messageHighlight}>
+                    Together, we build true financial freedom.
+                  </p>
+                </div>
               </div>
 
               <div className={styles.detailcontainer}>
