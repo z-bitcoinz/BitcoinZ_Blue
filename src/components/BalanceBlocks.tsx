@@ -28,7 +28,7 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
 
       <div className={[cstyles.highlight, cstyles.xlarge].join(" ")}>
         <span>
-          {currencyName} {bigPart}
+          {currencyName && `${currencyName} `}{bigPart}
         </span>
         <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
       </div>
@@ -45,7 +45,7 @@ export const BalanceBlock = ({ zecValue, usdValue, topLabel, currencyName }: Bal
       <div className={[cstyles.small].join(" ")}>{topLabel}</div>
       <div className={[cstyles.highlight, cstyles.large].join(" ")}>
         <span>
-          {currencyName} {bigPart}
+          {currencyName && `${currencyName} `}{bigPart}
         </span>
         <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
       </div>
