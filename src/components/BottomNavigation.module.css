@@ -1,0 +1,118 @@
+.bottomNavigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-color: #000;
+  border-top: 1px solid #333;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0;
+}
+
+.navItem {
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navItem:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.navButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  color: #6a6a6a;
+  border-radius: 0;
+}
+
+.navButton:hover {
+  background-color: #1a1a1a;
+  color: #c3921f;
+}
+
+.navButtonActive {
+  background-color: #c3921f;
+  color: #000;
+}
+
+.navButtonActive:hover {
+  background-color: #d4a332;
+  color: #000;
+}
+
+.navIcon {
+  font-size: 12px;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.navLabel {
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Active state for icon and label */
+.navButtonActive .navIcon,
+.navButtonActive .navLabel {
+  color: #000;
+}
+
+/* Hover state for icon and label */
+.navButton:hover .navIcon,
+.navButton:hover .navLabel {
+  color: #c3921f;
+}
+
+.navButtonActive:hover .navIcon,
+.navButtonActive:hover .navLabel {
+  color: #000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .navLabel {
+    font-size: 8px;
+  }
+  
+  .navIcon {
+    font-size: 11px;
+  }
+  
+  .navButton {
+    padding: 3px 6px;
+  }
+}
+
+/* Focus states for accessibility */
+.navButton:focus {
+  outline: 2px solid #c3921f;
+  outline-offset: -2px;
+}
+
+.navButtonActive:focus {
+  outline: 2px solid #000;
+  outline-offset: -2px;
+}

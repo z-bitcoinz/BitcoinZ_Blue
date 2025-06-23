@@ -1,11 +1,15 @@
+/* Legacy sidebar styles - removed for new layout */
 .sidebarcontainer {
-  width: 220px;
-  float: left;
+  display: none;
 }
 
 .contentcontainer {
-  width: calc(100% - 220px);
-  float: right;
+  width: 100%;
+  float: none;
+  padding-top: 50px; /* Space for top menu bar */
+  padding-bottom: 40px; /* Space for bottom navigation */
+  height: calc(100vh - 90px); /* Full height minus top/bottom bars */
+  overflow-y: auto;
 }
 
 .well {
@@ -222,4 +226,34 @@
 
 .memodiv {
   white-space: pre-wrap;
+}
+
+/* New layout styles for top menu and bottom navigation */
+.topMenuBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #000;
+  border-bottom: 1px solid #333;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.bottomNavigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-color: #000;
+  border-top: 1px solid #333;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 }

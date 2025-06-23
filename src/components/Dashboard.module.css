@@ -4,3 +4,12 @@
   margin-left: 16px;
   margin-right: 16px;
 }
+
+.dashboardFooter {
+  margin-top: 32px;
+  padding: 16px;
+  text-align: center;
+  background-color: #111;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
