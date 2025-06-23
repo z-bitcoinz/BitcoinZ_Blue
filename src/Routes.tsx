@@ -536,7 +536,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
-          {hasLatestBlock && <TopMenuBar />}
+          {hasLatestBlock && <TopMenuBar info={info} />}
 
           {/* Main Content Container */}
           <div className={cstyles.contentcontainer}>

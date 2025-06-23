@@ -7,14 +7,21 @@
 
 html {
   overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%);
 }
 
 body {
   position: relative;
   color: white;
   height: 100vh;
-  background-color: #212124;
+  background: linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%);
   font-family: Roboto, Arial, Helvetica, Helvetica Neue, serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 ::-webkit-scrollbar {
