@@ -106,7 +106,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
           {type}
           <BalanceBlockHighlight
             zecValue={amount}
-            usdValue={Utils.getBtczToUsdString(price, Math.abs(amount))}
+            usdValue={Utils.getBtczToUsdStringBtcz(price, Math.abs(amount))}
             currencyName={currencyName}
           />
         </div>
@@ -155,7 +155,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
         <hr />
 
         {detailedTxns.map((txdetail) => {
-          const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
+          const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(Math.abs(parseFloat(txdetail.amount)));
 
           let { address } = txdetail;
           const { memo } = txdetail;
@@ -188,7 +188,7 @@ const TxModalInternal: React.FC<RouteComponentProps & TxModalInternalProps> = ({
                     </span>
                     <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
                   </div>
-                  <div>{Utils.getBtczToUsdString(price, Math.abs(amount))}</div>
+                  <div>{Utils.getBtczToUsdStringBtcz(price, Math.abs(amount))}</div>
                 </div>
                 <div className={[cstyles.verticalflex, cstyles.margintoplarge].join(" ")}>
                   <div className={[cstyles.sublight].join(" ")}>{priceString}</div>
@@ -265,7 +265,7 @@ const TxItemBlock = ({ transaction, currencyName, btczPrice, txClicked, addressB
         </div>
         <div className={styles.txaddressamount}>
           {transaction.detailedTxns.map((txdetail) => {
-            const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(parseFloat(txdetail.amount)));
+            const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(Math.abs(parseFloat(txdetail.amount)));
 
             let { address } = txdetail;
             const { memo } = txdetail;
@@ -301,7 +301,7 @@ const TxItemBlock = ({ transaction, currencyName, btczPrice, txClicked, addressB
                     <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
                   </div>
                   <div className={[cstyles.sublight, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                    {Utils.getBtczToUsdString(btczPrice, Math.abs(parseFloat(txdetail.amount)))}
+                    {Utils.getBtczToUsdStringBtcz(btczPrice, Math.abs(parseFloat(txdetail.amount)))}
                   </div>
                 </div>
               </div>
