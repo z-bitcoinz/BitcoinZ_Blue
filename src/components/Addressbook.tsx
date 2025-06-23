@@ -116,8 +116,8 @@ export default class AddressBook extends Component<AddressBookProps, AddressBook
   validate = (currentLabel: string, currentAddress: string) => {
     const { addressBook } = this.props;
 
-    let labelError = addressBook.find((i) => i.label === currentLabel) ? "Duplicate Label" : null;
-    labelError = currentLabel.length > 12 ? "Label is too long" : labelError;
+    let labelError = addressBook.find((i) => i.label === currentLabel) ? "Contact name already exists" : null;
+    labelError = currentLabel.length > 12 ? "Contact name is too long" : labelError;
 
     const addressIsValid =
       currentAddress === "" || Utils.isZaddr(currentAddress) || Utils.isTransparent(currentAddress);
@@ -133,12 +133,18 @@ export default class AddressBook extends Component<AddressBookProps, AddressBook
 
     return (
       <div>
-        <div className={[cstyles.xlarge, cstyles.padall, cstyles.center].join(" ")}>Address Book</div>
+        <div className={[cstyles.xlarge, cstyles.padall, cstyles.center].join(" ")}>
+          <i className="fas fa-envelope" style={{ marginRight: "10px", color: "#d4af37" }} />
+          Contact Management
+        </div>
+        <div className={[cstyles.center, cstyles.sublight, cstyles.padsmall].join(" ")}>
+          Manage your external contacts for easy sending
+        </div>
 
         <div className={styles.addressbookcontainer}>
           <div className={[cstyles.well].join(" ")}>
             <div className={[cstyles.flexspacebetween].join(" ")}>
-              <div className={cstyles.sublight}>Label</div>
+              <div className={cstyles.sublight}>Contact Name</div>
               <div className={cstyles.validationerror}>
                 {!labelError ? (
                   <i className={[cstyles.green, "fas", "fa-check"].join(" ")} />
@@ -157,7 +163,7 @@ export default class AddressBook extends Component<AddressBookProps, AddressBook
             <div className={cstyles.margintoplarge} />
 
             <div className={[cstyles.flexspacebetween].join(" ")}>
-              <div className={cstyles.sublight}>Address</div>
+              <div className={cstyles.sublight}>Contact Address</div>
               <div className={cstyles.validationerror}>
                 {addressIsValid ? (
                   <i className={[cstyles.green, "fas", "fa-check"].join(" ")} />
@@ -181,15 +187,16 @@ export default class AddressBook extends Component<AddressBookProps, AddressBook
               disabled={!addButtonEnabled}
               onClick={this.addButtonClicked}
             >
-              Add
+              <i className="fas fa-plus" style={{ marginRight: "5px" }} />
+              Add Contact
             </button>
           </div>
 
           <ScrollPane offsetHeight={300}>
             <div className={styles.addressbooklist}>
               <div className={[cstyles.flexspacebetween, cstyles.tableheader, cstyles.sublight].join(" ")}>
-                <div>Label</div>
-                <div>Address</div>
+                <div>Contact Name</div>
+                <div>Contact Address</div>
               </div>
               {addressBook && (
                 <Accordion>
