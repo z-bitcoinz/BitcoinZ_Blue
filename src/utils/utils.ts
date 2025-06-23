@@ -66,9 +66,14 @@ export default class Utils {
     return v.toFixed(8);
   }
 
-  // BitcoinZ-specific: Convert to max 4 decimal places for better display
+  // BitcoinZ-specific: Convert to max 8 decimal places for fees, 4 for regular amounts
   static maxPrecisionBtcz(v: number): string {
     if (!v) return `${v}`;
+
+    // For very small amounts (like fees), show up to 8 decimal places
+    if (v < 0.001) {
+      return v.toFixed(8).replace(/\.?0+$/, '');
+    }
 
     return v.toFixed(4);
   }
@@ -139,11 +144,18 @@ export default class Utils {
   // BitcoinZ-specific: Split amount with 4 decimal precision for cleaner display
   static splitBtczAmountIntoBigSmallBtcz(btczValue: number) {
     if (!btczValue) {
-      return { bigPart: btczValue, smallPart: "" };
+      return { bigPart: "0", smallPart: "" };
     }
 
+    // For very small amounts (like fees), ensure we show at least 4 decimal places
     let bigPart = Utils.maxPrecisionBtcz(btczValue);
     let smallPart = "";
+
+    // If the amount is very small (less than 0.01), show all 4 decimal places
+    if (btczValue < 0.01 && btczValue > 0) {
+      // For very small amounts, don't split - show the full precision
+      return { bigPart, smallPart: "" };
+    }
 
     if (bigPart.indexOf(".") >= 0) {
       const decimalPart = bigPart.substr(bigPart.indexOf(".") + 1);

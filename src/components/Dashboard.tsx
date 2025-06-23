@@ -27,7 +27,7 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
     history.push(routes.TRANSACTIONS);
   };
 
-    const anyPending = addressesWithBalance && addressesWithBalance.find((i) => i.containsPending);
+
 
     return (
       <div className={styles.dashboardContainer}>
