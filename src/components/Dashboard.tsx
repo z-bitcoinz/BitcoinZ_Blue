@@ -30,7 +30,7 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
     const anyPending = addressesWithBalance && addressesWithBalance.find((i) => i.containsPending);
 
     return (
-      <div>
+      <div className={styles.dashboardContainer}>
         <div className={[cstyles.well, cstyles.containermargin].join(" ")}>
           <div className={cstyles.balancebox}>
             <BalanceBlockHighlight
@@ -118,9 +118,9 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                   >
                     <div className={styles.transactionIcon}>
                       <i
-                        className={`fas ${tx.type === "receive" ? "fa-arrow-down" : "fa-arrow-up"}`}
+                        className={`fas ${tx.type === "receive" ? "fa-arrow-circle-down" : "fa-arrow-circle-up"}`}
                         style={{
-                          color: tx.type === "receive" ? "#4CAF50" : "#f44336"
+                          color: tx.type === "receive" ? "#00E676" : "#FF5722"
                         }}
                       />
                     </div>
