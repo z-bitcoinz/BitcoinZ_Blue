@@ -301,8 +301,6 @@
 }
 
 .recentTransactionItem:hover .transactionIcon {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
   transform: scale(1.1);
 }
 
@@ -317,15 +315,12 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.25);
+  background: transparent;
   border-radius: 50%;
   margin-right: 10px;
   font-size: 11px;
   flex-shrink: 0;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .transactionDetails {
