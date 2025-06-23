@@ -30,15 +30,14 @@ import { BalanceBlockHighlight } from "./BalanceBlocks";
 import RPC from "../rpc";
 import routes from "../constants/routes.json";
 import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
+import { TransactionSuccessModal, TransactionSuccessModalData } from "./TransactionSuccessModal";
 
 type OptionType = {
   value: string;
   label: string;
 };
 
-const Spacer = () => {
-  return <div style={{ marginTop: "24px" }} />;
-};
+
 
 type ToAddrBoxProps = {
   toaddr: ToAddr;
@@ -101,9 +100,10 @@ const ToAddrBox = ({
     buttonstate = false;
   }
 
-  setTimeout(() => {
+  // Use useEffect or immediate call instead of setTimeout to avoid memory leaks
+  React.useEffect(() => {
     setSendButtonEnable(buttonstate);
-  }, 10);
+  }, [buttonstate, setSendButtonEnable]);
 
   const usdValue = Utils.getBtczToUsdStringBtcz(btczPrice, toaddr.amount);
 
@@ -159,34 +159,54 @@ const ToAddrBox = ({
 
   return (
     <div>
-      <div className={[cstyles.well, cstyles.verticalflex].join(" ")}>
-        <div className={[cstyles.flexspacebetween].join(" ")}>
-          <div className={cstyles.sublight}>To</div>
-          <div className={cstyles.validationerror}>
+      <div className={[cstyles.well, cstyles.verticalflex, styles.toAddressSection].join(" ")}>
+        <div className={[cstyles.flexspacebetween].join(" ")} style={{ marginBottom: "4px" }}>
+          <div className={cstyles.sublight} style={{ fontSize: "12px" }}>To</div>
+          <div className={cstyles.validationerror} style={{ fontSize: "11px", display: "flex", alignItems: "center", gap: "8px" }}>
+            {toaddr.to && (
+              <span style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "10px" }}>
+                {toaddr.to.length} chars
+              </span>
+            )}
             {addressIsValid ? (
               <i className={[cstyles.green, "fas", "fa-check"].join(" ")} />
             ) : (
-              <span className={cstyles.red}>Invalid Address</span>
+              toaddr.to && <span className={cstyles.red}>Invalid Address</span>
             )}
           </div>
         </div>
 
-        {/* Address input with contact selection and paste buttons */}
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        {/* Full-width address input */}
+        <div style={{ marginBottom: "8px" }}>
           <input
             type="text"
-            placeholder="U | Z | T address"
-            className={cstyles.inputbox}
+            placeholder="Enter BitcoinZ address (Z | T)"
+            className={styles.fullWidthAddressInput}
             value={toaddr.to}
             onChange={(e) => updateToField(toaddr.id as number, e, null, null)}
-            style={{ flex: 1 }}
+            spellCheck={false}
+            autoComplete="off"
           />
+          {/* Address type indicator */}
+          {toaddr.to && (
+            <div style={{
+              fontSize: "10px",
+              color: "rgba(255, 255, 255, 0.7)",
+              marginTop: "2px"
+            }}>
+              {Utils.isZaddr(toaddr.to) ? "🔒 Private Address (Z)" :
+               Utils.isTransparent(toaddr.to) ? "👁️ Transparent Address (T)" :
+               "❓ Invalid Address"}
+            </div>
+          )}
+        </div>
 
+        {/* Contact selection and paste buttons row */}
+        <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end" }}>
           {/* Contact selection dropdown */}
           {addressBook && addressBook.length > 0 && (
             <select
-              className={cstyles.inputbox}
-              style={{ width: "120px", fontSize: "12px" }}
+              className={styles.compactButton}
               value=""
               onChange={(e) => {
                 if (e.target.value) {
@@ -196,9 +216,7 @@ const ToAddrBox = ({
                 }
               }}
             >
-              <option value="">
-                <i className="fas fa-address-book" /> Contacts
-              </option>
+              <option value="">👤 Contacts</option>
               {addressBook.map((contact) => (
                 <option key={contact.address} value={contact.address}>
                   {contact.label}
@@ -210,68 +228,70 @@ const ToAddrBox = ({
           {/* Paste button */}
           <button
             type="button"
-            className={cstyles.primarybutton}
+            className={styles.compactButton}
             onClick={pasteAddress}
-            style={{
-              padding: "8px 12px",
-              fontSize: "12px",
-              minWidth: "70px",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
-            }}
             title="Paste address from clipboard"
           >
             <i className="fas fa-paste" />
             Paste
           </button>
         </div>
-        <Spacer />
-        <div className={[cstyles.flexspacebetween].join(" ")}>
-          <div className={cstyles.sublight}>Amount</div>
-          <div className={cstyles.validationerror}>
-            {amountError ? <span className={cstyles.red}>{amountError}</span> : <span>{usdValue}</span>}
+        <div style={{ marginTop: "8px" }}>
+          <div className={[cstyles.flexspacebetween].join(" ")} style={{ marginBottom: "2px" }}>
+            <div className={cstyles.sublight} style={{ fontSize: "12px" }}>Amount</div>
+            <div className={cstyles.validationerror} style={{ fontSize: "11px" }}>
+              {amountError ? <span className={cstyles.red}>{amountError}</span> : <span>{usdValue}</span>}
+            </div>
+          </div>
+          <div className={[cstyles.flexspacebetween].join(" ")}>
+            <input
+              type="number"
+              step="any"
+              className={[cstyles.inputbox, styles.compactAmountInput].join(" ")}
+              value={isNaN(toaddr.amount) ? "" : toaddr.amount}
+              onChange={(e) => updateToField(toaddr.id as number, null, e, null)}
+              placeholder="0"
+              style={{ flex: 1, marginRight: "8px" }}
+            />
+            <img
+              className={styles.toaddrbutton}
+              src={ArrowUpLight}
+              alt="Max"
+              onClick={() => setMaxAmount(toaddr.id as number, totalAmountAvailable)}
+              style={{ height: "20px", marginTop: "4px" }}
+            />
           </div>
         </div>
-        <div className={[cstyles.flexspacebetween].join(" ")}>
-          <input
-            type="number"
-            step="any"
-            className={cstyles.inputbox}
-            value={isNaN(toaddr.amount) ? "" : toaddr.amount}
-            onChange={(e) => updateToField(toaddr.id as number, null, e, null)}
-          />
-          <img
-            className={styles.toaddrbutton}
-            src={ArrowUpLight}
-            alt="Max"
-            onClick={() => setMaxAmount(toaddr.id as number, totalAmountAvailable)}
-          />
-        </div>
 
-        <Spacer />
-
-        {isMemoDisabled && <div className={cstyles.sublight}>Memos only for sapling or UA addresses</div>}
+        {isMemoDisabled && (
+          <div className={cstyles.sublight} style={{ fontSize: "11px", marginTop: "8px", opacity: 0.7 }}>
+            Memos only for private (Z) addresses
+          </div>
+        )}
 
         {!isMemoDisabled && (
-          <div>
-            <div className={[cstyles.flexspacebetween].join(" ")}>
-              <div className={cstyles.sublight}>Memo</div>
-              <div className={cstyles.validationerror}>{toaddr.memo.length}</div>
+          <div style={{ marginTop: "8px" }}>
+            <div className={[cstyles.flexspacebetween].join(" ")} style={{ marginBottom: "2px" }}>
+              <div className={cstyles.sublight} style={{ fontSize: "12px" }}>Memo</div>
+              <div className={cstyles.validationerror} style={{ fontSize: "11px" }}>{toaddr.memo.length}</div>
             </div>
             <TextareaAutosize
               className={cstyles.inputbox}
               value={toaddr.memo}
               disabled={isMemoDisabled}
               onChange={(e) => updateToField(toaddr.id as number, null, null, e)}
+              minRows={1}
+              maxRows={2}
+              placeholder="Optional memo (encrypted)"
+              style={{ resize: "none" }}
             />
-            <input type="checkbox" onChange={(e) => e.target.checked && addReplyTo()} />
-            Include Reply-To address
+            <div style={{ marginTop: "4px", fontSize: "10px" }}>
+              <input type="checkbox" onChange={(e) => e.target.checked && addReplyTo()} style={{ marginRight: "4px" }} />
+              Include Reply-To address
+            </div>
           </div>
         )}
-        <Spacer />
       </div>
-      <Spacer />
     </div>
   );
 };
@@ -325,24 +345,41 @@ const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
   const memo: string = toaddr.memo ? toaddr.memo : "";
 
   return (
-    <div className={cstyles.well}>
-      <div className={[cstyles.flexspacebetween, cstyles.margintopsmall].join(" ")}>
+    <div className={toaddr.to === "Fee" ? `${styles.confirmModalSection} ${styles.networkFeeSection}` : styles.confirmModalSection}>
+      <div className={styles.confirmModalLabel}>
+        {toaddr.to === "Fee" ? "Network Fee" : "Recipient"}
+      </div>
+      <div className={[cstyles.flexspacebetween].join(" ")}>
         <div className={[styles.confirmModalAddress].join(" ")}>
-          {Utils.splitStringIntoChunks(toaddr.to, 6).join(" ")}
+          {toaddr.to === "Fee" ? "Network Transaction Fee" : Utils.splitStringIntoChunks(toaddr.to, 6).join(" ")}
         </div>
         <div className={[cstyles.verticalflex, cstyles.right].join(" ")}>
-          <div className={cstyles.large}>
-            <div>
-              <span>
-                {info.currencyName} {bigPart}
-              </span>
-              <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
-            </div>
+          <div className={styles.confirmModalAmount}>
+            <span>
+              {info.currencyName} {bigPart}
+            </span>
+            <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
           </div>
-          <div>{Utils.getBtczToUsdStringBtcz(info.btczPrice, toaddr.amount)}</div>
+          {toaddr.to !== "Fee" && (
+            <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>
+              {Utils.getBtczToUsdStringBtcz(info.btczPrice, toaddr.amount)}
+            </div>
+          )}
         </div>
       </div>
-      <div className={[cstyles.sublight, cstyles.breakword, cstyles.memodiv].join(" ")}>{memo}</div>
+      {memo && (
+        <div style={{
+          marginTop: "8px",
+          padding: "8px",
+          background: "rgba(255, 255, 255, 0.05)",
+          borderRadius: "6px",
+          fontSize: "12px",
+          color: "rgba(255, 255, 255, 0.8)"
+        }}>
+          <div className={styles.confirmModalLabel}>Memo</div>
+          {memo}
+        </div>
+      )}
     </div>
   );
 };
@@ -358,6 +395,7 @@ type ConfirmModalProps = {
   modalIsOpen: boolean;
   openErrorModal: (title: string, body: string) => void;
   openPasswordAndUnlockIfNeeded: (successCallback: () => void | Promise<void>) => void;
+  openTransactionSuccessModal: (txid: string) => void;
 };
 
 const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = ({
@@ -370,6 +408,7 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
   modalIsOpen,
   openErrorModal,
   openPasswordAndUnlockIfNeeded,
+  openTransactionSuccessModal,
   history,
 }) => {
   const defaultFee = RPC.getDefaultFee();
@@ -426,15 +465,11 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
             txid = await sendTransaction(sendJson, setSendProgress);
             console.log(txid);
 
-            openErrorModal(
-              "Successfully Broadcast Transaction",
-              `Transaction was successfully broadcast.\nTXID: ${txid}`
-            );
+            openTransactionSuccessModal(txid);
 
             clearToAddrs();
 
-            // Redirect to dashboard after
-            history.push(routes.DASHBOARD);
+            // Don't redirect automatically - let user interact with success modal
           } catch (err) {
             // If there was an error, show the error modal
             openErrorModal("Error Sending Transaction", `${err}`);
@@ -452,58 +487,60 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
       overlayClassName={styles.confirmOverlay}
     >
       <div className={[cstyles.verticalflex].join(" ")}>
-        <div className={[cstyles.marginbottomlarge, cstyles.center].join(" ")}>Confirm Transaction</div>
-        <div className={cstyles.flex}>
-          <div
-            className={[
-              cstyles.highlight,
-              cstyles.xlarge,
-              cstyles.flexspacebetween,
-              cstyles.well,
-              cstyles.maxwidth,
-            ].join(" ")}
-          >
-            <div>Total</div>
-            <div className={[cstyles.right, cstyles.verticalflex].join(" ")}>
-              <div>
-                <span>
-                  {info.currencyName} {bigPart}
-                </span>
-                <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
-              </div>
+        <div className={styles.confirmModalTitle}>Confirm Transaction</div>
 
-              <div className={cstyles.normal}>{Utils.getBtczToUsdStringBtcz(info.btczPrice, sendingTotal)}</div>
+        {/* Total Amount Section */}
+        <div className={styles.confirmModalSection}>
+          <div className={styles.confirmModalLabel}>Total Amount</div>
+          <div className={[cstyles.flexspacebetween].join(" ")}>
+            <div className={styles.confirmModalAmount}>
+              <span>
+                {info.currencyName} {bigPart}
+              </span>
+              <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
+            </div>
+            <div className={[cstyles.normal, { color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }].join(" ")}>
+              {Utils.getBtczToUsdStringBtcz(info.btczPrice, sendingTotal)}
             </div>
           </div>
         </div>
 
-        <ScrollPane offsetHeight={400}>
-          <div className={[cstyles.verticalflex, cstyles.margintoplarge].join(" ")}>
+        <div className={styles.confirmModalScrollArea}>
+          <div className={[cstyles.verticalflex].join(" ")}>
             {sendPageState.toaddrs.map((t) => (
               <ConfirmModalToAddr key={t.to} toaddr={t} info={info} />
             ))}
           </div>
           <ConfirmModalToAddr toaddr={{ to: "Fee", amount: defaultFee, memo: "" }} info={info} />
 
-          <div className={cstyles.well}>
-            <div className={[cstyles.flexspacebetween, cstyles.margintoplarge].join(" ")}>
-              <div className={[styles.confirmModalAddress].join(" ")}>Privacy Level</div>
-              <div className={[cstyles.verticalflex, cstyles.right].join(" ")}>
-                <div className={cstyles.large}>
-                  <div>
-                    <span>{privacyLevel}</span>
-                  </div>
-                </div>
+          <div className={styles.confirmModalSection}>
+            <div className={styles.confirmModalLabel}>Privacy Level</div>
+            <div className={[cstyles.flexspacebetween].join(" ")}>
+              <div style={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "14px" }}>
+                Transaction Privacy Status
+              </div>
+              <div className={styles.confirmModalAmount}>
+                <span>{privacyLevel}</span>
               </div>
             </div>
           </div>
-        </ScrollPane>
+        </div>
 
-        <div className={cstyles.buttoncontainer}>
-          <button type="button" className={cstyles.primarybutton} onClick={() => sendButton()}>
-            Send
+        <div className={styles.confirmModalButtons}>
+          <button
+            type="button"
+            className={`${styles.confirmModalButton} ${styles.primary}`}
+            onClick={() => sendButton()}
+          >
+            <i className="fas fa-paper-plane" />
+            Confirm Send
           </button>
-          <button type="button" className={cstyles.primarybutton} onClick={closeModal}>
+          <button
+            type="button"
+            className={`${styles.confirmModalButton} ${styles.secondary}`}
+            onClick={closeModal}
+          >
+            <i className="fas fa-times" />
             Cancel
           </button>
         </div>
@@ -523,8 +560,10 @@ type Props = {
   sendTransaction: (sendJson: SendManyJson[], setSendProgress: (p?: SendProgress) => void) => Promise<string>;
   setSendPageState: (sendPageState: SendPageState) => void;
   openErrorModal: (title: string, body: string) => void;
+  closeErrorModal: () => void;
   info: Info;
   openPasswordAndUnlockIfNeeded: (successCallback: () => void) => void;
+  history?: any; // Add history as optional prop
 };
 
 class SendState {
@@ -532,9 +571,12 @@ class SendState {
 
   sendButtonEnabled: boolean;
 
+  transactionSuccessModalData: TransactionSuccessModalData;
+
   constructor() {
     this.modalIsOpen = false;
     this.sendButtonEnabled = false;
+    this.transactionSuccessModalData = new TransactionSuccessModalData();
   }
 }
 
@@ -667,6 +709,39 @@ export default class Send extends PureComponent<Props, SendState> {
     this.setState({ modalIsOpen: false });
   };
 
+  openTransactionSuccessModal = (txid: string) => {
+    // First close the error modal (Computing Transaction modal)
+    const { closeErrorModal } = this.props;
+    closeErrorModal();
+
+    const transactionSuccessModalData = new TransactionSuccessModalData();
+    transactionSuccessModalData.modalIsOpen = true;
+    transactionSuccessModalData.title = "Successfully Broadcast Transaction";
+    transactionSuccessModalData.txid = txid;
+    transactionSuccessModalData.closeModal = this.closeTransactionSuccessModal;
+    transactionSuccessModalData.redirectToDashboard = this.redirectToDashboard;
+
+    this.setState({ transactionSuccessModalData });
+  };
+
+  redirectToDashboard = () => {
+    // Use history from props to navigate to dashboard
+    const { history } = this.props;
+    if (history && history.push) {
+      history.push(routes.DASHBOARD);
+    } else {
+      // Fallback: reload the page to go to dashboard
+      window.location.reload();
+    }
+  };
+
+  closeTransactionSuccessModal = () => {
+    const transactionSuccessModalData = new TransactionSuccessModalData();
+    transactionSuccessModalData.modalIsOpen = false;
+
+    this.setState({ transactionSuccessModalData });
+  };
+
   getBalanceForAddress = (addr: string, addressesWithBalance: AddressBalance[]): number => {
     // Find the addr in addressesWithBalance
     const addressBalance = addressesWithBalance.find((ab) => ab.address === addr) as AddressBalance;
@@ -715,11 +790,10 @@ export default class Send extends PureComponent<Props, SendState> {
     }
 
     return (
-      <div>
-        <div className={[cstyles.xlarge, cstyles.padall, cstyles.center].join(" ")}>Send</div>
-
-        <div className={styles.sendcontainer}>
-          <div className={[cstyles.well, cstyles.balancebox, cstyles.containermargin].join(" ")}>
+      <div className={styles.sendPageContainer}>
+        {/* Scrollable Content Area - No separate header */}
+        <div className={styles.sendPageContent}>
+          <div className={[cstyles.well, cstyles.balancebox, styles.compactBalanceBox].join(" ")}>
             <BalanceBlockHighlight
               topLabel="Spendable Funds"
               zecValue={totalAmountAvailable}
@@ -772,12 +846,14 @@ export default class Send extends PureComponent<Props, SendState> {
             <button
               type="button"
               disabled={!sendButtonEnabled}
-              className={cstyles.primarybutton}
+              className={styles.modernButton}
               onClick={this.openModal}
             >
+              <i className="fas fa-paper-plane" />
               Send
             </button>
-            <button type="button" className={cstyles.primarybutton} onClick={this.clearToAddrs}>
+            <button type="button" className={styles.modernButton} onClick={this.clearToAddrs}>
+              <i className="fas fa-times" />
               Cancel
             </button>
           </div>
@@ -792,9 +868,20 @@ export default class Send extends PureComponent<Props, SendState> {
             modalIsOpen={modalIsOpen}
             clearToAddrs={this.clearToAddrs}
             openPasswordAndUnlockIfNeeded={openPasswordAndUnlockIfNeeded}
+            openTransactionSuccessModal={this.openTransactionSuccessModal}
+          />
+
+          <TransactionSuccessModal
+            title={this.state.transactionSuccessModalData.title}
+            txid={this.state.transactionSuccessModalData.txid}
+            modalIsOpen={this.state.transactionSuccessModalData.modalIsOpen}
+            closeModal={this.closeTransactionSuccessModal}
+            redirectToDashboard={this.redirectToDashboard}
           />
         </div>
       </div>
     );
   }
 }
+
+

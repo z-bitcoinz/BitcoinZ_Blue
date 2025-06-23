@@ -1,13 +1,15 @@
 import path from "path";
 import { AddressBookEntry } from "../components/AppState";
 
-const { remote } = window.require("electron");
+const { ipcRenderer } = window.require("electron");
 const fs = window.require("fs");
 
 // Utility class to save / read the address book.
 export default class AddressbookImpl {
   static async getFileName() {
-    const dir = path.join(remote.app.getPath("appData"), "zecwallet");
+    // Use ipcRenderer to get app data path from main process
+    const appDataPath = await ipcRenderer.invoke('get-app-data-path');
+    const dir = path.join(appDataPath, "zecwallet");
     if (!fs.existsSync(dir)) {
       await fs.promises.mkdir(dir);
     }

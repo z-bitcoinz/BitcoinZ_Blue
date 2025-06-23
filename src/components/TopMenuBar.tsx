@@ -6,9 +6,10 @@ import styles from "./TopMenuBar.module.css";
 
 type TopMenuBarProps = {
   info: Info;
+  pageTitle?: string;
 };
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ info }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle }) => {
   const history = useHistory();
   const isConnected = info && info.latestBlock > 0;
   const blockHeight = info?.latestBlock || 0;
@@ -26,6 +27,11 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info }) => {
   return (
     <div className={styles.topMenuBar}>
       <div className={styles.statusContainer}>
+        {pageTitle && (
+          <div className={styles.pageTitle}>
+            {pageTitle}
+          </div>
+        )}
         <div className={styles.rightSection}>
           <div
             className={styles.connectionStatus}

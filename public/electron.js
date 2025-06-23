@@ -421,10 +421,10 @@ if (isDev) {
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 750,
-    height: 650,
+    width: 901,
+    height: 640,
     minHeight: 450,
-    minWidth: 750,
+    minWidth: 901,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -449,6 +449,11 @@ function createWindow() {
 
   ipcMain.handle("saveSettings", async (event, kv) => {
     return await settings.set(`all.${kv.key}`, kv.value);
+  });
+
+  // Add handler for getting app data path (replacement for remote.app.getPath)
+  ipcMain.handle("get-app-data-path", async () => {
+    return app.getPath("appData");
   });
 
   mainWindow.on("close", (event) => {

@@ -4,7 +4,7 @@
 /* eslint-disable react/no-unused-state */
 import React from "react";
 import ReactModal from "react-modal";
-import { Switch, Route } from "react-router";
+import { Switch, Route, useLocation } from "react-router";
 import { ErrorModal, ErrorModalData } from "./components/ErrorModal";
 import cstyles from "./components/Common.module.css";
 import routes from "./constants/routes.json";
@@ -536,7 +536,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
-          {hasLatestBlock && <TopMenuBar info={info} />}
+          {hasLatestBlock && <TopMenuBarWithLocation info={info} />}
 
           {/* Main Content Container */}
           <div className={cstyles.contentcontainer}>
@@ -655,3 +655,29 @@ export default class RouteApp extends React.Component<Props, AppState> {
     );
   }
 }
+
+// Helper component to get current location and pass page title
+const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
+  const location = useLocation();
+
+  const getPageTitle = (pathname: string): string | undefined => {
+    switch (pathname) {
+      case routes.SEND:
+        return "SEND";
+      case routes.RECEIVE:
+        return "RECEIVE";
+      case routes.TRANSACTIONS:
+        return "TRANSACTIONS";
+      case routes.ADDRESSBOOK:
+        return "ADDRESS BOOK";
+      case routes.ADDRESSES:
+        return "ADDRESSES";
+      case routes.ZCASHD:
+        return "SERVER INFO";
+      default:
+        return undefined; // No title for dashboard and other pages
+    }
+  };
+
+  return <TopMenuBar info={info} pageTitle={getPageTitle(location.pathname)} />;
+};

@@ -13,9 +13,9 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
   const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(zecValue);
 
   return (
-    <div style={{ padding: "1em" }} title={tooltip}>
+    <div style={{ padding: "0.6em" }} title={tooltip}>
       {topLabel && (
-        <div className={[cstyles.small].join(" ")}>
+        <div className={[cstyles.small].join(" ")} style={{ marginBottom: "4px", fontSize: "11px", fontWeight: "600" }}>
           {topLabel}
           {tooltip && (
             <span>
@@ -26,13 +26,13 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
         </div>
       )}
 
-      <div className={[cstyles.highlight, cstyles.xlarge].join(" ")}>
+      <div className={[cstyles.highlight].join(" ")} style={{ fontSize: "20px", marginBottom: "2px" }}>
         <span>
           {currencyName && `${currencyName} `}{bigPart}
         </span>
-        <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
+        <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")} style={{ fontSize: "14px" }}>{smallPart}</span>
       </div>
-      <div className={[cstyles.sublight, cstyles.small].join(" ")}>{usdValue}</div>
+      <div className={[cstyles.sublight, cstyles.small].join(" ")} style={{ fontSize: "10px" }}>{usdValue}</div>
     </div>
   );
 };
