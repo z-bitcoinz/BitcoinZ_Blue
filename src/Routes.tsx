@@ -35,7 +35,7 @@ import { BitcoinzURITarget } from "./utils/uris";
 import Bitcoinzd from "./components/Bitcoinzd";
 import AddressBook from "./components/Addressbook";
 import AddressbookImpl from "./utils/AddressbookImpl";
-// import Sidebar from "./components/Sidebar"; // Removed - using new layout
+import Sidebar from "./components/Sidebar"; // Re-enabled for IPC handlers
 import Transactions from "./components/Transactions";
 import PasswordModal from "./components/PasswordModal";
 import ServerSelectModal from "./components/ServerSelectModal";
@@ -510,6 +510,29 @@ export default class RouteApp extends React.Component<Props, AppState> {
           closeModal={this.closeServerSelectModal}
           openErrorModal={this.openErrorModal}
         />
+
+        {/* Hidden Sidebar for IPC handlers only - not visible in UI */}
+        <div style={{ display: "none" }}>
+          <Sidebar
+            addresses={addresses}
+            transactions={transactions}
+            clearTimers={this.clearTimers}
+            setSendTo={this.setSendTo}
+            setInfo={this.setInfo}
+            setRescanning={this.setRescanning}
+            openErrorModal={this.openErrorModal}
+            openPasswordAndUnlockIfNeeded={this.openPasswordAndUnlockIfNeeded}
+            lockWallet={this.lockWallet}
+            encryptWallet={this.encryptWallet}
+            decryptWallet={this.decryptWallet}
+            openPassword={this.openPassword}
+            getPrivKeyAsString={this.getPrivKeyAsString}
+            info={info}
+            walletSettings={walletSettings}
+            importPrivKeys={this.importPrivKeys}
+            updateWalletSettings={this.updateWalletSettings}
+          />
+        </div>
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
