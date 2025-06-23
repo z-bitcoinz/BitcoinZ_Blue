@@ -52,57 +52,53 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                 <div className={styles.breakdownSectionTitle}>Balance Breakdown</div>
                 <div className={styles.balanceBreakdownGrid}>
                   <div className={styles.balanceBreakdownItem}>
-                    <div className={styles.breakdownLabel}>Transparent</div>
+                    <div className={styles.breakdownLabel}>
+                      Transparent
+                      {totalBalance.pendingTransparent > 0 && (
+                        <span className={styles.pendingIndicator}>
+                          <i className="fas fa-circle-notch"></i>
+                        </span>
+                      )}
+                    </div>
                     <div className={styles.breakdownAmount}>
                       {Utils.maxPrecisionTrimmedBtcz(totalBalance.transparent)}
                     </div>
                     <div className={styles.breakdownUsd}>
                       {Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.transparent)}
                     </div>
+                    {totalBalance.pendingTransparent > 0 && (
+                      <div className={styles.pendingAmount}>
+                        +{Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingTransparent)} confirming
+                      </div>
+                    )}
                   </div>
 
                   <div className={styles.balanceBreakdownItem}>
-                    <div className={styles.breakdownLabel}>Private</div>
+                    <div className={styles.breakdownLabel}>
+                      Private
+                      {totalBalance.pendingShielded > 0 && (
+                        <span className={styles.pendingIndicator}>
+                          <i className="fas fa-circle-notch"></i>
+                        </span>
+                      )}
+                    </div>
                     <div className={styles.breakdownAmount}>
                       {Utils.maxPrecisionTrimmedBtcz(totalBalance.zbalance)}
                     </div>
                     <div className={styles.breakdownUsd}>
                       {Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.zbalance)}
                     </div>
+                    {totalBalance.pendingShielded > 0 && (
+                      <div className={styles.pendingAmount}>
+                        +{Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingShielded)} confirming
+                      </div>
+                    )}
                   </div>
-
-                  {totalBalance.totalPending > 0 && (
-                    <div className={styles.balanceBreakdownItem}>
-                      <div className={styles.breakdownLabel}>Pending</div>
-                      <div className={styles.breakdownAmount}>
-                        {Utils.maxPrecisionTrimmedBtcz(totalBalance.totalPending)}
-                      </div>
-                      <div className={styles.breakdownUsd}>
-                        {Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.totalPending)}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Pending Balance Notification */}
-            {(totalBalance.totalPending > 0 || anyPending) && (
-              <div className={styles.pendingNotification}>
-                {totalBalance.totalPending > 0 && (
-                  <div className={styles.pendingAmount}>
-                    ⏳ {Utils.maxPrecisionTrimmedBtcz(totalBalance.totalPending)} BTCZ pending confirmation
-                    {totalBalance.pendingTransparent > 0 && ` (${Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingTransparent)} transparent)`}
-                    {totalBalance.pendingShielded > 0 && ` (${Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingShielded)} shielded)`}
-                  </div>
-                )}
-                {anyPending && (
-                  <div className={styles.pendingInfo}>
-                    Pending transactions will be confirmed in the next block (~1-2 minutes)
-                  </div>
-                )}
-              </div>
-            )}
+
           </div>
         </div>
 
@@ -149,9 +145,11 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                     >
                       <div className={styles.transactionIcon}>
                         <i
-                          className={`fas ${tx.type === "receive" ? "fa-arrow-circle-down" : "fa-arrow-circle-up"}`}
+                          className={`fas ${tx.type === "receive" ? "fa-arrow-down" : "fa-arrow-up"}`}
                           style={{
-                            color: tx.type === "receive" ? "#00E676" : "#FF5722"
+                            color: tx.type === "receive" ? "#00E676" : "#FF5722",
+                            textShadow: `0 0 12px ${tx.type === "receive" ? "#00E676" : "#FF5722"}, 0 0 6px ${tx.type === "receive" ? "#00E676" : "#FF5722"}`,
+                            filter: `drop-shadow(0 0 4px ${tx.type === "receive" ? "#00E676" : "#FF5722"})`
                           }}
                         />
                       </div>
@@ -160,7 +158,7 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                         <div className={styles.transactionType}>
                           {tx.type === "receive" ? "Received" : "Sent"}
                           {tx.confirmations === 0 && (
-                            <span className={[cstyles.orange, cstyles.small].join(" ")}> (pending)</span>
+                            <span className={[cstyles.orange, cstyles.small].join(" ")}> (confirming)</span>
                           )}
                         </div>
                         <div className={[cstyles.sublight, cstyles.small].join(" ")}>
