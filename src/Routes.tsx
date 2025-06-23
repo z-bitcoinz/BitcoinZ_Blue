@@ -35,10 +35,13 @@ import { BitcoinzURITarget } from "./utils/uris";
 import Bitcoinzd from "./components/Bitcoinzd";
 import AddressBook from "./components/Addressbook";
 import AddressbookImpl from "./utils/AddressbookImpl";
-import Sidebar from "./components/Sidebar";
+// import Sidebar from "./components/Sidebar"; // Removed - using new layout
 import Transactions from "./components/Transactions";
 import PasswordModal from "./components/PasswordModal";
 import ServerSelectModal from "./components/ServerSelectModal";
+import TopMenuBar from "./components/TopMenuBar";
+import BottomNavigation from "./components/BottomNavigation";
+import AddressManagement from "./components/AddressManagement";
 
 type Props = {};
 
@@ -509,27 +512,15 @@ export default class RouteApp extends React.Component<Props, AppState> {
         />
 
         <div style={{ overflow: "hidden" }}>
+          {/* Top Menu Bar - Always visible when wallet is loaded */}
           {hasLatestBlock && (
-            <div className={cstyles.sidebarcontainer}>
-              <Sidebar
-                setInfo={this.setInfo}
-                setRescanning={this.setRescanning}
-                getPrivKeyAsString={this.getPrivKeyAsString}
-                addresses={addresses}
-                importPrivKeys={this.importPrivKeys}
-                transactions={transactions}
-                lockWallet={this.lockWallet}
-                encryptWallet={this.encryptWallet}
-                decryptWallet={this.decryptWallet}
-                openPassword={this.openPassword}
-                clearTimers={this.clearTimers}
-                walletSettings={walletSettings}
-                updateWalletSettings={this.updateWalletSettings}
-                {...standardProps}
-              />
-            </div>
+            <TopMenuBar
+              totalBalance={totalBalance}
+              info={info}
+            />
           )}
 
+          {/* Main Content Container */}
           <div className={cstyles.contentcontainer}>
             <Switch>
               <Route
@@ -572,6 +563,18 @@ export default class RouteApp extends React.Component<Props, AppState> {
                     addAddressBookEntry={this.addAddressBookEntry}
                     removeAddressBookEntry={this.removeAddressBookEntry}
                     {...standardProps}
+                  />
+                )}
+              />
+              <Route
+                path={routes.ADDRESSES}
+                render={() => (
+                  <AddressManagement
+                    addresses={addresses}
+                    addressesWithBalance={addressesWithBalance}
+                    addressBook={addressBook}
+                    info={info}
+                    createNewAddress={this.createNewAddress}
                   />
                 )}
               />
@@ -621,6 +624,9 @@ export default class RouteApp extends React.Component<Props, AppState> {
               />
             </Switch>
           </div>
+
+          {/* Bottom Navigation - Always visible when wallet is loaded */}
+          {hasLatestBlock && <BottomNavigation />}
         </div>
       </>
     );

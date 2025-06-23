@@ -421,10 +421,10 @@ if (isDev) {
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1300,
-    height: 728,
-    minHeight: 500,
-    minWidth: 1100,
+    width: 900,
+    height: 600,
+    minHeight: 450,
+    minWidth: 750,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
