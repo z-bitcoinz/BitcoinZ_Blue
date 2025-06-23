@@ -13,8 +13,12 @@
 }
 
 .well {
-  background-color: #000;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .verticalflex {
@@ -31,7 +35,9 @@
 }
 
 .highlight {
-  color: #c3921f;
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .xlarge {
@@ -55,7 +61,7 @@
 }
 
 .sublight {
-  color: #6a6a6a;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .center {
@@ -79,7 +85,8 @@
 }
 
 .orange {
-  color: #ff8c00;
+  color: #FFB74D;
+  font-weight: 500;
 }
 
 .breakword {
@@ -87,19 +94,21 @@
 }
 
 .primarybutton {
-  background-color: #c3921f;
-  color: #000;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
   text-align: center;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 14px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 16px;
-  padding-right: 16px;
-  border-radius: 4px;
-  border-color: #c3921f;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 25px;
+  border: none;
   margin-left: 8px;
   margin-right: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
 }
 
 .primarybutton:disabled,
@@ -111,6 +120,9 @@
 
 .primarybutton:hover {
   cursor: pointer;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 .padtopsmall {
