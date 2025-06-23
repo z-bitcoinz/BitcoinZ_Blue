@@ -54,6 +54,8 @@ type ToAddrBoxProps = {
   setSendButtonEnable: (sendButtonEnabled: boolean) => void;
   setMaxAmount: (id: number, total: number) => void;
   totalAmountAvailable: number;
+  addressBook: AddressBookEntry[];
+  openErrorModal: (title: string, body: string) => void;
 };
 const ToAddrBox = ({
   toaddr,
@@ -64,6 +66,8 @@ const ToAddrBox = ({
   setMaxAmount,
   setSendButtonEnable,
   totalAmountAvailable,
+  addressBook,
+  openErrorModal,
 }: ToAddrBoxProps) => {
   const isMemoDisabled = !Utils.isZaddr(toaddr.to);
 
@@ -113,6 +117,46 @@ const ToAddrBox = ({
     }
   };
 
+  // Contact selection functionality
+  const selectContact = (contact: AddressBookEntry) => {
+    // Create a synthetic event to update the address field
+    const syntheticEvent = {
+      target: { value: contact.address }
+    } as React.ChangeEvent<HTMLInputElement>;
+    updateToField(toaddr.id as number, syntheticEvent, null, null);
+  };
+
+  // Paste address functionality
+  const pasteAddress = async () => {
+    try {
+      const { clipboard } = window.require('electron');
+      const clipboardText = clipboard.readText().trim();
+
+      // Validate the clipboard content
+      if (!clipboardText) {
+        openErrorModal("Paste Error", "Clipboard is empty");
+        return;
+      }
+
+      // Check if it's a valid BitcoinZ address
+      const isValid = Utils.isZaddr(clipboardText) || Utils.isTransparent(clipboardText);
+      if (!isValid) {
+        openErrorModal("Invalid Address", "Clipboard does not contain a valid BitcoinZ address");
+        return;
+      }
+
+      // Create a synthetic event to update the address field
+      const syntheticEvent = {
+        target: { value: clipboardText }
+      } as React.ChangeEvent<HTMLInputElement>;
+      updateToField(toaddr.id as number, syntheticEvent, null, null);
+
+      openErrorModal("Address Pasted", "Address successfully pasted from clipboard");
+    } catch (error) {
+      openErrorModal("Paste Error", "Failed to read from clipboard");
+    }
+  };
+
   return (
     <div>
       <div className={[cstyles.well, cstyles.verticalflex].join(" ")}>
@@ -126,13 +170,62 @@ const ToAddrBox = ({
             )}
           </div>
         </div>
-        <input
-          type="text"
-          placeholder="U | Z | T address"
-          className={cstyles.inputbox}
-          value={toaddr.to}
-          onChange={(e) => updateToField(toaddr.id as number, e, null, null)}
-        />
+
+        {/* Address input with contact selection and paste buttons */}
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <input
+            type="text"
+            placeholder="U | Z | T address"
+            className={cstyles.inputbox}
+            value={toaddr.to}
+            onChange={(e) => updateToField(toaddr.id as number, e, null, null)}
+            style={{ flex: 1 }}
+          />
+
+          {/* Contact selection dropdown */}
+          {addressBook && addressBook.length > 0 && (
+            <select
+              className={cstyles.inputbox}
+              style={{ width: "120px", fontSize: "12px" }}
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  const contact = addressBook.find(c => c.address === e.target.value);
+                  if (contact) selectContact(contact);
+                  e.target.value = ""; // Reset dropdown
+                }
+              }}
+            >
+              <option value="">
+                <i className="fas fa-address-book" /> Contacts
+              </option>
+              {addressBook.map((contact) => (
+                <option key={contact.address} value={contact.address}>
+                  {contact.label}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Paste button */}
+          <button
+            type="button"
+            className={cstyles.primarybutton}
+            onClick={pasteAddress}
+            style={{
+              padding: "8px 12px",
+              fontSize: "12px",
+              minWidth: "70px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}
+            title="Paste address from clipboard"
+          >
+            <i className="fas fa-paste" />
+            Paste
+          </button>
+        </div>
         <Spacer />
         <div className={[cstyles.flexspacebetween].join(" ")}>
           <div className={cstyles.sublight}>Amount</div>
@@ -606,6 +699,7 @@ export default class Send extends PureComponent<Props, SendState> {
       totalBalance,
       openErrorModal,
       openPasswordAndUnlockIfNeeded,
+      addressBook,
     } = this.props;
 
     const totalAmountAvailable = totalBalance.transparent + totalBalance.spendableZ + totalBalance.uabalance;
@@ -662,6 +756,8 @@ export default class Send extends PureComponent<Props, SendState> {
                   setMaxAmount={this.setMaxAmount}
                   setSendButtonEnable={this.setSendButtonEnable}
                   totalAmountAvailable={totalAmountAvailable}
+                  addressBook={addressBook}
+                  openErrorModal={openErrorModal}
                 />
               );
             })}
