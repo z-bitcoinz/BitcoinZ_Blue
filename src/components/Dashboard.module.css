@@ -85,7 +85,7 @@
 
 .balanceBreakdownGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
@@ -157,31 +157,37 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Pending Balance Notification - 50% Smaller */
-.pendingNotification {
-  background: rgba(255, 183, 77, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 183, 77, 0.3);
-  padding: 10px 12px;
-  margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(255, 183, 77, 0.1);
+/* Confirming Transaction Indicators */
+.pendingIndicator {
+  margin-left: 6px;
+  color: #FFB74D;
+  font-size: 9px;
+  text-shadow: 0 0 6px rgba(255, 183, 77, 0.8);
+  filter: drop-shadow(0 0 3px rgba(255, 183, 77, 0.6));
+  display: inline-block;
+}
+
+.pendingIndicator i {
+  animation: confirmingSpin 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes confirmingSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .pendingAmount {
+  font-size: 9px;
   color: #FFB74D;
-  font-size: 11px;
-  font-weight: 600;
-  margin-bottom: 3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  margin-top: 3px;
+  text-shadow: 0 0 6px rgba(255, 183, 77, 0.8), 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.3px;
+  opacity: 1;
 }
 
-.pendingInfo {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 10px;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
+
 
 .dashboardFooter {
   margin-top: 32px;
@@ -291,6 +297,13 @@
 .recentTransactionItem:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.recentTransactionItem:hover .transactionIcon {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
 }
 
 /* Ensure last transaction has proper bottom spacing */
@@ -302,13 +315,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.15);
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-  margin-right: 6px;
-  font-size: 8px;
+  margin-right: 10px;
+  font-size: 11px;
   flex-shrink: 0;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .transactionDetails {
@@ -321,10 +338,13 @@
 
 .transactionType {
   color: #ffffff;
-  font-weight: 600;
-  font-size: 10px;
+  font-weight: 700;
+  font-size: 12px;
   line-height: 1.1;
   margin: 0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  letter-spacing: 0.3px;
 }
 
 .transactionDate {
