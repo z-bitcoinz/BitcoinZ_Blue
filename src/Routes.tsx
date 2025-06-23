@@ -605,7 +605,12 @@ export default class RouteApp extends React.Component<Props, AppState> {
                 path={routes.DASHBOARD}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 render={() => (
-                  <Dashboard totalBalance={totalBalance} info={info} addressesWithBalance={addressesWithBalance} />
+                  <Dashboard
+                    totalBalance={totalBalance}
+                    info={info}
+                    addressesWithBalance={addressesWithBalance}
+                    transactions={transactions}
+                  />
                 )}
               />
               <Route
