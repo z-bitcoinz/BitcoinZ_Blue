@@ -9,140 +9,14 @@
   z-index: 1000;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 16px;
   color: white;
 }
 
-/* Total Balance Section (Left) */
-.totalBalanceSection {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.totalBalanceLabel {
-  font-size: 10px;
-  color: #6a6a6a;
-  margin-bottom: 2px;
-}
-
-.totalBalanceAmount {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-}
-
-.currencyName {
-  font-size: 14px;
+.walletTitle {
+  font-size: 16px;
   color: #c3921f;
   font-weight: bold;
-  margin-right: 4px;
-}
-
-.balanceMain {
-  font-size: 18px;
-  color: #c3921f;
-  font-weight: bold;
-}
-
-.balanceSmall {
-  font-size: 12px;
-  color: #c3921f;
-  padding-left: 1px;
-}
-
-.totalBalanceUsd {
-  font-size: 10px;
-  color: #6a6a6a;
-  margin-top: 1px;
-}
-
-/* Sub Balances Section (Right) */
-.subBalancesSection {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.subBalance {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.subBalanceLabel {
-  font-size: 9px;
-  color: #6a6a6a;
-  margin-bottom: 1px;
-}
-
-.subBalanceAmount {
-  display: flex;
-  align-items: baseline;
-  gap: 1px;
-}
-
-.subCurrencyName {
-  font-size: 10px;
-  color: #c3921f;
-  margin-right: 2px;
-}
-
-.subBalanceMain {
-  font-size: 12px;
-  color: #c3921f;
-  font-weight: bold;
-}
-
-.subBalanceSmall {
-  font-size: 10px;
-  color: #c3921f;
-  padding-left: 1px;
-}
-
-.subBalanceUsd {
-  font-size: 8px;
-  color: #6a6a6a;
-  margin-top: 1px;
-}
-
-/* Pending Indicator */
-.pendingIndicator {
-  position: absolute;
-  top: 52px;
-  right: 16px;
-  background-color: #ff8c00;
-  color: #000;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  z-index: 999;
-}
-
-.pendingIndicator i {
-  font-size: 8px;
-}
-
-/* Responsive adjustments for smaller screens */
-@media (max-width: 900px) {
-  .topMenuBar {
-    padding: 0 12px;
-  }
-  
-  .subBalancesSection {
-    gap: 16px;
-  }
-  
-  .subBalanceLabel {
-    font-size: 8px;
-  }
-  
-  .subBalanceMain {
-    font-size: 11px;
-  }
+  text-align: center;
 }
