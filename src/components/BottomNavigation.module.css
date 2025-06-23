@@ -21,6 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 150px; /* 900px / 6 buttons = 150px each */
 }
 
 .navItem:hover {
@@ -91,20 +92,22 @@
   color: #000;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for 6 buttons */
 @media (max-width: 900px) {
   .navLabel {
     font-size: 8px;
   }
-  
+
   .navIcon {
     font-size: 11px;
   }
-  
+
   .navButton {
-    padding: 3px 6px;
+    padding: 3px 4px;
   }
 }
+
+/* 6 buttons now fit properly in 900px width (150px each) */
 
 /* Focus states for accessibility */
 .navButton:focus {
