@@ -10,10 +10,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = () => {
   return (
     <div className={styles.topMenuBar}>
       {/* Top menu bar kept for potential future features */}
-      {/* Balance information removed to avoid duplication with Dashboard */}
-      <div className={styles.walletTitle}>
-        BitcoinZ Wallet Lite
-      </div>
+      {/* Title removed to reduce redundancy */}
     </div>
   );
 };
