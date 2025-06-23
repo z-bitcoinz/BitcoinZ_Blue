@@ -148,8 +148,7 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                           className={`fas ${tx.type === "receive" ? "fa-arrow-down" : "fa-arrow-up"}`}
                           style={{
                             color: tx.type === "receive" ? "#00E676" : "#FF5722",
-                            textShadow: `0 0 12px ${tx.type === "receive" ? "#00E676" : "#FF5722"}, 0 0 6px ${tx.type === "receive" ? "#00E676" : "#FF5722"}`,
-                            filter: `drop-shadow(0 0 4px ${tx.type === "receive" ? "#00E676" : "#FF5722"})`
+                            textShadow: `0 1px 2px rgba(0, 0, 0, 0.5)`
                           }}
                         />
                       </div>
