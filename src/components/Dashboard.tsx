@@ -39,12 +39,6 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
               usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
-            <BalanceBlock
-              topLabel="Confirmed"
-              zecValue={totalBalance.totalConfirmed}
-              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.totalConfirmed)}
-              currencyName={info.currencyName}
-            />
             {totalBalance.totalPending > 0 && (
               <BalanceBlock
                 topLabel="Pending"
@@ -60,7 +54,7 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
               currencyName={info.currencyName}
             />
             <BalanceBlock
-              topLabel="Sapling"
+              topLabel="Private"
               zecValue={totalBalance.zbalance}
               usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.zbalance)}
               currencyName={info.currencyName}
