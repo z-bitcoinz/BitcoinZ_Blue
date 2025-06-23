@@ -25,7 +25,7 @@ type AddressBalanceItemProps = {
 };
 
 const AddressBalanceItem = ({ currencyName, btczPrice, item }: AddressBalanceItemProps) => {
-  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(Math.abs(item.balance));
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(Math.abs(item.balance));
 
   return (
     <AccordionItem key={item.label} className={[cstyles.well, cstyles.margintopsmall].join(" ")} uuid={item.address}>
@@ -48,7 +48,7 @@ const AddressBalanceItem = ({ currencyName, btczPrice, item }: AddressBalanceIte
                 <span className={[cstyles.small, cstyles.btczsmallpart].join(" ")}>{smallPart}</span>
               </div>
               <div className={[cstyles.sublight, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                {Utils.getBtczToUsdString(btczPrice, Math.abs(item.balance))}
+                {Utils.getBtczToUsdStringBtcz(btczPrice, Math.abs(item.balance))}
               </div>
             </div>
           </div>
@@ -78,42 +78,42 @@ export default class Home extends Component<Props> {
             <BalanceBlockHighlight
               topLabel="Total Balance"
               zecValue={totalBalance.total}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
               topLabel="Confirmed"
               zecValue={totalBalance.totalConfirmed}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalConfirmed)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.totalConfirmed)}
               currencyName={info.currencyName}
             />
             {totalBalance.totalPending > 0 && (
               <BalanceBlock
                 topLabel="Pending"
                 zecValue={totalBalance.totalPending}
-                usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalPending)}
+                usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.totalPending)}
                 currencyName={info.currencyName}
               />
             )}
             <BalanceBlock
               topLabel="Transparent"
               zecValue={totalBalance.transparent}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.transparent)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.transparent)}
               currencyName={info.currencyName}
             />
             <BalanceBlock
               topLabel="Sapling"
               zecValue={totalBalance.zbalance}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.zbalance)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.zbalance)}
               currencyName={info.currencyName}
             />
           </div>
           <div>
             {totalBalance.totalPending > 0 && (
               <div className={[cstyles.orange, cstyles.small, cstyles.padtopsmall].join(" ")}>
-                ⏳ {totalBalance.totalPending.toFixed(8)} BTCZ pending confirmation
-                {totalBalance.pendingTransparent > 0 && ` (${totalBalance.pendingTransparent.toFixed(8)} transparent)`}
-                {totalBalance.pendingShielded > 0 && ` (${totalBalance.pendingShielded.toFixed(8)} shielded)`}
+                ⏳ {Utils.maxPrecisionTrimmedBtcz(totalBalance.totalPending)} BTCZ pending confirmation
+                {totalBalance.pendingTransparent > 0 && ` (${Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingTransparent)} transparent)`}
+                {totalBalance.pendingShielded > 0 && ` (${Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingShielded)} shielded)`}
               </div>
             )}
             {anyPending && (

@@ -10,7 +10,7 @@ type BalanceBlockType = {
   tooltip?: string;
 };
 export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyName, tooltip }: BalanceBlockType) => {
-  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(zecValue);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(zecValue);
 
   return (
     <div style={{ padding: "1em" }} title={tooltip}>
@@ -38,7 +38,7 @@ export const BalanceBlockHighlight = ({ zecValue, usdValue, topLabel, currencyNa
 };
 
 export const BalanceBlock = ({ zecValue, usdValue, topLabel, currencyName }: BalanceBlockType) => {
-  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(zecValue);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(zecValue);
 
   return (
     <div className={cstyles.padall}>

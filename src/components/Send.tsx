@@ -101,7 +101,7 @@ const ToAddrBox = ({
     setSendButtonEnable(buttonstate);
   }, 10);
 
-  const usdValue = Utils.getBtczToUsdString(btczPrice, toaddr.amount);
+  const usdValue = Utils.getBtczToUsdStringBtcz(btczPrice, toaddr.amount);
 
   const addReplyTo = () => {
     if (toaddr.memo.endsWith(fromAddress)) {
@@ -227,7 +227,7 @@ type ConfirmModalToAddrProps = {
   info: Info;
 };
 const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
-  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(toaddr.amount);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(toaddr.amount);
 
   const memo: string = toaddr.memo ? toaddr.memo : "";
 
@@ -246,7 +246,7 @@ const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
               <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
             </div>
           </div>
-          <div>{Utils.getBtczToUsdString(info.btczPrice, toaddr.amount)}</div>
+          <div>{Utils.getBtczToUsdStringBtcz(info.btczPrice, toaddr.amount)}</div>
         </div>
       </div>
       <div className={[cstyles.sublight, cstyles.breakword, cstyles.memodiv].join(" ")}>{memo}</div>
@@ -281,7 +281,7 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
 }) => {
   const defaultFee = RPC.getDefaultFee();
   const sendingTotal = sendPageState.toaddrs.reduce((s, t) => s + t.amount, 0.0) + defaultFee;
-  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmall(sendingTotal);
+  const { bigPart, smallPart } = Utils.splitBtczAmountIntoBigSmallBtcz(sendingTotal);
 
   // Determine the tx privacy level
   let privacyLevel = "";
@@ -379,7 +379,7 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
                 <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
               </div>
 
-              <div className={cstyles.normal}>{Utils.getBtczToUsdString(info.btczPrice, sendingTotal)}</div>
+              <div className={cstyles.normal}>{Utils.getBtczToUsdStringBtcz(info.btczPrice, sendingTotal)}</div>
             </div>
           </div>
         </div>
@@ -629,21 +629,21 @@ export default class Send extends PureComponent<Props, SendState> {
             <BalanceBlockHighlight
               topLabel="Spendable Funds"
               zecValue={totalAmountAvailable}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalAmountAvailable)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalAmountAvailable)}
               currencyName={info.currencyName}
               tooltip={tooltip}
             />
             <BalanceBlockHighlight
               topLabel="Total Balance"
               zecValue={totalBalance.total}
-              usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.total)}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.total)}
               currencyName={info.currencyName}
             />
             {totalBalance.totalPending > 0 && (
               <BalanceBlockHighlight
                 topLabel="Pending"
                 zecValue={totalBalance.totalPending}
-                usdValue={Utils.getBtczToUsdString(info.btczPrice, totalBalance.totalPending)}
+                usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.totalPending)}
                 currencyName={info.currencyName}
               />
             )}

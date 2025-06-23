@@ -66,8 +66,33 @@ export default class Utils {
     return v.toFixed(8);
   }
 
+  // BitcoinZ-specific: Convert to max 4 decimal places for better display
+  static maxPrecisionBtcz(v: number): string {
+    if (!v) return `${v}`;
+
+    return v.toFixed(4);
+  }
+
   static maxPrecisionTrimmed(v: number): string {
     let s = Utils.maxPrecision(v);
+    if (!s) {
+      return s;
+    }
+
+    while (s.indexOf(".") >= 0 && s.substr(s.length - 1, 1) === "0") {
+      s = s.substr(0, s.length - 1);
+    }
+
+    if (s.substr(s.length - 1) === ".") {
+      s = s.substr(0, s.length - 1);
+    }
+
+    return s;
+  }
+
+  // BitcoinZ-specific: Trimmed version with 4 decimal places
+  static maxPrecisionTrimmedBtcz(v: number): string {
+    let s = Utils.maxPrecisionBtcz(v);
     if (!s) {
       return s;
     }
@@ -105,6 +130,35 @@ export default class Utils {
     }
 
     if (smallPart === "0000") {
+      smallPart = "";
+    }
+
+    return { bigPart, smallPart };
+  }
+
+  // BitcoinZ-specific: Split amount with 4 decimal precision for cleaner display
+  static splitBtczAmountIntoBigSmallBtcz(btczValue: number) {
+    if (!btczValue) {
+      return { bigPart: btczValue, smallPart: "" };
+    }
+
+    let bigPart = Utils.maxPrecisionBtcz(btczValue);
+    let smallPart = "";
+
+    if (bigPart.indexOf(".") >= 0) {
+      const decimalPart = bigPart.substr(bigPart.indexOf(".") + 1);
+      if (decimalPart.length > 2) {
+        smallPart = decimalPart.substr(2);
+        bigPart = bigPart.substr(0, bigPart.length - smallPart.length);
+
+        // Pad the small part with trailing 0s to ensure 2 digits
+        while (smallPart.length < 2) {
+          smallPart += "0";
+        }
+      }
+    }
+
+    if (smallPart === "00") {
       smallPart = "";
     }
 
@@ -155,6 +209,22 @@ export default class Utils {
     }
 
     return `USD ${(price * btczValue).toFixed(2)}`;
+  }
+
+  // BitcoinZ-specific: USD conversion with better precision handling for small amounts
+  static getBtczToUsdStringBtcz(price: number | null, btczValue: number | null): string {
+    if (!price || !btczValue) {
+      return "USD --";
+    }
+
+    const usdValue = price * btczValue;
+
+    // For very small USD values (less than $0.01), show more decimal places
+    if (usdValue < 0.01 && usdValue > 0) {
+      return `USD ${usdValue.toFixed(4)}`;
+    }
+
+    return `USD ${usdValue.toFixed(2)}`;
   }
 
   static utf16Split(s: string, chunksize: number): string[] {
