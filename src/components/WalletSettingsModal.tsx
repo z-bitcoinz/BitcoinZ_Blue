@@ -28,11 +28,36 @@ export default function WalletSettingsModal({
 
   return (
     <Modal
-      isOpen={modalIsOpen}
-      onRequestClose={closeModal}
-      className={cstyles.modal}
-      overlayClassName={cstyles.modalOverlay}
-    >
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        className={cstyles.modal}
+        overlayClassName={cstyles.modalOverlay}
+        style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 10000
+          },
+          content: {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '20px',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            zIndex: 10001
+          }
+        }}
+      >
       <div className={[cstyles.verticalflex].join(" ")}>
         <div className={cstyles.marginbottomlarge} style={{ textAlign: "left", marginLeft: 10 }}>
           Filter out Spam Transactions

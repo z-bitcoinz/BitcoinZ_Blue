@@ -29,11 +29,36 @@ type ExportPrivKeyModalProps = {
 const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: ExportPrivKeyModalProps) => {
   return (
     <Modal
-      isOpen={modalIsOpen}
-      onRequestClose={closeModal}
-      className={cstyles.modal}
-      overlayClassName={cstyles.modalOverlay}
-    >
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        className={cstyles.modal}
+        overlayClassName={cstyles.modalOverlay}
+        style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 10000
+          },
+          content: {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '20px',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            zIndex: 10001
+          }
+        }}
+      >
       <div className={[cstyles.verticalflex].join(" ")}>
         <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
           Your Wallet Private Keys
@@ -68,11 +93,36 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
 
   return (
     <Modal
-      isOpen={modalIsOpen}
-      onRequestClose={closeModal}
-      className={cstyles.modal}
-      overlayClassName={cstyles.modalOverlay}
-    >
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        className={cstyles.modal}
+        overlayClassName={cstyles.modalOverlay}
+        style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 10000
+          },
+          content: {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '20px',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            zIndex: 10001
+          }
+        }}
+      >
       <div className={[cstyles.verticalflex].join(" ")}>
         <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
           Import Spending or Viewing Key
@@ -144,11 +194,36 @@ const PayURIModal = ({
 }: PayURIModalProps) => {
   return (
     <Modal
-      isOpen={modalIsOpen}
-      onRequestClose={closeModal}
-      className={cstyles.modal}
-      overlayClassName={cstyles.modalOverlay}
-    >
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        className={cstyles.modal}
+        overlayClassName={cstyles.modalOverlay}
+        style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 10000
+          },
+          content: {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '20px',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            zIndex: 10001
+          }
+        }}
+      >
       <div className={[cstyles.verticalflex].join(" ")}>
         <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
           {modalTitle}
@@ -271,6 +346,10 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
 
   componentDidMount() {
     this.setupMenuHandlers();
+
+    // Signal to the main process that IPC listeners are ready
+    // This prevents race conditions with menu creation
+    ipcRenderer.send("ipc-listeners-ready");
   }
 
   componentWillUnmount() {
@@ -345,6 +424,18 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
 
     // Import a Private Key
     ipcRenderer.on("import", () => {
+      // Access props dynamically to get current values, not captured values
+      const { info, openErrorModal } = this.props;
+
+      // Check if wallet is loaded and ready
+      if (!info || !info.latestBlock) {
+        openErrorModal(
+          "Wallet Not Ready",
+          "Please wait for the wallet to finish loading before importing private keys."
+        );
+        return;
+      }
+
       this.openImportPrivKeyModal(null);
     });
 
@@ -512,10 +603,33 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     // Export all private keys
     ipcRenderer.on("exportall", async () => {
       // Get all the addresses and run export key on each of them.
-      const { addresses, getPrivKeyAsString } = this.props;
+      // Access props dynamically to get current values, not captured values
+      const { addresses, getPrivKeyAsString, info, openPasswordAndUnlockIfNeeded, openErrorModal } = this.props;
+
+      // Check if wallet is loaded and addresses are available
+      if (!info || !info.latestBlock) {
+        openErrorModal(
+          "Wallet Not Ready",
+          "Please wait for the wallet to finish loading before exporting private keys."
+        );
+        return;
+      }
+
+      if (!addresses || addresses.length === 0) {
+        openErrorModal(
+          "No Addresses Found",
+          "No addresses are available to export. Please wait for the wallet to fully sync."
+        );
+        return;
+      }
+
       openPasswordAndUnlockIfNeeded(async () => {
-        const privKeysPromise = addresses.map(async (a) => {
-          const privKey = getPrivKeyAsString(a.address);
+        // Access current props again inside the callback
+        const currentAddresses = this.props.addresses;
+        const currentGetPrivKeyAsString = this.props.getPrivKeyAsString;
+
+        const privKeysPromise = currentAddresses.map(async (a) => {
+          const privKey = currentGetPrivKeyAsString(a.address);
           return `${privKey} #${a}`;
         });
         const exportedPrivKeys = await Promise.all(privKeysPromise);
@@ -748,61 +862,64 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
           <img src={Logo} width="70" alt="logo" />
         </div>
 
-        <div className={styles.sidebar}>
-          <SidebarMenuItem
-            name="Dashboard"
-            routeName={routes.DASHBOARD}
-            currentRoute={location.pathname}
-            iconname="fa-home"
-          />
-          <SidebarMenuItem
-            name="Send"
-            routeName={routes.SEND}
-            currentRoute={location.pathname}
-            iconname="fa-paper-plane"
-          />
-          <SidebarMenuItem
-            name="Receive"
-            routeName={routes.RECEIVE}
-            currentRoute={location.pathname}
-            iconname="fa-download"
-          />
-          <SidebarMenuItem
-            name="Transactions"
-            routeName={routes.TRANSACTIONS}
-            currentRoute={location.pathname}
-            iconname="fa-list"
-          />
-          <SidebarMenuItem
-            name="Address Book"
-            routeName={routes.ADDRESSBOOK}
-            currentRoute={location.pathname}
-            iconname="fa-address-book"
-          />
-        </div>
+        {/* Hide the actual sidebar menu since we use bottom navigation now */}
+        <div style={{ display: "none" }}>
+          <div className={styles.sidebar}>
+            <SidebarMenuItem
+              name="Dashboard"
+              routeName={routes.DASHBOARD}
+              currentRoute={location.pathname}
+              iconname="fa-home"
+            />
+            <SidebarMenuItem
+              name="Send"
+              routeName={routes.SEND}
+              currentRoute={location.pathname}
+              iconname="fa-paper-plane"
+            />
+            <SidebarMenuItem
+              name="Receive"
+              routeName={routes.RECEIVE}
+              currentRoute={location.pathname}
+              iconname="fa-download"
+            />
+            <SidebarMenuItem
+              name="Transactions"
+              routeName={routes.TRANSACTIONS}
+              currentRoute={location.pathname}
+              iconname="fa-list"
+            />
+            <SidebarMenuItem
+              name="Address Book"
+              routeName={routes.ADDRESSBOOK}
+              currentRoute={location.pathname}
+              iconname="fa-address-book"
+            />
+          </div>
 
-        <div className={cstyles.center}>
-          {state === "CONNECTED" && (
-            <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
-              <i className={[cstyles.green, "fas", "fa-check"].join(" ")} />
-              &nbsp; {info.walletHeight}
-            </div>
-          )}
-          {state === "SYNCING" && (
-            <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
-              <div>
-                <i className={[cstyles.yellow, "fas", "fa-sync"].join(" ")} />
-                &nbsp; Syncing
+          <div className={cstyles.center}>
+            {state === "CONNECTED" && (
+              <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
+                <i className={[cstyles.green, "fas", "fa-check"].join(" ")} />
+                &nbsp; {info.walletHeight}
               </div>
-              <div>{`${progress}%`}</div>
-            </div>
-          )}
-          {state === "DISCONNECTED" && (
-            <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
-              <i className={[cstyles.yellow, "fas", "fa-times-circle"].join(" ")} />
-              &nbsp; Connected
-            </div>
-          )}
+            )}
+            {state === "SYNCING" && (
+              <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
+                <div>
+                  <i className={[cstyles.yellow, "fas", "fa-sync"].join(" ")} />
+                  &nbsp; Syncing
+                </div>
+                <div>{`${progress}%`}</div>
+              </div>
+            )}
+            {state === "DISCONNECTED" && (
+              <div className={[cstyles.padsmallall, cstyles.margintopsmall, cstyles.blackbg].join(" ")}>
+                <i className={[cstyles.yellow, "fas", "fa-times-circle"].join(" ")} />
+                &nbsp; Connected
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
