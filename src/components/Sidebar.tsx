@@ -91,84 +91,205 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
   const [pkey, setPKey] = useState("");
   const [birthday, setBirthday] = useState("0");
 
+  const modernModalStyle = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: '16px',
+      backdropFilter: 'blur(20px)',
+      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+      padding: '24px',
+      width: '480px',
+      maxWidth: '90vw',
+      maxHeight: '85vh',
+      overflow: 'auto',
+      color: 'white'
+    },
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      backdropFilter: 'blur(5px)',
+      zIndex: 1000
+    }
+  };
+
+  const modernInputStyle = {
+    width: '100%',
+    padding: '12px 16px',
+    fontSize: '14px',
+    fontFamily: 'inherit',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '12px',
+    color: 'white',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    backdropFilter: 'blur(10px)',
+    boxSizing: 'border-box'
+  };
+
+  const modernButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 20px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderRadius: '12px',
+    color: 'white',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    margin: '0 8px',
+    minWidth: '100px',
+    justifyContent: 'center'
+  };
+
   return (
     <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        className={cstyles.modal}
-        overlayClassName={cstyles.modalOverlay}
-        style={{
-          overlay: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            zIndex: 10000
-          },
-          content: {
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '20px',
-            maxWidth: '500px',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            zIndex: 10001
-          }
-        }}
-      >
-      <div className={[cstyles.verticalflex].join(" ")}>
-        <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
+      isOpen={modalIsOpen}
+      onRequestClose={closeModal}
+      style={modernModalStyle}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Modern Modal Title */}
+        <div style={{
+          textAlign: 'center',
+          fontSize: '20px',
+          fontWeight: '700',
+          color: '#ffffff',
+          textShadow: '0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.7)',
+          marginBottom: '8px'
+        }}>
           Import Spending or Viewing Key
         </div>
 
-        <div className={cstyles.marginbottomlarge}>
+        {/* Description */}
+        <div style={{
+          fontSize: '14px',
+          color: 'rgba(255, 255, 255, 0.85)',
+          textAlign: 'center',
+          lineHeight: '1.5',
+          textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+        }}>
           Please paste your private key here (spending key or viewing key).
         </div>
 
-        <div className={[cstyles.well].join(" ")} style={{ textAlign: "center" }}>
+        {/* Private Key Input */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '12px',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          padding: '16px'
+        }}>
           <TextareaAutosize
-            className={cstyles.inputbox}
+            style={{
+              ...modernInputStyle,
+              minHeight: '80px',
+              resize: 'vertical',
+              fontFamily: 'monospace'
+            }}
             placeholder="Spending or Viewing Key"
             value={pkey}
             onChange={(e) => setPKey(e.target.value)}
           />
         </div>
 
-        <div className={cstyles.marginbottomlarge} />
-        <div className={cstyles.marginbottomlarge}>
-          Birthday (The earliest block height where this key was used. Ok to enter &lsquo;0&rsquo;)
+        {/* Birthday Section */}
+        <div>
+          <div style={{
+            fontSize: '14px',
+            color: 'rgba(255, 255, 255, 0.85)',
+            marginBottom: '12px',
+            fontWeight: '500',
+            textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+          }}>
+            Birthday (The earliest block height where this key was used. Ok to enter '0')
+          </div>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            padding: '16px'
+          }}>
+            <input
+              type="number"
+              style={modernInputStyle}
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              placeholder="0"
+            />
+          </div>
         </div>
-        <div className={cstyles.well}>
-          <input
-            type="number"
-            className={cstyles.inputbox}
-            value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className={cstyles.buttoncontainer}>
-        <button
-          type="button"
-          className={cstyles.primarybutton}
-          onClick={() => {
-            doImportPrivKeys(pkey, birthday);
-            closeModal();
-          }}
-        >
-          Import
-        </button>
-        <button type="button" className={cstyles.primarybutton} onClick={closeModal}>
-          Cancel
-        </button>
+        {/* Modern Action Buttons */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px',
+          paddingTop: '16px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <button
+            type="button"
+            style={modernButtonStyle}
+            onClick={() => {
+              doImportPrivKeys(pkey, birthday);
+              closeModal();
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <i className="fas fa-download" />
+            Import
+          </button>
+          <button
+            type="button"
+            style={modernButtonStyle}
+            onClick={closeModal}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <i className="fas fa-times" />
+            Cancel
+          </button>
+        </div>
       </div>
     </Modal>
   );
