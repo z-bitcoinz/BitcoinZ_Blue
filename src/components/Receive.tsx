@@ -330,7 +330,7 @@ export default class Receive extends Component<Props> {
           </div>
 
           <div className={styles.unifiedContent}>
-            <ScrollPane offsetHeight={240} className={styles.fullHeightScroll}>
+            <ScrollPane offsetHeight={240} className={styles.fullHeightScroll} scrollbarType="glass">
               {filteredAddresses.length > 0 ? (
                 <div className={styles.addressList}>
                   {filteredAddresses.map((a) => (

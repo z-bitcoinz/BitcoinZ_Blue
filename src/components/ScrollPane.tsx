@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import scrollbarStyles from "./ModernScrollbar.module.css";
 
 type PaneState = {
   height: number;
@@ -8,6 +9,7 @@ type Props = {
   children: React.ReactNode;
   className?: string;
   offsetHeight: number;
+  scrollbarType?: 'standard' | 'compact' | 'thin' | 'glass';
 };
 
 export default class ScrollPane extends Component<Props, PaneState> {
@@ -36,11 +38,38 @@ export default class ScrollPane extends Component<Props, PaneState> {
   };
 
   render() {
-    const { children, className } = this.props;
+    const { children, className, scrollbarType = 'standard' } = this.props;
     const { height } = this.state;
 
+    // Determine which scrollbar style to apply
+    const getScrollbarClass = () => {
+      switch (scrollbarType) {
+        case 'compact':
+          return scrollbarStyles.modernScrollbarCompact;
+        case 'thin':
+          return scrollbarStyles.modernScrollbarThin;
+        case 'glass':
+          return scrollbarStyles.modernScrollbarGlass;
+        default:
+          return scrollbarStyles.modernScrollbar;
+      }
+    };
+
+    const scrollbarClass = getScrollbarClass();
+    const combinedClassName = className
+      ? `${className} ${scrollbarClass} ${scrollbarStyles.scrollableContainer}`
+      : `${scrollbarClass} ${scrollbarStyles.scrollableContainer}`;
+
     return (
-      <div className={className} style={{ overflowY: "auto", overflowX: "hidden", height }}>
+      <div
+        className={combinedClassName}
+        style={{
+          overflowY: "auto",
+          overflowX: "hidden",
+          height,
+          scrollBehavior: "smooth"
+        }}
+      >
         {children}
       </div>
     );

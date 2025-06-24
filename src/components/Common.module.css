@@ -264,6 +264,82 @@
   margin: 16px;
 }
 
+/* Modern Scrollbar Styling for Common Components */
+.containermargin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.containermargin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.containermargin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.containermargin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.containermargin::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.containermargin::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Global Modern Scrollbar for any scrollable elements */
+.scrollable::-webkit-scrollbar,
+*[style*="overflow-y: auto"]::-webkit-scrollbar,
+*[style*="overflow: auto"]::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollable::-webkit-scrollbar-track,
+*[style*="overflow-y: auto"]::-webkit-scrollbar-track,
+*[style*="overflow: auto"]::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.scrollable::-webkit-scrollbar-thumb,
+*[style*="overflow-y: auto"]::-webkit-scrollbar-thumb,
+*[style*="overflow: auto"]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover,
+*[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover,
+*[style*="overflow: auto"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.scrollable::-webkit-scrollbar-thumb:active,
+*[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:active,
+*[style*="overflow: auto"]::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.scrollable::-webkit-scrollbar-corner,
+*[style*="overflow-y: auto"]::-webkit-scrollbar-corner,
+*[style*="overflow: auto"]::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
 .memodiv {
   white-space: pre-wrap;
 }
