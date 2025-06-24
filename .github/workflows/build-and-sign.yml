@@ -21,20 +21,29 @@ jobs:
           node-version: '18'
           cache: 'yarn'
           
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@1.81
+      - name: Setup Rust 1.81
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.81
+          override: true
 
       - name: Verify Rust version
         run: |
+          which rustc
+          which cargo
           rustc --version
           cargo --version
-          echo "✅ Rust toolchain verified"
+          echo "✅ Rust 1.81 confirmed"
 
       - name: Install dependencies
         run: yarn install
 
       - name: Build native module
         run: |
+          # Verify we're using the right Rust version
+          echo "Using Rust version:"
+          rustc --version
+
           cd native
 
           # Handle Cargo.lock version issues
