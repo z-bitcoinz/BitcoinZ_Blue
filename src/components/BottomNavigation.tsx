@@ -38,7 +38,7 @@ const navigationItems: NavigationItem[] = [
   {
     name: "Contact",
     routeName: routes.ADDRESSBOOK,
-    iconName: "fa-envelope",
+    iconName: "fa-user",
     id: "contact"
   }
 ];
