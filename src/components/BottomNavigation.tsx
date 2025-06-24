@@ -36,12 +36,6 @@ const navigationItems: NavigationItem[] = [
     id: "transactions"
   },
   {
-    name: "Addresses",
-    routeName: routes.ADDRESSES || "/addresses",
-    iconName: "fa-address-card",
-    id: "addresses"
-  },
-  {
     name: "Contact",
     routeName: routes.ADDRESSBOOK,
     iconName: "fa-envelope",
