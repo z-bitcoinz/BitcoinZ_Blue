@@ -1,16 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { Component, useState, useEffect } from "react";
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionItemHeading,
-  AccordionItemButton,
-  AccordionItemPanel,
-} from "react-accessible-accordion";
 import QRCode from "qrcode.react";
 import styles from "./Receive.module.css";
-import cstyles from "./Common.module.css";
 import Utils from "../utils/utils";
 import { AddressBalance, Info, ReceivePageState, AddressBookEntry, AddressDetail, AddressType } from "./AppState";
 import ScrollPane from "./ScrollPane";
@@ -26,6 +17,7 @@ type AddressBlockProps = {
   label?: string;
   fetchAndSetSinglePrivKey: (k: string) => void;
   fetchAndSetSingleViewKey: (k: string) => void;
+  addressType?: 'private' | 'transparent';
 };
 const AddressBlock = ({
   addressBalance,
@@ -36,11 +28,13 @@ const AddressBlock = ({
   fetchAndSetSinglePrivKey,
   viewKey,
   fetchAndSetSingleViewKey,
+  addressType,
 }: AddressBlockProps) => {
   const { address } = addressBalance;
 
   const [copied, setCopied] = useState(false);
   const [timerID, setTimerID] = useState<NodeJS.Timeout | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -61,107 +55,134 @@ const AddressBlock = ({
   };
 
   return (
-    <AccordionItem key={copied ? 1 : 0} className={[cstyles.well, styles.receiveblock].join(" ")} uuid={address}>
-      <AccordionItemHeading>
-        <AccordionItemButton className={cstyles.accordionHeader}>{address}</AccordionItemButton>
-      </AccordionItemHeading>
-      <AccordionItemPanel className={[styles.receiveDetail].join(" ")}>
-        <div className={[cstyles.flexspacebetween].join(" ")}>
-          <div className={[cstyles.verticalflex, cstyles.marginleft].join(" ")}>
-            {label && (
-              <div className={cstyles.margintoplarge}>
-                <div className={[cstyles.sublight].join(" ")}>Label</div>
-                <div className={[cstyles.padtopsmall, cstyles.fixedfont].join(" ")}>{label}</div>
+    <div className={styles.compactAddressBlock}>
+      {/* Compact Header - Always Visible */}
+      <div className={styles.compactHeader}>
+        <div className={styles.addressMainInfo}>
+          {addressType && (
+            <span className={`${styles.addressTypeBadge} ${styles[addressType]}`}>
+              <i className={addressType === 'private' ? 'fas fa-shield-alt' : 'fas fa-eye'} />
+              {addressType === 'private' ? 'Private' : 'Transparent'}
+            </span>
+          )}
+          <div className={styles.addressDetails}>
+            {label && <div className={styles.addressLabel}>{label}</div>}
+            <div className={styles.addressText}>{address}</div>
+            {balance > 0 && (
+              <div className={styles.balanceInfo}>
+                {currencyName} {balance} • {Utils.getBtczToUsdString(btczPrice, balance)}
               </div>
             )}
-
-            <div className={[cstyles.sublight, cstyles.margintoplarge].join(" ")}>Funds</div>
-            <div className={[cstyles.padtopsmall].join(" ")}>
-              {currencyName} {balance}
-            </div>
-            <div className={[cstyles.padtopsmall].join(" ")}>{Utils.getBtczToUsdString(btczPrice, balance)}</div>
-
-            <div className={[cstyles.margintoplarge, cstyles.breakword].join(" ")}>
-              {privateKey && (
-                <div>
-                  <div className={[cstyles.sublight].join(" ")}>Private Key</div>
-                  <div
-                    className={[cstyles.breakword, cstyles.padtopsmall, cstyles.fixedfont, cstyles.flex].join(" ")}
-                    style={{ maxWidth: "600px" }}
-                  >
-                    {/*
-                    // @ts-ignore */}
-                    <QRCode value={privateKey} className={[styles.receiveQrcode].join(" ")} />
-                    <div>{privateKey}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className={[cstyles.margintoplarge, cstyles.breakword].join(" ")}>
-              {viewKey && (
-                <div>
-                  <div className={[cstyles.sublight].join(" ")}>Viewing Key</div>
-                  <div
-                    className={[cstyles.breakword, cstyles.padtopsmall, cstyles.fixedfont, cstyles.flex].join(" ")}
-                    style={{ maxWidth: "600px" }}
-                  >
-                    {/*
-                    // @ts-ignore */}
-                    <QRCode value={viewKey} className={[styles.receiveQrcode].join(" ")} />
-                    <div>{viewKey}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <button
-                className={[cstyles.primarybutton, cstyles.margintoplarge].join(" ")}
-                type="button"
-                onClick={() => {
-                  clipboard.writeText(address);
-                  setCopied(true);
-                  setTimerID(setTimeout(() => setCopied(false), 5000));
-                }}
-              >
-                {copied ? <span>Copied!</span> : <span>Copy Address</span>}
-              </button>
-              {Utils.isZaddr(address) && !privateKey && (
-                <button
-                  className={[cstyles.primarybutton].join(" ")}
-                  type="button"
-                  onClick={() => fetchAndSetSinglePrivKey(address)}
-                >
-                  Export Private Key
-                </button>
-              )}
-
-              {Utils.isZaddr(address) && !viewKey && (
-                <button
-                  className={[cstyles.primarybutton].join(" ")}
-                  type="button"
-                  onClick={() => fetchAndSetSingleViewKey(address)}
-                >
-                  Export Viewing Key
-                </button>
-              )}
-
-              {Utils.isTransparent(address) && (
-                <button className={[cstyles.primarybutton].join(" ")} type="button" onClick={() => openAddress()}>
-                  View on explorer <i className={["fas", "fa-external-link-square-alt"].join(" ")} />
-                </button>
-              )}
-            </div>
-          </div>
-          <div>
-            {/*
-                    // @ts-ignore */}
-            <QRCode value={address} className={[styles.receiveQrcode].join(" ")} />
           </div>
         </div>
-      </AccordionItemPanel>
-    </AccordionItem>
+
+        {/* Essential Actions - Always Visible */}
+        <div className={styles.essentialActions}>
+          <button
+            className={styles.primaryButton}
+            type="button"
+            onClick={() => {
+              clipboard.writeText(address);
+              setCopied(true);
+              setTimerID(setTimeout(() => setCopied(false), 5000));
+            }}
+          >
+            <i className="fas fa-copy" />
+            {copied ? 'Copied!' : 'Copy Address'}
+          </button>
+          <button
+            className={styles.detailsButton}
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            <i className={`fas fa-chevron-${showDetails ? 'up' : 'down'}`} />
+            {showDetails ? 'Hide Details' : 'Show More'}
+          </button>
+        </div>
+      </div>
+
+      {/* Expandable Details Section */}
+      {showDetails && (
+        <div className={styles.expandedDetails}>
+          <div className={styles.detailsContent}>
+            <div className={styles.leftColumn}>
+              {/* QR Code */}
+              <div className={styles.qrSection}>
+                {/*
+                // @ts-ignore */}
+                <QRCode value={address} className={styles.addressQrCode} size={140} />
+                <div className={styles.qrLabel}>Address QR Code</div>
+              </div>
+            </div>
+
+            <div className={styles.rightColumn}>
+              {/* Advanced Actions */}
+              <div className={styles.advancedActions}>
+                <h4 className={styles.sectionTitle}>Advanced Options</h4>
+
+                {Utils.isZaddr(address) && !privateKey && (
+                  <button
+                    className={styles.modernButton}
+                    type="button"
+                    onClick={() => fetchAndSetSinglePrivKey(address)}
+                  >
+                    <i className="fas fa-key" />
+                    Export Private Key
+                  </button>
+                )}
+
+                {Utils.isZaddr(address) && !viewKey && (
+                  <button
+                    className={styles.modernButton}
+                    type="button"
+                    onClick={() => fetchAndSetSingleViewKey(address)}
+                  >
+                    <i className="fas fa-eye" />
+                    Export Viewing Key
+                  </button>
+                )}
+
+                {Utils.isTransparent(address) && (
+                  <button className={styles.modernButton} type="button" onClick={() => openAddress()}>
+                    <i className="fas fa-external-link-alt" />
+                    View on Explorer
+                  </button>
+                )}
+              </div>
+
+              {/* Keys Display */}
+              {(privateKey || viewKey) && (
+                <div className={styles.keysSection}>
+                  {privateKey && (
+                    <div className={styles.keyDisplay}>
+                      <div className={styles.keyLabel}>Private Key</div>
+                      <div className={styles.keyContainer}>
+                        <div className={styles.keyText}>{privateKey}</div>
+                        {/*
+                        // @ts-ignore */}
+                        <QRCode value={privateKey} className={styles.keyQrCode} size={80} />
+                      </div>
+                    </div>
+                  )}
+
+                  {viewKey && (
+                    <div className={styles.keyDisplay}>
+                      <div className={styles.keyLabel}>Viewing Key</div>
+                      <div className={styles.keyContainer}>
+                        <div className={styles.keyText}>{viewKey}</div>
+                        {/*
+                        // @ts-ignore */}
+                        <QRCode value={viewKey} className={styles.keyQrCode} size={80} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -176,10 +197,17 @@ type Props = {
   fetchAndSetSinglePrivKey: (k: string) => void;
   fetchAndSetSingleViewKey: (k: string) => void;
   createNewAddress: (t: AddressType) => void;
-  rerenderKey: number;
 };
 
 export default class Receive extends Component<Props> {
+  state = {
+    addressFilter: 'all' as 'all' | 'private' | 'transparent'
+  };
+
+  setAddressFilter = (filter: 'all' | 'private' | 'transparent') => {
+    this.setState({ addressFilter: filter });
+  };
+
   render() {
     const {
       addresses,
@@ -192,7 +220,6 @@ export default class Receive extends Component<Props> {
       fetchAndSetSinglePrivKey,
       fetchAndSetSingleViewKey,
       createNewAddress,
-      rerenderKey,
     } = this.props;
 
     // Convert the addressBalances into a map.
@@ -242,20 +269,71 @@ export default class Receive extends Component<Props> {
       return m;
     }, new Map());
 
-    return (
-      <div>
-        <div className={styles.receivecontainer}>
-          <Tabs>
-            <TabList>
-              <Tab>Shielded</Tab>
-              <Tab>Transparent</Tab>
-            </TabList>
+    // Combine all addresses into a single unified list
+    const allAddresses = [
+      ...zaddrs.map(a => ({ ...a, type: 'private' as const })),
+      ...taddrs.map(a => ({ ...a, type: 'transparent' as const }))
+    ];
 
-            <TabPanel key={`z${rerenderKey}`}>
-              {/* Shielded (Z) Addresses */}
-              <ScrollPane offsetHeight={100}>
-                <Accordion preExpanded={[defaultZaddr]}>
-                  {zaddrs.map((a) => (
+    // Filter addresses based on selected filter
+    const filteredAddresses = allAddresses.filter(address => {
+      if (this.state.addressFilter === 'all') return true;
+      return address.type === this.state.addressFilter;
+    });
+
+    // Sort addresses by balance (highest first), then by type (private first)
+    filteredAddresses.sort((a, b) => {
+      if (b.balance !== a.balance) return b.balance - a.balance;
+      if (a.type === 'private' && b.type === 'transparent') return -1;
+      if (a.type === 'transparent' && b.type === 'private') return 1;
+      return 0;
+    });
+
+    return (
+      <div className={styles.receivePageContainer}>
+        <div className={styles.receivePageContent}>
+          <div className={styles.receiveHeader}>
+            <h1 className={styles.receiveTitle}>Receive BitcoinZ</h1>
+            <p className={styles.receiveSubtitle}>
+              Manage your Private and Transparent addresses
+            </p>
+          </div>
+
+          {/* Address Filter Buttons */}
+          <div className={styles.filterContainer}>
+            <div className={styles.filterButtons}>
+              <button
+                className={`${styles.filterButton} ${this.state.addressFilter === 'all' ? styles.active : ''}`}
+                onClick={() => this.setAddressFilter('all')}
+                type="button"
+              >
+                <i className="fas fa-list" />
+                All Addresses ({allAddresses.length})
+              </button>
+              <button
+                className={`${styles.filterButton} ${this.state.addressFilter === 'private' ? styles.active : ''}`}
+                onClick={() => this.setAddressFilter('private')}
+                type="button"
+              >
+                <i className="fas fa-shield-alt" />
+                Private ({zaddrs.length})
+              </button>
+              <button
+                className={`${styles.filterButton} ${this.state.addressFilter === 'transparent' ? styles.active : ''}`}
+                onClick={() => this.setAddressFilter('transparent')}
+                type="button"
+              >
+                <i className="fas fa-eye" />
+                Transparent ({taddrs.length})
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.unifiedContent}>
+            <ScrollPane offsetHeight={240} className={styles.fullHeightScroll}>
+              {filteredAddresses.length > 0 ? (
+                <div className={styles.addressList}>
+                  {filteredAddresses.map((a) => (
                     <AddressBlock
                       key={a.address}
                       addressBalance={a}
@@ -266,48 +344,44 @@ export default class Receive extends Component<Props> {
                       viewKey={addressViewKeys.get(a.address)}
                       fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
                       fetchAndSetSingleViewKey={fetchAndSetSingleViewKey}
+                      addressType={a.type}
                     />
                   ))}
-                </Accordion>
+                </div>
+              ) : (
+                <div className={styles.noAddressesMessage}>
+                  <i className="fas fa-info-circle" />
+                  <p>No {this.state.addressFilter === 'all' ? '' : this.state.addressFilter} addresses found.</p>
+                  <p>Create a new address using the buttons below.</p>
+                </div>
+              )}
 
-                <button
-                  className={[cstyles.primarybutton, cstyles.margintoplarge, cstyles.marginbottomlarge].join(" ")}
-                  onClick={() => createNewAddress(AddressType.sapling)}
-                  type="button"
-                >
-                  New Shielded Address
-                </button>
-              </ScrollPane>
-            </TabPanel>
-
-            <TabPanel key={`t${rerenderKey}`}>
-              {/* Change the hardcoded height */}
-              <ScrollPane offsetHeight={100}>
-                <Accordion preExpanded={[defaultTaddr]}>
-                  {taddrs.map((a) => (
-                    <AddressBlock
-                      key={a.address}
-                      addressBalance={a}
-                      currencyName={info.currencyName}
-                      btczPrice={info.btczPrice}
-                      privateKey={addressPrivateKeys.get(a.address)}
-                      viewKey={addressViewKeys.get(a.address)}
-                      fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
-                      fetchAndSetSingleViewKey={fetchAndSetSingleViewKey}
-                    />
-                  ))}
-                </Accordion>
-
-                <button
-                  className={[cstyles.primarybutton, cstyles.margintoplarge, cstyles.marginbottomlarge].join(" ")}
-                  type="button"
-                  onClick={() => createNewAddress(AddressType.transparent)}
-                >
-                  New Transparent Address
-                </button>
-              </ScrollPane>
-            </TabPanel>
-          </Tabs>
+              <div className={styles.actionButtonsContainer}>
+                <div className={styles.buttonRow}>
+                  {(this.state.addressFilter === 'all' || this.state.addressFilter === 'private') && (
+                    <button
+                      className={styles.modernButton}
+                      onClick={() => createNewAddress(AddressType.sapling)}
+                      type="button"
+                    >
+                      <i className="fas fa-shield-alt" />
+                      New Private Address
+                    </button>
+                  )}
+                  {(this.state.addressFilter === 'all' || this.state.addressFilter === 'transparent') && (
+                    <button
+                      className={styles.modernButton}
+                      type="button"
+                      onClick={() => createNewAddress(AddressType.transparent)}
+                    >
+                      <i className="fas fa-eye" />
+                      New Transparent Address
+                    </button>
+                  )}
+                </div>
+              </div>
+            </ScrollPane>
+          </div>
         </div>
       </div>
     );
