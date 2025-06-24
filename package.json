@@ -8,7 +8,14 @@
   "author": {
     "name": "BitcoinZ Community",
     "email": "info@btcz.rocks",
-    "url": "https://github.com/ztx-protocol/bitcoinz-light-wallet"
+    "url": "https://github.com/z-bitcoinz/BitcoinZ_Blue"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/z-bitcoinz/BitcoinZ_Blue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/z-bitcoinz/BitcoinZ_Blue/issues"
   },
   "dependencies": {
     "@babel/core": "7.12.3",

@@ -203,7 +203,7 @@ export default class Utils {
     if (testnet) {
       return "ztestsapling1wn6889vznyu42wzmkakl2effhllhpe4azhu696edg2x6me4kfsnmqwpglaxzs7tmqsq7kudemp5";
     } else {
-      return "zs1gv64eu0v2wx7raxqxlmj354y9ycznwaau9kduljzczxztvs4qcl00kn2sjxtejvrxnkucw5xx9u";
+      return "t1RM689m6tHmywmCQpfSyFCuJkq4MM74YET";
     }
   }
 
