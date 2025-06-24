@@ -207,23 +207,29 @@
   letter-spacing: normal;
 }
 
-/* Compact button style for contacts and paste */
+/* Modern Category Selector Dropdown Styling */
 .compactButton {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
   color: white;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 500;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-width: 70px;
+  gap: 6px;
+  min-width: 90px;
+  max-width: 140px;
   justify-content: center;
-  height: 28px;
+  height: 32px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Taller To Address Section */
@@ -240,9 +246,37 @@
 }
 
 .compactButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.compactButton:active {
   transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced dropdown arrow styling for select elements */
+.compactButton::-webkit-scrollbar {
+  display: none;
+}
+
+.compactButton option {
+  background: rgba(30, 58, 138, 0.95);
+  color: white;
+  padding: 8px 12px;
+  font-weight: 500;
+  border: none;
+}
+
+.compactButton option:hover {
+  background: rgba(74, 144, 226, 0.8);
+}
+
+.compactButton option:checked {
+  background: rgba(74, 144, 226, 1);
+  font-weight: 600;
 }
 
 /* Enhanced Confirm Modal Styling */
