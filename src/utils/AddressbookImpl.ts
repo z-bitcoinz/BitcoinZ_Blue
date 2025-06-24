@@ -9,7 +9,7 @@ export default class AddressbookImpl {
   static async getFileName() {
     // Use ipcRenderer to get app data path from main process
     const appDataPath = await ipcRenderer.invoke('get-app-data-path');
-    const dir = path.join(appDataPath, "zecwallet");
+    const dir = path.join(appDataPath, "BitcoinZ-LightWallet");
     if (!fs.existsSync(dir)) {
       await fs.promises.mkdir(dir);
     }

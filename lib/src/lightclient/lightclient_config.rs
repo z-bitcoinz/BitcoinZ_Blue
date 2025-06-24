@@ -203,13 +203,13 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
             } else {
                 if cfg!(target_os = "macos") || cfg!(target_os = "windows") {
                     zcash_data_location = dirs::data_dir().expect("Couldn't determine app data directory!");
-                    zcash_data_location.push("BitcoinZ");
+                    zcash_data_location.push("BitcoinZ-LightWallet");
                 } else {
                     if dirs::home_dir().is_none() {
                         info!("Couldn't determine home dir!");
                     }
                     zcash_data_location = dirs::home_dir().expect("Couldn't determine home directory!");
-                    zcash_data_location.push(".bitcoinz");
+                    zcash_data_location.push(".bitcoinz-lightwallet");
                 };
 
                 match &self.chain_name[..] {
@@ -247,9 +247,9 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
             let mut zcash_params = self.get_zcash_data_path().into_path_buf();
             zcash_params.push("..");
             if cfg!(target_os = "macos") || cfg!(target_os = "windows") {
-                zcash_params.push("BitcoinZParams");
+                zcash_params.push("BitcoinZ-LightWallet-Params");
             } else {
-                zcash_params.push(".bitcoinz-params");
+                zcash_params.push(".bitcoinz-lightwallet-params");
             }
 
             match std::fs::create_dir_all(zcash_params.clone()) {
