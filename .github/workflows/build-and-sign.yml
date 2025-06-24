@@ -23,13 +23,24 @@ jobs:
           
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-          
+        with:
+          toolchain: stable
+
       - name: Install dependencies
         run: yarn install
-        
+
       - name: Build native module
         run: |
           cd native
+
+          # Handle Cargo.lock version issues
+          if [ -f "Cargo.lock" ]; then
+            echo "🔧 Removing existing Cargo.lock to avoid version conflicts"
+            rm Cargo.lock
+          fi
+
+          # Generate new lock file and build
+          cargo generate-lockfile
           cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           

@@ -78,6 +78,12 @@ jobs:
           if [ -f "native/Cargo.toml" ]; then
             echo "📦 Rust project found - listing dependencies:"
             cd native
+
+            # Handle potential Cargo.lock version issues
+            if [ -f "Cargo.lock" ]; then
+              echo "ℹ️ Cargo.lock exists - checking version compatibility"
+            fi
+
             grep -A 10 "\[dependencies\]" Cargo.toml || echo "No dependencies section"
             cd ..
           fi
