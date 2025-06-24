@@ -1,0 +1,96 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  schedule:
+    - cron: '0 0 * * 1' # Weekly on Monday
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install
+        
+      - name: Run npm audit
+        run: yarn audit --level moderate
+        continue-on-error: true
+        
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium
+        continue-on-error: true
+        
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, typescript
+          
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        
+      - name: Run ESLint security scan
+        run: |
+          yarn add --dev eslint-plugin-security
+          npx eslint . --ext .js,.ts,.tsx --config .eslintrc-security.js
+        continue-on-error: true
+
+  rust-security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          
+      - name: Run cargo audit
+        uses: actions-rs/audit@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Run cargo clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features -- -D warnings
+
+  virus-scan:
+    runs-on: ubuntu-latest
+    needs: [security-audit]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run ClamAV scan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clamav clamav-daemon
+          sudo freshclam
+          clamscan -r . --exclude-dir=node_modules --exclude-dir=.git
+          
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: |
+            security-report.txt
+            audit-results.json
