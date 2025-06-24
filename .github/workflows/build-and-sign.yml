@@ -52,9 +52,9 @@ jobs:
             rm Cargo.lock
           fi
 
-          # Generate new lock file and build
+          # Generate new lock file and build (allow warnings)
           cargo generate-lockfile
-          cargo build --release
+          RUSTFLAGS="-A warnings" cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Build app
