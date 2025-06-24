@@ -70,15 +70,10 @@ jobs:
           yarn neon
           node --openssl-legacy-provider scripts/build.js
           
-      - name: Create self-signed certificate
+      - name: Prepare for code signing
         run: |
-          # Create a self-signed certificate for code signing
-          security create-keypair \
-            -a rsa \
-            -s 2048 \
-            -f "BitcoinZ Blue Certificate" \
-            -T /usr/bin/codesign \
-            -T /usr/bin/security
+          # Use ad-hoc signing (no certificate needed)
+          echo "✅ Preparing for ad-hoc code signing"
             
       - name: Build and sign macOS apps
         run: |
