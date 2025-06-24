@@ -114,12 +114,21 @@ jobs:
           # List what we created
           ls -la *.zip
 
-      - name: Upload macOS artifacts
+      - name: Upload macOS ARM64 artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: macos-latest-artifacts
+          name: macos-arm64-artifacts
           path: |
-            dist/*.zip
+            dist/*arm64*.zip
+
+      - name: Upload macOS Intel artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-intel-artifacts
+          path: |
+            dist/*x64*.zip
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -155,12 +164,20 @@ jobs:
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
 
-      - name: Upload Windows artifacts
+      - name: Upload Windows Setup artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: windows-latest-artifacts
+          name: windows-setup-artifacts
           path: |
             dist/*.exe
+
+      - name: Upload Windows Portable artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-portable-artifacts
+          path: |
             dist/*.zip
 
       - name: Sign Windows executables (self-signed)
@@ -226,12 +243,20 @@ jobs:
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
 
-      - name: Upload Linux artifacts
+      - name: Upload Linux AppImage artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: ubuntu-latest-artifacts
+          name: linux-appimage-artifacts
           path: |
             dist/*.AppImage
+
+      - name: Upload Linux DEB artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-deb-artifacts
+          path: |
             dist/*.deb
           
       - name: Upload artifacts
