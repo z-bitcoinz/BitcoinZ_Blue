@@ -79,12 +79,92 @@ export default class Bitcoinzd extends Component<Props> {
                 </div>
               </div>
 
-              <div className={cstyles.buttoncontainer}>
-                <button className={cstyles.primarybutton} type="button" onClick={openServerSelectModal}>
-                  Switch LightwalletD Server
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '16px',
+                paddingTop: '24px',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  type="button"
+                  onClick={openServerSelectModal}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    minWidth: '160px',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.25)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                    target.style.transform = 'translateY(-1px)';
+                    target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.15)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    target.style.transform = 'translateY(0)';
+                    target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <i className="fas fa-server" />
+                  Switch Server
                 </button>
-                <button className={cstyles.primarybutton} type="button" onClick={refresh}>
-                  Refresh All Data
+                <button
+                  type="button"
+                  onClick={refresh}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    minWidth: '160px',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.25)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                    target.style.transform = 'translateY(-1px)';
+                    target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.15)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    target.style.transform = 'translateY(0)';
+                    target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <i className="fas fa-sync-alt" />
+                  Refresh Data
                 </button>
               </div>
 

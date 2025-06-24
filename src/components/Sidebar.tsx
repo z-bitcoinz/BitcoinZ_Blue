@@ -27,6 +27,27 @@ type ExportPrivKeyModalProps = {
   closeModal: () => void;
 };
 const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: ExportPrivKeyModalProps) => {
+  const modernButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 20px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '8px',
+    color: 'white',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    margin: '0 8px',
+    minWidth: '100px',
+    justifyContent: 'center'
+  };
+
   return (
     <Modal
         isOpen={modalIsOpen}
@@ -48,33 +69,81 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '20px',
+            background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            padding: '24px',
             maxWidth: '500px',
             maxHeight: '80vh',
             overflow: 'auto',
-            zIndex: 10001
+            zIndex: 10001,
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
           }
         }}
       >
       <div className={[cstyles.verticalflex].join(" ")}>
-        <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
+        <div className={cstyles.marginbottomlarge} style={{
+          textAlign: "center",
+          color: 'white',
+          fontSize: '18px',
+          fontWeight: '700',
+          textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+        }}>
           Your Wallet Private Keys
         </div>
 
-        <div className={[cstyles.marginbottomlarge, cstyles.center].join(" ")}>
+        <div className={[cstyles.marginbottomlarge, cstyles.center].join(" ")} style={{
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
           These are all the private keys in your wallet. Please store them carefully!
         </div>
 
         {exportedPrivKeys && (
-          <TextareaAutosize value={exportedPrivKeys.join("\n")} className={styles.exportedPrivKeys} disabled />
+          <TextareaAutosize
+            value={exportedPrivKeys.join("\n")}
+            className={styles.exportedPrivKeys}
+            disabled
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '8px',
+              color: 'white',
+              padding: '12px',
+              fontFamily: 'monospace'
+            }}
+          />
         )}
       </div>
 
-      <div className={cstyles.buttoncontainer}>
-        <button type="button" className={cstyles.primarybutton} onClick={closeModal}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        paddingTop: '20px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        marginTop: '16px'
+      }}>
+        <button
+          type="button"
+          style={modernButtonStyle}
+          onClick={closeModal}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.background = 'rgba(255, 255, 255, 0.25)';
+            target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+            target.style.transform = 'translateY(-1px)';
+            target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.background = 'rgba(255, 255, 255, 0.15)';
+            target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            target.style.transform = 'translateY(0)';
+            target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          <i className="fas fa-times" />
           Close
         </button>
       </div>
@@ -340,6 +409,27 @@ const PayURIModal = ({
   actionButtonName,
   actionCallback,
 }: PayURIModalProps) => {
+  const modernButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 20px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '8px',
+    color: 'white',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    margin: '0 8px',
+    minWidth: '100px',
+    justifyContent: 'center'
+  };
+
   return (
     <Modal
         isOpen={modalIsOpen}
@@ -361,50 +451,114 @@ const PayURIModal = ({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '20px',
+            background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            padding: '24px',
             maxWidth: '500px',
             maxHeight: '80vh',
             overflow: 'auto',
-            zIndex: 10001
+            zIndex: 10001,
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
           }
         }}
       >
       <div className={[cstyles.verticalflex].join(" ")}>
-        <div className={cstyles.marginbottomlarge} style={{ textAlign: "center" }}>
+        <div className={cstyles.marginbottomlarge} style={{
+          textAlign: "center",
+          color: 'white',
+          fontSize: '18px',
+          fontWeight: '700',
+          textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+        }}>
           {modalTitle}
         </div>
 
-        <div className={cstyles.well} style={{ textAlign: "center" }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '8px',
+          padding: '16px',
+          textAlign: "center"
+        }}>
           <input
             type="text"
-            className={cstyles.inputbox}
-            placeholder="URI"
+            placeholder="Enter BitcoinZ URI"
             value={modalInput}
             onChange={(e) => setModalInput(e.target.value)}
+            style={{
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '6px',
+              padding: '12px',
+              color: 'white',
+              fontSize: '14px',
+              outline: 'none',
+              boxSizing: 'border-box'
+            }}
           />
         </div>
       </div>
 
-      <div className={cstyles.buttoncontainer}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '12px',
+        paddingTop: '20px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        marginTop: '16px'
+      }}>
         {actionButtonName && (
           <button
             type="button"
-            className={cstyles.primarybutton}
+            style={modernButtonStyle}
             onClick={() => {
               if (modalInput) {
                 actionCallback(modalInput);
               }
               closeModal();
             }}
+            onMouseEnter={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.25)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+              target.style.transform = 'translateY(-1px)';
+              target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.15)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              target.style.transform = 'translateY(0)';
+              target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+            }}
           >
+            <i className="fas fa-paper-plane" />
             {actionButtonName}
           </button>
         )}
 
-        <button type="button" className={cstyles.primarybutton} onClick={closeModal}>
+        <button
+          type="button"
+          style={modernButtonStyle}
+          onClick={closeModal}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.background = 'rgba(255, 255, 255, 0.25)';
+            target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+            target.style.transform = 'translateY(-1px)';
+            target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.background = 'rgba(255, 255, 255, 0.15)';
+            target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            target.style.transform = 'translateY(0)';
+            target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          <i className="fas fa-times" />
           Close
         </button>
       </div>
