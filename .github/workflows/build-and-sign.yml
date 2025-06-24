@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '17'
           cache: 'yarn'
 
       - name: Install dependencies
@@ -82,7 +82,7 @@ jobs:
             
       - name: Build and sign macOS apps
         run: |
-          yarn electron-builder -m --dir -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --publish never
 
           # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
           codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
@@ -118,7 +118,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '17'
           cache: 'yarn'
 
       - name: Build Windows app
@@ -126,7 +126,7 @@ jobs:
           yarn install
           yarn neon
           node --openssl-legacy-provider scripts/build.js
-          yarn electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -181,7 +181,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '17'
           cache: 'yarn'
           
       - name: Build Linux app
@@ -189,7 +189,7 @@ jobs:
           yarn install
           yarn neon
           node --openssl-legacy-provider scripts/build.js
-          yarn electron-builder -l -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
