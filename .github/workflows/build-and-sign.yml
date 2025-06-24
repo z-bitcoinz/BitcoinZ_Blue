@@ -24,7 +24,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: "1.70"
 
       - name: Install dependencies
         run: yarn install
@@ -46,8 +46,9 @@ jobs:
           
       - name: Build app
         run: |
-          export NODE_OPTIONS="--openssl-legacy-provider"
           yarn build
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Create self-signed certificate
         run: |
@@ -61,12 +62,13 @@ jobs:
             
       - name: Build and sign macOS apps
         run: |
-          export NODE_OPTIONS="--openssl-legacy-provider"
           yarn electron-builder -m --dir -c.extraMetadata.main=build/electron.js --publish never
-          
+
           # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
           codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
           codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Create ZIP files
         run: |
@@ -95,10 +97,11 @@ jobs:
 
       - name: Build Windows app
         run: |
-          $env:NODE_OPTIONS="--openssl-legacy-provider"
           yarn install
           yarn build
           yarn electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -150,10 +153,11 @@ jobs:
           
       - name: Build Linux app
         run: |
-          export NODE_OPTIONS="--openssl-legacy-provider"
           yarn install
           yarn build
           yarn electron-builder -l -c.extraMetadata.main=build/electron.js --publish never
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
