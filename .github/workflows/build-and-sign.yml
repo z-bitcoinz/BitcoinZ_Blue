@@ -37,6 +37,12 @@ jobs:
           cargo --version
           echo "✅ Rust 1.81 confirmed"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+
       - name: Install dependencies
         run: yarn install
 
@@ -62,6 +68,8 @@ jobs:
       - name: Build app
         run: |
           yarn build
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Create self-signed certificate
         run: |
@@ -111,7 +119,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           cache: 'yarn'
 
       - name: Build Windows app
@@ -119,6 +127,8 @@ jobs:
           yarn install
           yarn build
           yarn electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -173,7 +183,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           cache: 'yarn'
           
       - name: Build Linux app
@@ -181,6 +191,8 @@ jobs:
           yarn install
           yarn build
           yarn electron-builder -l -c.extraMetadata.main=build/electron.js --publish never
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
