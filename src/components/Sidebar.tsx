@@ -1006,12 +1006,12 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
           setWalletSpamFilterThreshold={this.setWalletSpamFilterThreshold}
         />
 
-        <div className={[cstyles.center, styles.sidebarlogobg].join(" ")}>
-          <img src={Logo} width="70" alt="logo" />
-        </div>
-
-        {/* Hide the actual sidebar menu since we use bottom navigation now */}
+        {/* Hide the logo section and sidebar menu since we use top menu bar and bottom navigation now */}
         <div style={{ display: "none" }}>
+          <div className={[cstyles.center, styles.sidebarlogobg].join(" ")}>
+            <img src={Logo} width="70" alt="logo" />
+          </div>
+
           <div className={styles.sidebar}>
             <SidebarMenuItem
               name="Dashboard"
