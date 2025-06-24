@@ -1,0 +1,195 @@
+/* Modern Scrollbar Styles for BitcoinZ Wallet */
+/* Based on the styling from Transactions page and enhanced for consistency */
+
+/* Standard Modern Scrollbar */
+.modernScrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.modernScrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.modernScrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.modernScrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.modernScrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.modernScrollbar::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Compact Modern Scrollbar (for smaller areas) */
+.modernScrollbarCompact::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.modernScrollbarCompact::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin: 1px;
+}
+
+.modernScrollbarCompact::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.modernScrollbarCompact::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.modernScrollbarCompact::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.modernScrollbarCompact::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+/* Thin Modern Scrollbar (for very compact areas) */
+.modernScrollbarThin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.modernScrollbarThin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin: 1px;
+}
+
+.modernScrollbarThin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.modernScrollbarThin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.2);
+}
+
+.modernScrollbarThin::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.modernScrollbarThin::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* Glass Morphism Enhanced Scrollbar */
+.modernScrollbarGlass::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.modernScrollbarGlass::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 4px;
+  margin: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modernScrollbarGlass::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modernScrollbarGlass::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modernScrollbarGlass::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.modernScrollbarGlass::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 4px;
+}
+
+/* Utility Classes for Common Scrollable Containers */
+.scrollableContainer {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.scrollableContainerHorizontal {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+}
+
+.scrollableContainerBoth {
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+/* Firefox Scrollbar Support */
+.modernScrollbar,
+.modernScrollbarCompact,
+.modernScrollbarThin,
+.modernScrollbarGlass {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Scrollbar Adjustments */
+@media (max-width: 768px) {
+  .modernScrollbar::-webkit-scrollbar,
+  .modernScrollbarGlass::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .modernScrollbarCompact::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .modernScrollbarThin::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* High DPI Display Adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .modernScrollbar::-webkit-scrollbar-thumb,
+  .modernScrollbarCompact::-webkit-scrollbar-thumb,
+  .modernScrollbarThin::-webkit-scrollbar-thumb,
+  .modernScrollbarGlass::-webkit-scrollbar-thumb {
+    border-width: 0.5px;
+  }
+}

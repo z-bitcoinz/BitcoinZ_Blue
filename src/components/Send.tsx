@@ -159,7 +159,19 @@ const ToAddrBox = ({
 
   return (
     <div>
-      <div className={[cstyles.well, cstyles.verticalflex, styles.toAddressSection].join(" ")}>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '12px',
+        padding: '20px',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        marginBottom: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        minHeight: '216px'
+      }}>
         <div className={[cstyles.flexspacebetween].join(" ")} style={{ marginBottom: "4px" }}>
           <div className={cstyles.sublight} style={{ fontSize: "12px" }}>To</div>
           <div className={cstyles.validationerror} style={{ fontSize: "11px", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -247,11 +259,31 @@ const ToAddrBox = ({
             <input
               type="number"
               step="any"
-              className={[cstyles.inputbox, styles.compactAmountInput].join(" ")}
               value={isNaN(toaddr.amount) ? "" : toaddr.amount}
               onChange={(e) => updateToField(toaddr.id as number, null, e, null)}
               placeholder="0"
-              style={{ flex: 1, marginRight: "8px" }}
+              style={{
+                flex: 1,
+                marginRight: "8px",
+                height: '32px',
+                padding: '8px 12px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '14px',
+                outline: 'none',
+                transition: 'all 0.2s ease',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+              }}
+              onBlur={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              }}
             />
             <img
               className={styles.toaddrbutton}
@@ -276,14 +308,38 @@ const ToAddrBox = ({
               <div className={cstyles.validationerror} style={{ fontSize: "11px" }}>{toaddr.memo.length}</div>
             </div>
             <TextareaAutosize
-              className={cstyles.inputbox}
               value={toaddr.memo}
               disabled={isMemoDisabled}
               onChange={(e) => updateToField(toaddr.id as number, null, null, e)}
               minRows={1}
               maxRows={2}
               placeholder="Optional memo (encrypted)"
-              style={{ resize: "none" }}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                background: isMemoDisabled ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '8px',
+                color: isMemoDisabled ? 'rgba(255, 255, 255, 0.5)' : 'white',
+                fontSize: '14px',
+                outline: 'none',
+                transition: 'all 0.2s ease',
+                resize: 'none',
+                fontFamily: 'inherit',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                if (!isMemoDisabled) {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                }
+              }}
+              onBlur={(e) => {
+                if (!isMemoDisabled) {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }
+              }}
             />
             <div style={{ marginTop: "4px", fontSize: "10px" }}>
               <input type="checkbox" onChange={(e) => e.target.checked && addReplyTo()} style={{ marginRight: "4px" }} />
@@ -793,7 +849,19 @@ export default class Send extends PureComponent<Props, SendState> {
       <div className={styles.sendPageContainer}>
         {/* Scrollable Content Area - No separate header */}
         <div className={styles.sendPageContent}>
-          <div className={[cstyles.well, cstyles.balancebox, styles.compactBalanceBox].join(" ")}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            padding: '20px',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            marginBottom: '20px',
+            display: 'flex',
+            gap: '16px',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
             <BalanceBlockHighlight
               topLabel="Spendable Funds"
               zecValue={totalAmountAvailable}
@@ -817,7 +885,7 @@ export default class Send extends PureComponent<Props, SendState> {
             )}
           </div>
 
-          <ScrollPane className={cstyles.containermargin} offsetHeight={320}>
+          <ScrollPane className={cstyles.containermargin} offsetHeight={320} scrollbarType="glass">
             {sendPageState.toaddrs.map((toaddr) => {
               return (
                 <ToAddrBox
@@ -835,9 +903,47 @@ export default class Send extends PureComponent<Props, SendState> {
                 />
               );
             })}
-            <div style={{ textAlign: "right" }}>
-              <button type="button" onClick={this.addToAddr}>
-                <i className={["fas", "fa-plus"].join(" ")} />
+            <div style={{
+              textAlign: "right",
+              marginTop: '16px',
+              paddingRight: '8px'
+            }}>
+              <button
+                type="button"
+                onClick={this.addToAddr}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '50%',
+                  color: 'white',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.background = 'rgba(255, 255, 255, 0.25)';
+                  target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                  target.style.transform = 'translateY(-2px) scale(1.05)';
+                  target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  target.style.transform = 'translateY(0) scale(1)';
+                  target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                }}
+              >
+                <i className="fas fa-plus" />
               </button>
             </div>
           </ScrollPane>

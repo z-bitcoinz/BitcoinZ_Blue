@@ -576,6 +576,12 @@ module.exports = function (webpackEnv) {
       // during a production build.
       // Otherwise React will be compiled in the very slow development mode.
       new webpack.DefinePlugin(env.stringified),
+      // Provide polyfills for Node.js globals
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+        Buffer: ['buffer', 'Buffer'],
+        global: 'global/window',
+      }),
       // This is necessary to emit hot updates (CSS and Fast Refresh):
       isEnvDevelopment && new webpack.HotModuleReplacementPlugin(),
       // Experimental hot reloading for React .
@@ -711,6 +717,8 @@ module.exports = function (webpackEnv) {
       net: "empty",
       tls: "empty",
       child_process: "empty",
+      process: true, // Enable process polyfill for browser
+      global: true,  // Enable global polyfill for browser
     },
     // Turn off performance processing because we utilize
     // our own hints via the FileSizeReporter

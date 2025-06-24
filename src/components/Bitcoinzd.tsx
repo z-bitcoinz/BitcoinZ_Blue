@@ -55,7 +55,7 @@ class Bitcoinzd extends Component<Props> {
       return (
         <div>
           <div className={styles.container}>
-            <ScrollPane offsetHeight={0}>
+            <ScrollPane offsetHeight={0} scrollbarType="glass">
               <div className={styles.messagecontainer}>
                 <div className={styles.freedomMessage}>
                   <h2 className={styles.messageTitle}>Your Freedom. Your Privacy. Your Community.</h2>

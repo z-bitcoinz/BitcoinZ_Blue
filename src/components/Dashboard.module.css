@@ -31,6 +31,30 @@
   overflow-x: hidden;
   min-height: 0;
   height: 100%;
+  /* Modern scrollbar for main content area */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Modern Scrollbar for Dashboard Content */
+.dashboardContent::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.dashboardContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboardContent::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+  border-radius: 10px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.dashboardContent::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
 }
 
 /* Enhanced Balance Container */
@@ -261,31 +285,69 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 12px 16px 12px;
+  padding: 8px 12px 16px 8px; /* Reduced right padding for scrollbar space */
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-height: 0;
   scroll-behavior: smooth;
+  /* Force scrollbar to always show for consistency */
+  scrollbar-gutter: stable;
+  /* Ensure smooth scrolling on all devices */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Custom Scrollbar for Transaction List */
+/* Ultra Modern Sleek Scrollbar for Transaction List */
 .recentTransactionsList::-webkit-scrollbar {
   width: 6px;
+  background: transparent;
 }
 
 .recentTransactionsList::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border-radius: 10px;
+  margin: 4px 2px;
+  border: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .recentTransactionsList::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.35) 100%);
+  border-radius: 10px;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(255, 255, 255, 0.2) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  min-height: 20px;
 }
 
 .recentTransactionsList::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.5) 100%);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 2px 6px rgba(255, 255, 255, 0.3) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  transform: scaleX(1.2);
+}
+
+.recentTransactionsList::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.6) 100%);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    0 1px 3px rgba(255, 255, 255, 0.4) inset;
+  transform: scaleX(1.1);
+}
+
+.recentTransactionsList::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox Modern Scrollbar Support */
+.recentTransactionsList {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.08);
 }
 
 .recentTransactionItem {
