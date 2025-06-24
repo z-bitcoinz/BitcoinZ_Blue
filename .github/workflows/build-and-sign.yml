@@ -115,7 +115,7 @@ jobs:
           ls -la *.zip
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-latest-artifacts
           path: |
@@ -156,7 +156,7 @@ jobs:
           yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-latest-artifacts
           path: |
@@ -227,7 +227,7 @@ jobs:
           yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu-latest-artifacts
           path: |
