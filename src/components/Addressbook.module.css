@@ -1,38 +1,454 @@
-.addressbookcontainer {
+/* Contact Container with Blue Gradient Background */
+.contactContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%);
+  padding: 40px 20px 70px 20px;
+  color: white;
+  overflow: hidden;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  margin-left: 16px;
-  margin-right: 16px;
+  z-index: 1;
 }
 
-.addressbooklist {
-  margin-top: 24px;
+/* Contact Header */
+.contactHeader {
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  padding-top: 8px;
 }
 
-.addressbookentry {
-  padding-left: 8px;
-  padding-right: 8px;
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
-.addressbookentry:hover {
-  background-color: #000;
-  color: #c3921f;
+.headerInfo {
+  flex: 1;
+}
+
+.contactTitle {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.5px;
+}
+
+.contactCount {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.addContactButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  border: solid 1px grey;
-  padding: 8px;
-  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
-.addressbookentrybuttons {
+.addContactButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Expandable Add Contact Form */
+.addContactForm {
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+}
+
+.formHeader {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.closeFormButton {
+  display: flex;
+  align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+.closeFormButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.formContent {
+  padding: 0 20px 20px 20px;
+}
+
+.inputGroup {
+  margin-bottom: 16px;
+}
+
+.inputGroup:last-of-type {
+  margin-bottom: 20px;
+}
+
+.inputHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
 }
 
-.addressbookentry .addressbookentrybuttons {
-  display: none;
+.inputLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.addressbookentry:hover .addressbookentrybuttons {
+.validationIndicator {
   display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.errorText {
+  font-size: 11px;
+  color: #FF7043;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.modernInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.modernInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.modernInput:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+/* Modern Button Styling */
+.modernButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modernButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.modernButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modernButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancelButton {
+  background: rgba(255, 112, 67, 0.2);
+  border-color: rgba(255, 112, 67, 0.3);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: rgba(255, 112, 67, 0.3);
+  border-color: rgba(255, 112, 67, 0.5);
+}
+
+.deleteButton {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.3);
+  border-color: rgba(244, 67, 54, 0.5);
+}
+
+/* Primary Contacts List */
+.contactsList {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.contactsContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+/* Custom Scrollbar */
+.contactsContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.contactsContent::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.contactsContent::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.contactsContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.emptyStateIcon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+}
+
+.emptyStateText {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.emptyStateSubtext {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 300px;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.emptyStateButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.emptyStateButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Contacts Grid */
+.contactsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Contact Item */
+.contactItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  gap: 16px;
+}
+
+.contactItem:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.contactInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.contactHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.contactIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  color: #4A90E2;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.contactDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.contactName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.contactAddress {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+.contactActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.contactActions .modernButton {
+  padding: 8px 12px;
+  font-size: 11px;
+  min-width: auto;
 }

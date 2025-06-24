@@ -41,7 +41,7 @@ import PasswordModal from "./components/PasswordModal";
 import ServerSelectModal from "./components/ServerSelectModal";
 import TopMenuBar from "./components/TopMenuBar";
 import BottomNavigation from "./components/BottomNavigation";
-import AddressManagement from "./components/AddressManagement";
+
 
 type Props = {};
 
@@ -583,18 +583,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
                   />
                 )}
               />
-              <Route
-                path={routes.ADDRESSES}
-                render={() => (
-                  <AddressManagement
-                    addresses={addresses}
-                    addressesWithBalance={addressesWithBalance}
-                    addressBook={addressBook}
-                    info={info}
-                    createNewAddress={this.createNewAddress}
-                  />
-                )}
-              />
+
               <Route
                 path={routes.DASHBOARD}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -669,8 +658,6 @@ const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
         return "TRANSACTIONS";
       case routes.ADDRESSBOOK:
         return "ADDRESS BOOK";
-      case routes.ADDRESSES:
-        return "ADDRESSES";
       case routes.ZCASHD:
         return "SERVER INFO";
       default:
