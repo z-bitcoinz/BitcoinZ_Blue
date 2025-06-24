@@ -33,7 +33,7 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
     closeModal();
 
     setTimeout(() => {
-      openErrorModal("Restart Zecwallet Lite", "Please restart Zecwallet Lite to connect to the new server");
+      openErrorModal("Restart BitcoinZ Wallet", "Please restart BitcoinZ Wallet to connect to the new server");
     }, 10);
   };
 

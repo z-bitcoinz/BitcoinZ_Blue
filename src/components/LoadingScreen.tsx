@@ -9,8 +9,6 @@ import native from "../native.node";
 import routes from "../constants/routes.json";
 import { RPCConfig, Info } from "./AppState";
 import RPC from "../rpc";
-import cstyles from "./Common.module.css";
-import styles from "./LoadingScreen.module.css";
 import Logo from "../assets/img/logobig.png";
 import Utils from "../utils/utils";
 
@@ -367,21 +365,77 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     // If still loading, show the status
     if (!loadingDone) {
       return (
-        <div className={[cstyles.verticalflex, cstyles.center, styles.loadingcontainer].join(" ")}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          textAlign: 'center',
+          padding: '20px',
+          background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
+          color: 'white'
+        }}>
           {walletScreen === 0 && (
-            <div>
-              <div style={{ marginTop: "100px" }}>
-                <img src={Logo} width="200px;" alt="Logo" />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: '600px',
+              width: '100%'
+            }}>
+              <div style={{
+                marginBottom: "30px",
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
-              <div>{currentStatus}</div>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: 'rgba(255, 255, 255, 0.9)',
+                marginBottom: '20px',
+                textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+              }}>{currentStatus}</div>
               {currentStatusIsError && (
-                <div className={cstyles.buttoncontainer}>
-                  <button type="button" className={cstyles.primarybutton} onClick={openServerSelectModal}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  alignItems: 'center',
+                  marginTop: '30px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={openServerSelectModal}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      minWidth: '200px',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <i className="fas fa-server" />
                     Switch LightwalletD Server
                   </button>
                   <button
                     type="button"
-                    className={cstyles.primarybutton}
                     onClick={() => {
                       this.setState({ walletScreen: 1 });
                       this.setState({
@@ -390,7 +444,27 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                       });
                       this.restoreExistingWallet();
                     }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      minWidth: '200px',
+                      justifyContent: 'center'
+                    }}
                   >
+                    <i className="fas fa-key" />
                     Restore Wallet From Seed
                   </button>
                 </div>
@@ -399,31 +473,139 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           )}
 
           {walletScreen === 1 && (
-            <div>
-              <div>
-                <img src={Logo} width="200px;" alt="Logo" />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: '600px',
+              width: '100%'
+            }}>
+              <div style={{
+                marginBottom: "30px",
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
-              <div className={[cstyles.well, styles.newwalletcontainer].join(" ")}>
-                <div className={cstyles.verticalflex}>
-                  <div className={[cstyles.large, cstyles.highlight].join(" ")}>Create A New Wallet</div>
-                  <div className={cstyles.padtopsmall}>
-                    Creates a new wallet with a new randomly generated seed phrase. Please save the seed phrase
-                    carefully, it&rsquo;s the only way to restore your wallet.
-                  </div>
-                  <div className={cstyles.margintoplarge}>
-                    <button type="button" className={cstyles.primarybutton} onClick={this.createNewWallet}>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '32px',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                width: '100%',
+                maxWidth: '500px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: 'white',
+                      marginBottom: '12px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Create A New Wallet</div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '20px',
+                      lineHeight: '1.5'
+                    }}>
+                      Creates a new wallet with a new randomly generated seed phrase. Please save the seed phrase
+                      carefully, it's the only way to restore your wallet.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={this.createNewWallet}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        minWidth: '160px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <i className="fas fa-plus" />
                       Create New
                     </button>
                   </div>
-                </div>
-                <div className={[cstyles.verticalflex, cstyles.margintoplarge].join(" ")}>
-                  <div className={[cstyles.large, cstyles.highlight].join(" ")}>Restore Wallet From Seed</div>
-                  <div className={cstyles.padtopsmall}>
-                    If you already have a seed phrase, you can restore it to this wallet. This will rescan the
-                    blockchain for all transactions from the seed phrase.
-                  </div>
-                  <div className={cstyles.margintoplarge}>
-                    <button type="button" className={cstyles.primarybutton} onClick={this.restoreExistingWallet}>
+
+                  <div style={{
+                    height: '1px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    margin: '0 20px'
+                  }} />
+
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: 'white',
+                      marginBottom: '12px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Restore Wallet From Seed</div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '20px',
+                      lineHeight: '1.5'
+                    }}>
+                      If you already have a seed phrase, you can restore it to this wallet. This will rescan the
+                      blockchain for all transactions from the seed phrase.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={this.restoreExistingWallet}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        minWidth: '160px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <i className="fas fa-key" />
                       Restore Existing
                     </button>
                   </div>
@@ -433,93 +615,317 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           )}
 
           {walletScreen === 2 && (
-            <div>
-              <div>
-                <img src={Logo} width="200px;" alt="Logo" />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: '600px',
+              width: '100%'
+            }}>
+              <div style={{
+                marginBottom: "30px",
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
-              <div className={[cstyles.well, styles.newwalletcontainer].join(" ")}>
-                <div className={cstyles.verticalflex}>
-                  {newWalletError && (
-                    <div>
-                      <div className={[cstyles.large, cstyles.highlight].join(" ")}>Error Creating New Wallet</div>
-                      <div className={cstyles.padtopsmall}>There was an error creating a new wallet</div>
-                      <hr />
-                      <div className={cstyles.padtopsmall}>{newWalletError}</div>
-                      <hr />
-                    </div>
-                  )}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '32px',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                width: '100%',
+                maxWidth: '500px'
+              }}>
+                {newWalletError && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: '#ff6b6b',
+                      marginBottom: '12px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Error Creating New Wallet</div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '20px'
+                    }}>There was an error creating a new wallet</div>
+                    <div style={{
+                      background: 'rgba(255, 107, 107, 0.1)',
+                      border: '1px solid rgba(255, 107, 107, 0.3)',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      marginBottom: '20px',
+                      fontSize: '13px',
+                      color: '#ffcccb',
+                      fontFamily: 'monospace',
+                      wordBreak: 'break-word'
+                    }}>{newWalletError}</div>
+                  </div>
+                )}
 
-                  {!newWalletError && (
-                    <div>
-                      <div className={[cstyles.large, cstyles.highlight].join(" ")}>Your New Wallet</div>
-                      <div className={cstyles.padtopsmall}>
-                        This is your new wallet. Below is your seed phrase. PLEASE STORE IT CAREFULLY! The seed phrase
-                        is the only way to recover your funds and transactions.
-                      </div>
-                      <hr />
-                      <div className={cstyles.padtopsmall}>{seed}</div>
-                      <hr />
-                      <div className={cstyles.margintoplarge}>
-                        <button type="button" className={cstyles.primarybutton} onClick={this.startNewWallet}>
-                          Start Wallet
-                        </button>
-                      </div>
+                {!newWalletError && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: 'white',
+                      marginBottom: '12px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Your New Wallet</div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '20px',
+                      lineHeight: '1.5'
+                    }}>
+                      This is your new wallet. Below is your seed phrase. PLEASE STORE IT CAREFULLY! The seed phrase
+                      is the only way to recover your funds and transactions.
                     </div>
-                  )}
-                </div>
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      marginBottom: '24px',
+                      fontSize: '13px',
+                      color: 'white',
+                      fontFamily: 'monospace',
+                      wordBreak: 'break-word',
+                      lineHeight: '1.4'
+                    }}>{seed}</div>
+                    <button
+                      type="button"
+                      onClick={this.startNewWallet}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        minWidth: '160px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <i className="fas fa-rocket" />
+                      Start Wallet
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {walletScreen === 3 && (
-            <div>
-              <div>
-                <img src={Logo} width="200px;" alt="Logo" />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: '600px',
+              width: '100%'
+            }}>
+              <div style={{
+                marginBottom: "30px",
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
-              <div className={[cstyles.well, styles.newwalletcontainer].join(" ")}>
-                <div className={cstyles.verticalflex}>
-                  {newWalletError && (
-                    <div>
-                      <div className={[cstyles.large, cstyles.highlight].join(" ")}>Error Restoring Wallet</div>
-                      <div className={cstyles.padtopsmall}>There was an error restoring your seed phrase</div>
-                      <hr />
-                      <div className={cstyles.padtopsmall}>{newWalletError}</div>
-                      <hr />
-                      <div className={cstyles.margintoplarge}>
-                        <button type="button" className={cstyles.primarybutton} onClick={this.restoreWalletBack}>
-                          Back
-                        </button>
-                      </div>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '32px',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                width: '100%',
+                maxWidth: '500px'
+              }}>
+                {newWalletError && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: '#ff6b6b',
+                      marginBottom: '12px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Error Restoring Wallet</div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '20px'
+                    }}>There was an error restoring your seed phrase</div>
+                    <div style={{
+                      background: 'rgba(255, 107, 107, 0.1)',
+                      border: '1px solid rgba(255, 107, 107, 0.3)',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      marginBottom: '20px',
+                      fontSize: '13px',
+                      color: '#ffcccb',
+                      fontFamily: 'monospace',
+                      wordBreak: 'break-word'
+                    }}>{newWalletError}</div>
+                    <button
+                      type="button"
+                      onClick={this.restoreWalletBack}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        minWidth: '120px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <i className="fas fa-arrow-left" />
+                      Back
+                    </button>
+                  </div>
+                )}
+
+                {!newWalletError && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: 'white',
+                      marginBottom: '20px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>Please enter your seed phrase</div>
+
+                    <TextareaAutosize
+                      value={seed}
+                      onChange={(e) => this.updateSeed(e)}
+                      placeholder="Enter your seed phrase here..."
+                      style={{
+                        width: '100%',
+                        minHeight: '100px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontFamily: 'monospace',
+                        outline: 'none',
+                        resize: 'vertical',
+                        marginBottom: '20px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+
+                    <div style={{
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      color: 'white',
+                      marginBottom: '8px',
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      Wallet Birthday
                     </div>
-                  )}
-
-                  {!newWalletError && (
-                    <div>
-                      <div className={[cstyles.large].join(" ")}>Please enter your seed phrase</div>
-                      <TextareaAutosize
-                        className={cstyles.inputbox}
-                        value={seed}
-                        onChange={(e) => this.updateSeed(e)}
-                      />
-
-                      <div className={[cstyles.large, cstyles.margintoplarge].join(" ")}>
-                        Wallet Birthday. If you don&rsquo;t know this, it is OK to enter &lsquo;0&rsquo;
-                      </div>
-                      <input
-                        type="number"
-                        className={cstyles.inputbox}
-                        value={birthday}
-                        onChange={(e) => this.updateBirthday(e)}
-                      />
-
-                      <div className={cstyles.margintoplarge}>
-                        <button type="button" className={cstyles.primarybutton} onClick={() => this.doRestoreWallet()}>
-                          Restore Wallet
-                        </button>
-                      </div>
+                    <div style={{
+                      fontSize: '13px',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      marginBottom: '12px'
+                    }}>
+                      If you don't know this, it is OK to enter '0'
                     </div>
-                  )}
-                </div>
+                    <input
+                      type="number"
+                      value={birthday}
+                      onChange={(e) => this.updateBirthday(e)}
+                      placeholder="0"
+                      style={{
+                        width: '100%',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        color: 'white',
+                        fontSize: '14px',
+                        outline: 'none',
+                        marginBottom: '24px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => this.doRestoreWallet()}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        minWidth: '160px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <i className="fas fa-key" />
+                      Restore Wallet
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
