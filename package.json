@@ -176,8 +176,8 @@
   "homepage": "./",
   "main": "./public/electron.js",
   "build": {
-    "productName": "Zecwallet Lite",
-    "appId": "co.zecwallet.lite",
+    "productName": "BitcoinZ Blue",
+    "appId": "com.bitcoinz.blue",
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
@@ -199,8 +199,8 @@
     "win": {
       "icon": "./resources/icon.ico",
       "target": [
-        "zip",
-        "msi"
+        "nsis",
+        "zip"
       ]
     },
     "linux": {

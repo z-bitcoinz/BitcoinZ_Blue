@@ -56,10 +56,10 @@ class MenuBuilder {
     const { mainWindow } = this;
 
     const subMenuAbout = {
-      label: "Zecwallet Lite",
+      label: "BitcoinZ Blue",
       submenu: [
         {
-          label: "About Zecwallet Lite",
+          label: "About BitcoinZ Blue",
           selector: "orderFrontStandardAboutPanel:",
           click: () => {
             mainWindow.webContents.send("about");
@@ -69,7 +69,7 @@ class MenuBuilder {
         { label: "Services", submenu: [] },
         { type: "separator" },
         {
-          label: "Hide Zecwallet Lite",
+          label: "Hide BitcoinZ Blue",
           accelerator: "Command+H",
           selector: "hide:",
         },
@@ -379,7 +379,7 @@ class MenuBuilder {
         label: "Help",
         submenu: [
           {
-            label: "About Zecwallet Lite",
+            label: "About BitcoinZ Blue",
             click: () => {
               mainWindow.webContents.send("about");
             },

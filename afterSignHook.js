@@ -10,12 +10,13 @@ module.exports = async function (params) {
   // console.log('afterSign hook triggered', params);
 
   // Same appId in electron-builder.
-  const appId = "co.zecwallet.lite";
+  const appId = "com.bitcoinz.blue";
 
   const appPath = params.artifactPaths.find((p) => p.endsWith(".dmg"));
 
-  if (!fs.existsSync(appPath)) {
-    throw new Error(`Cannot find application at: ${appPath}`);
+  if (!appPath || !fs.existsSync(appPath)) {
+    console.log(`Skipping notarization - no DMG found or notarization not configured`);
+    return;
   }
 
   console.log(`Notarizing ${appId} found at ${appPath}`);
