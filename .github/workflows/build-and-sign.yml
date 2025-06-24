@@ -12,6 +12,8 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
+    env:
+      RUSTFLAGS: "-A warnings"
     steps:
       - uses: actions/checkout@v3
       
@@ -56,8 +58,6 @@ jobs:
           cargo generate-lockfile
           cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
-        env:
-          RUSTFLAGS: "-A warnings"
           
       - name: Build app
         run: |
@@ -97,6 +97,8 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    env:
+      RUSTFLAGS: "-A warnings"
     steps:
       - uses: actions/checkout@v3
 
@@ -157,6 +159,8 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-A warnings"
     steps:
       - uses: actions/checkout@v3
 
