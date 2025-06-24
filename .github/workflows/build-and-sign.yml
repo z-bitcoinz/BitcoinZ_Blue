@@ -77,17 +77,41 @@ jobs:
             
       - name: Build and sign macOS apps
         run: |
-          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --publish never
+          # Build for ARM64 (Apple Silicon)
+          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arch arm64 --publish never
+
+          # Build for x64 (Intel)
+          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arch x64 --publish never
 
           # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
-          codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
-          codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
+          if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing ARM64 app"
+            codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
+          fi
+
+          if [ -d "dist/mac/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing Intel app"
+            codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
+          fi
           
       - name: Create ZIP files
         run: |
           cd dist
-          ditto -c -k --keepParent "mac-arm64/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-arm64-mac.zip"
-          ditto -c -k --keepParent "mac/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-x64-mac.zip"
+
+          # Create ARM64 ZIP if it exists
+          if [ -d "mac-arm64/BitcoinZ Blue.app" ]; then
+            echo "✅ Creating ARM64 ZIP"
+            ditto -c -k --keepParent "mac-arm64/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-arm64-mac.zip"
+          fi
+
+          # Create Intel ZIP if it exists
+          if [ -d "mac/BitcoinZ Blue.app" ]; then
+            echo "✅ Creating Intel ZIP"
+            ditto -c -k --keepParent "mac/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-x64-mac.zip"
+          fi
+
+          # List what we created
+          ls -la *.zip
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
