@@ -16,6 +16,18 @@ module.exports = async function (params) {
 
   if (!appPath || !fs.existsSync(appPath)) {
     console.log(`Skipping notarization - no DMG found or notarization not configured`);
+
+    // Remove quarantine attributes from app bundles to help with Gatekeeper
+    const appBundles = params.artifactPaths.filter(p => p.includes(".app"));
+    for (const bundle of appBundles) {
+      try {
+        console.log(`Removing quarantine attributes from ${bundle}`);
+        require('child_process').execSync(`xattr -cr "${bundle}"`, { stdio: 'inherit' });
+      } catch (error) {
+        console.log(`Warning: Could not remove quarantine attributes: ${error.message}`);
+      }
+    }
+
     return;
   }
 
