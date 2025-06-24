@@ -11,6 +11,9 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -35,11 +38,10 @@ jobs:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ inputs.tag }}
           name: BitcoinZ Blue ${{ inputs.tag }} - Cross-Platform Release
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             # 🎉 BitcoinZ Blue ${{ github.ref_name }} - Complete Cross-Platform Release
 
