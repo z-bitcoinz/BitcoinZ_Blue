@@ -437,8 +437,12 @@ function createWindow() {
   // Otherwise load index.html file
   mainWindow.loadURL(isDev ? "http://localhost:3000" : `file://${path.join(__dirname, "../build/index.html")}`);
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  // Wait for the renderer process to signal that IPC listeners are ready
+  // before building the menu to prevent race conditions
+  ipcMain.once("ipc-listeners-ready", () => {
+    const menuBuilder = new MenuBuilder(mainWindow);
+    menuBuilder.buildMenu();
+  });
 
   let waitingForClose = false;
   let proceedToClose = false;

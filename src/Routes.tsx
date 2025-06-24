@@ -511,28 +511,26 @@ export default class RouteApp extends React.Component<Props, AppState> {
           openErrorModal={this.openErrorModal}
         />
 
-        {/* Hidden Sidebar for IPC handlers only - not visible in UI */}
-        <div style={{ display: "none" }}>
-          <Sidebar
-            addresses={addresses}
-            transactions={transactions}
-            clearTimers={this.clearTimers}
-            setSendTo={this.setSendTo}
-            setInfo={this.setInfo}
-            setRescanning={this.setRescanning}
-            openErrorModal={this.openErrorModal}
-            openPasswordAndUnlockIfNeeded={this.openPasswordAndUnlockIfNeeded}
-            lockWallet={this.lockWallet}
-            encryptWallet={this.encryptWallet}
-            decryptWallet={this.decryptWallet}
-            openPassword={this.openPassword}
-            getPrivKeyAsString={this.getPrivKeyAsString}
-            info={info}
-            walletSettings={walletSettings}
-            importPrivKeys={this.importPrivKeys}
-            updateWalletSettings={this.updateWalletSettings}
-          />
-        </div>
+        {/* Sidebar for IPC handlers - modals need to be visible */}
+        <Sidebar
+          addresses={addresses}
+          transactions={transactions}
+          clearTimers={this.clearTimers}
+          setSendTo={this.setSendTo}
+          setInfo={this.setInfo}
+          setRescanning={this.setRescanning}
+          openErrorModal={this.openErrorModal}
+          openPasswordAndUnlockIfNeeded={this.openPasswordAndUnlockIfNeeded}
+          lockWallet={this.lockWallet}
+          encryptWallet={this.encryptWallet}
+          decryptWallet={this.decryptWallet}
+          openPassword={this.openPassword}
+          getPrivKeyAsString={this.getPrivKeyAsString}
+          info={info}
+          walletSettings={walletSettings}
+          importPrivKeys={this.importPrivKeys}
+          updateWalletSettings={this.updateWalletSettings}
+        />
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
