@@ -8,6 +8,7 @@ on:
       - master
       - main
   workflow_dispatch:
+  workflow_call:  # Allow this workflow to be called by other workflows
 
 jobs:
   build-macos:
@@ -112,6 +113,13 @@ jobs:
 
           # List what we created
           ls -la *.zip
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-latest-artifacts
+          path: |
+            dist/*.zip
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -146,6 +154,14 @@ jobs:
           yarn neon
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-latest-artifacts
+          path: |
+            dist/*.exe
+            dist/*.zip
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -209,6 +225,14 @@ jobs:
           yarn neon
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ubuntu-latest-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

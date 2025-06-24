@@ -1,0 +1,90 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+
+jobs:
+  # Build all platforms first
+  build-all:
+    uses: ./.github/workflows/build-and-sign.yml
+
+  # Create release after builds complete
+  create-release:
+    needs: build-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BitcoinZ Blue ${{ github.ref_name }} - Cross-Platform Release
+          body: |
+            # 🎉 BitcoinZ Blue ${{ github.ref_name }} - Complete Cross-Platform Release
+
+            ## ✅ What's New
+
+            ### 🚀 **Complete Cross-Platform Support**
+            - **Windows**: Setup installer + portable ZIP
+            - **macOS**: Universal app (Intel + Apple Silicon)
+            - **Linux**: AppImage + DEB package
+
+            ### 💎 **BitcoinZ Features**
+            - Full BitcoinZ blockchain support
+            - Native Rust performance optimizations
+            - Secure wallet functionality
+            - Transaction management
+            - Address book integration
+            - Modern UI with blue gradient theme
+
+            ### 🔧 **Technical Achievements**
+            - Rust 1.81 native modules for maximum performance
+            - Node.js 17 compatibility
+            - Automated build pipeline
+            - Security scanning integration
+            - Code signing for all platforms
+
+            ## 📦 **Download the appropriate version for your system below** ⬇️
+
+            ## 🔒 **Security**
+            - All applications are code-signed
+            - Automated vulnerability scanning
+            - Secure build environment
+            - Open source and auditable
+
+            ## 🛠 **Installation**
+
+            ### Windows
+            1. Download the setup.exe file
+            2. Run the installer
+            3. Follow the setup wizard
+
+            ### macOS
+            1. Download the appropriate ZIP for your CPU
+            2. Extract and move to Applications folder
+            3. Right-click and "Open" to bypass Gatekeeper
+
+            ### Linux
+            1. Download the .AppImage file
+            2. Make executable: `chmod +x BitcoinZ\ Blue-*.AppImage`
+            3. Run: `./BitcoinZ\ Blue-*.AppImage`
+
+            ---
+
+            **Built with ❤️ for the BitcoinZ community**
+
+            **Auto-generated from successful builds**
+          files: |
+            **/*artifacts*/**
+          draft: false
+          prerelease: false
