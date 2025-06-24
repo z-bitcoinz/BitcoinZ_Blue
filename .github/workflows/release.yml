@@ -17,12 +17,14 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: Download all artifacts from latest run
+      - name: Download all artifacts from tag build
         uses: dawidd6/action-download-artifact@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: build-and-sign.yml
-          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name_is_regexp: true
+          name: BitcoinZ-Blue-.*
           path: ./artifacts
 
       - name: List downloaded artifacts
@@ -66,16 +68,16 @@ jobs:
             ## 📦 **Download Options** ⬇️
 
             ### 🪟 **Windows (x64)**
-            - **Setup Installer** - `BitcoinZ Blue Setup *.exe` (Recommended)
-            - **Portable Version** - `BitcoinZ Blue-*-win.zip` (No installation required)
+            - **Setup Installer** - Download from `BitcoinZ-Blue-Windows-Installer` (Recommended)
+            - **Portable Version** - Download from `BitcoinZ-Blue-Windows-Portable` (No installation required)
 
             ### 🍎 **macOS**
-            - **Apple Silicon (M1/M2/M3)** - `BitcoinZ Blue-*-arm64-mac.zip`
-            - **Intel CPUs** - `BitcoinZ Blue-*-x64-mac.zip`
+            - **Apple Silicon (M1/M2/M3)** - Download from `BitcoinZ-Blue-macOS-AppleSilicon`
+            - **Intel CPUs** - Download from `BitcoinZ-Blue-macOS-Intel`
 
             ### 🐧 **Linux**
-            - **Universal AppImage** - `BitcoinZ Blue-*.AppImage` (Recommended)
-            - **Debian/Ubuntu Package** - `bitcoinz-wallet-lite_*_amd64.deb`
+            - **Universal AppImage** - Download from `BitcoinZ-Blue-Linux-AppImage` (Recommended)
+            - **Debian/Ubuntu Package** - Download from `BitcoinZ-Blue-Linux-DEB`
 
             ## 🔒 **Security**
             - All applications are code-signed

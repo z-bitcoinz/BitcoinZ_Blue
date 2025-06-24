@@ -114,29 +114,22 @@ jobs:
           # List what we created
           ls -la *.zip
 
-      - name: Upload macOS ARM64 artifacts
+      - name: Upload macOS ARM64 (Apple Silicon)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: macos-arm64-artifacts
+          name: BitcoinZ-Blue-macOS-AppleSilicon
           path: |
             dist/*arm64*.zip
 
-      - name: Upload macOS Intel artifacts
+      - name: Upload macOS Intel
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: macos-intel-artifacts
+          name: BitcoinZ-Blue-macOS-Intel
           path: |
             dist/*x64*.zip
-          
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-builds
-          path: |
-            dist/BitcoinZ Blue-1.0.0-arm64-mac.zip
-            dist/BitcoinZ Blue-1.0.0-x64-mac.zip
+
 
   build-windows:
     runs-on: windows-latest
@@ -164,19 +157,19 @@ jobs:
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
 
-      - name: Upload Windows Setup artifacts
+      - name: Upload Windows Installer (EXE)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: windows-setup-artifacts
+          name: BitcoinZ-Blue-Windows-Installer
           path: |
             dist/*.exe
 
-      - name: Upload Windows Portable artifacts
+      - name: Upload Windows Portable (ZIP)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: windows-portable-artifacts
+          name: BitcoinZ-Blue-Windows-Portable
           path: |
             dist/*.zip
 
@@ -208,14 +201,7 @@ jobs:
           echo "- This is normal for new software publishers" >> windows-security.md
         shell: bash
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-builds
-          path: |
-            dist/BitcoinZ Blue Setup 1.0.0.exe
-            dist/BitcoinZ Blue-1.0.0-win.zip
-            windows-security.md
+
 
   build-linux:
     runs-on: ubuntu-latest
@@ -243,46 +229,22 @@ jobs:
           node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
 
-      - name: Upload Linux AppImage artifacts
+      - name: Upload Linux AppImage (Universal)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-appimage-artifacts
+          name: BitcoinZ-Blue-Linux-AppImage
           path: |
             dist/*.AppImage
 
-      - name: Upload Linux DEB artifacts
+      - name: Upload Linux DEB Package
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-deb-artifacts
+          name: BitcoinZ-Blue-Linux-DEB
           path: |
             dist/*.deb
           
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-builds
-          path: |
-            dist/BitcoinZ Blue-1.0.0.AppImage
-            dist/bitcoinz-wallet-lite_1.0.0_amd64.deb
 
-  create-release:
-    needs: [build-macos, build-windows, build-linux]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            macos-builds/*
-            windows-builds/*
-            linux-builds/*
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
