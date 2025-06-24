@@ -267,8 +267,28 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       privKeyInputValue: null,
       walletSettingsModalIsOpen: false,
     };
+  }
 
+  componentDidMount() {
     this.setupMenuHandlers();
+  }
+
+  componentWillUnmount() {
+    // Clean up IPC listeners to prevent memory leaks
+    ipcRenderer.removeAllListeners("about");
+    ipcRenderer.removeAllListeners("donate");
+    ipcRenderer.removeAllListeners("import");
+    ipcRenderer.removeAllListeners("payuri");
+    ipcRenderer.removeAllListeners("seed");
+    ipcRenderer.removeAllListeners("exportalltx");
+    ipcRenderer.removeAllListeners("encrypt");
+    ipcRenderer.removeAllListeners("decrypt");
+    ipcRenderer.removeAllListeners("unlock");
+    ipcRenderer.removeAllListeners("rescan");
+    ipcRenderer.removeAllListeners("exportall");
+    ipcRenderer.removeAllListeners("zcashd");
+    ipcRenderer.removeAllListeners("walletSettings");
+    ipcRenderer.removeAllListeners("connectmobile");
   }
 
   // Handle menu items
