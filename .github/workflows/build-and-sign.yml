@@ -22,9 +22,13 @@ jobs:
           cache: 'yarn'
           
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.81"
+        uses: dtolnay/rust-toolchain@1.81
+
+      - name: Verify Rust version
+        run: |
+          rustc --version
+          cargo --version
+          echo "✅ Rust toolchain verified"
 
       - name: Install dependencies
         run: yarn install
@@ -60,7 +64,7 @@ jobs:
             
       - name: Build and sign macOS apps
         run: |
-          yarn electron-builder -m --dir -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -m --dir --publish never
 
           # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
           codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
@@ -95,7 +99,7 @@ jobs:
         run: |
           yarn install
           yarn build
-          yarn electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -w --publish never
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -149,7 +153,7 @@ jobs:
         run: |
           yarn install
           yarn build
-          yarn electron-builder -l -c.extraMetadata.main=build/electron.js --publish never
+          yarn electron-builder -l --publish never
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
