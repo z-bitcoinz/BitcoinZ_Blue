@@ -778,7 +778,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     ipcRenderer.on("exportalltx", async () => {
       const save = await remote.dialog.showSaveDialog({
         title: "Save Transactions As CSV",
-        defaultPath: "zecwallet_transactions.csv",
+        defaultPath: "bitcoinz_transactions.csv",
         filters: [{ name: "CSV File", extensions: ["csv"] }],
         properties: ["showOverwriteConfirmation"],
       });
@@ -803,7 +803,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
           }
         });
 
-        const header = [`UnixTime, Date, Txid, Type, Amount, Address, ZECPrice, Memo`];
+        const header = [`UnixTime, Date, Txid, Type, Amount, Address, BTCZPrice, Memo`];
 
         try {
           await fs.promises.writeFile(save.filePath, header.concat(rows).join("\n"));

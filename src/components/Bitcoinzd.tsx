@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from "react";
+import { useHistory } from "react-router-dom";
 import { Info, RPCConfig } from "./AppState";
 import cstyles from "./Common.module.css";
 import styles from "./Bitcoinzd.module.css";
 import ScrollPane from "./ScrollPane";
+import routes from "../constants/routes.json";
 
 type DetailLineProps = {
   label: string;
@@ -23,11 +25,12 @@ type Props = {
   refresh: () => void;
   rpcConfig: RPCConfig;
   openServerSelectModal: () => void;
+  history?: any;
 };
 
-export default class Bitcoinzd extends Component<Props> {
+class Bitcoinzd extends Component<Props> {
   render() {
-    const { info, rpcConfig, refresh, openServerSelectModal } = this.props;
+    const { info, rpcConfig, refresh, openServerSelectModal, history } = this.props;
     const { url } = rpcConfig;
 
     if (!info || !info.latestBlock) {
@@ -105,7 +108,7 @@ export default class Bitcoinzd extends Component<Props> {
                     transition: 'all 0.3s ease',
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    minWidth: '160px',
+                    minWidth: '140px',
                     justifyContent: 'center'
                   }}
                   onMouseEnter={(e) => {
@@ -145,7 +148,7 @@ export default class Bitcoinzd extends Component<Props> {
                     transition: 'all 0.3s ease',
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    minWidth: '160px',
+                    minWidth: '140px',
                     justifyContent: 'center'
                   }}
                   onMouseEnter={(e) => {
@@ -168,6 +171,56 @@ export default class Bitcoinzd extends Component<Props> {
                 </button>
               </div>
 
+              {/* Close Button */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                paddingTop: '20px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                marginTop: '20px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => history ? history.push(routes.DASHBOARD) : window.history.back()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    minWidth: '120px',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.25)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                    target.style.transform = 'translateY(-1px)';
+                    target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'rgba(255, 255, 255, 0.15)';
+                    target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    target.style.transform = 'translateY(0)';
+                    target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <i className="fas fa-arrow-left" />
+                  Back to Dashboard
+                </button>
+              </div>
+
               <div className={cstyles.margintoplarge} />
             </ScrollPane>
           </div>
@@ -176,3 +229,11 @@ export default class Bitcoinzd extends Component<Props> {
     }
   }
 }
+
+// Wrapper component to provide history
+const BitcoinzdWithHistory: React.FC<Omit<Props, 'history'>> = (props) => {
+  const history = useHistory();
+  return <Bitcoinzd {...props} history={history} />;
+};
+
+export default BitcoinzdWithHistory;
