@@ -9,6 +9,7 @@ edition = "2018"
 [features]
 default = ["embed_params"]
 embed_params = []
+zfuture = []
 
 
 [dependencies]
