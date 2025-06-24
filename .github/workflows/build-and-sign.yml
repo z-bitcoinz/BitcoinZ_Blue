@@ -67,9 +67,8 @@ jobs:
           
       - name: Build app
         run: |
-          yarn build
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
+          yarn neon
+          node --openssl-legacy-provider scripts/build.js
           
       - name: Create self-signed certificate
         run: |
@@ -125,10 +124,9 @@ jobs:
       - name: Build Windows app
         run: |
           yarn install
-          yarn build
+          yarn neon
+          node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
 
       - name: Sign Windows executables (self-signed)
         run: |
@@ -189,10 +187,9 @@ jobs:
       - name: Build Linux app
         run: |
           yarn install
-          yarn build
+          yarn neon
+          node --openssl-legacy-provider scripts/build.js
           yarn electron-builder -l -c.extraMetadata.main=build/electron.js --publish never
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
