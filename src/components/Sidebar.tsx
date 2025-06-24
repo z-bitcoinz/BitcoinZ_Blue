@@ -108,11 +108,11 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
       width: '480px',
       maxWidth: '90vw',
       maxHeight: '85vh',
-      overflow: 'auto',
+      overflow: 'auto' as const,
       color: 'white'
     },
     overlay: {
-      position: 'fixed',
+      position: 'fixed' as const,
       top: 0,
       left: 0,
       right: 0,
@@ -135,7 +135,7 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
     outline: 'none',
     transition: 'all 0.3s ease',
     backdropFilter: 'blur(10px)',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box' as const
   };
 
   const modernButtonStyle = {
@@ -198,11 +198,21 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
           padding: '16px'
         }}>
           <TextareaAutosize
+            minRows={3}
             style={{
-              ...modernInputStyle,
-              minHeight: '80px',
-              resize: 'vertical',
-              fontFamily: 'monospace'
+              width: '100%',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontFamily: 'monospace',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              color: 'white',
+              outline: 'none',
+              transition: 'all 0.3s ease',
+              backdropFilter: 'blur(10px)',
+              boxSizing: 'border-box' as const,
+              resize: 'vertical' as const
             }}
             placeholder="Spending or Viewing Key"
             value={pkey}
@@ -230,7 +240,20 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
           }}>
             <input
               type="number"
-              style={modernInputStyle}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)',
+                boxSizing: 'border-box' as const
+              }}
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
               placeholder="0"
@@ -254,16 +277,18 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
               closeModal();
             }}
             onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.25)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              target.style.transform = 'translateY(-2px)';
+              target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.15)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+              target.style.transform = 'translateY(0)';
+              target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
             }}
           >
             <i className="fas fa-download" />
@@ -274,16 +299,18 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
             style={modernButtonStyle}
             onClick={closeModal}
             onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.25)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+              target.style.transform = 'translateY(-2px)';
+              target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'rgba(255, 255, 255, 0.15)';
+              target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+              target.style.transform = 'translateY(0)';
+              target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
             }}
           >
             <i className="fas fa-times" />
