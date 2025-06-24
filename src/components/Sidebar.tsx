@@ -192,20 +192,7 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
     }
   };
 
-  const modernInputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: '14px',
-    fontFamily: 'inherit',
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '12px',
-    color: 'white',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-    backdropFilter: 'blur(10px)',
-    boxSizing: 'border-box' as const
-  };
+  // Removed unused modernInputStyle variable
 
   const modernButtonStyle = {
     display: 'inline-flex',
@@ -906,7 +893,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     ipcRenderer.on("exportall", async () => {
       // Get all the addresses and run export key on each of them.
       // Access props dynamically to get current values, not captured values
-      const { addresses, getPrivKeyAsString, info, openPasswordAndUnlockIfNeeded, openErrorModal } = this.props;
+      const { addresses, info, openPasswordAndUnlockIfNeeded, openErrorModal } = this.props;
 
       // Check if wallet is loaded and addresses are available
       if (!info || !info.latestBlock) {

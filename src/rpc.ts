@@ -35,6 +35,11 @@ export default class RPC {
   lastBalance?: number;
   lastTxCount?: number;
 
+  // Price caching to avoid CoinGecko rate limits
+  private cachedPrice?: number;
+  private priceLastFetched?: number;
+  private readonly PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
   constructor(
     fnSetTotalBalance: (tb: TotalBalance) => void,
     fnSetAddressesWithBalance: (abs: AddressBalance[]) => void,
@@ -709,15 +714,103 @@ export default class RPC {
   }
 
   async getZecPrice() {
-    const resultStr: string = native.litelib_execute("zecprice", "");
-    if (resultStr.toLowerCase().startsWith("error")) {
-      console.log(`Error fetching price ${resultStr}`);
+    console.log("🔍 Attempting to fetch BTCZ price...");
+
+    // Check if we have a cached price that's still valid
+    const now = Date.now();
+    if (this.cachedPrice && this.priceLastFetched && (now - this.priceLastFetched) < this.PRICE_CACHE_DURATION) {
+      console.log(`💾 Using cached BTCZ price: $${this.cachedPrice} (cached ${Math.round((now - this.priceLastFetched) / 1000)}s ago)`);
+      this.fnSetBtczPrice(this.cachedPrice);
       return;
     }
 
-    const resultJSON = JSON.parse(resultStr);
-    if (resultJSON.zec_price) {
-      this.fnSetBtczPrice(resultJSON.zec_price);
+    console.log("🌐 Fetching fresh price from CoinGecko...");
+
+    try {
+      // Fetch BitcoinZ price directly from CoinGecko API
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoinz&vs_currencies=usd');
+
+      if (!response.ok) {
+        console.log(`❌ CoinGecko API error: ${response.status} ${response.statusText}`);
+
+        // If we have a cached price (even if expired), use it as fallback
+        if (this.cachedPrice) {
+          console.log(`🔄 Using expired cached price as fallback: $${this.cachedPrice}`);
+          this.fnSetBtczPrice(this.cachedPrice);
+        }
+        return;
+      }
+
+      const data = await response.json();
+      console.log(`📈 CoinGecko response:`, data);
+
+      if (data.bitcoinz && data.bitcoinz.usd) {
+        const price = data.bitcoinz.usd;
+
+        // Cache the new price
+        this.cachedPrice = price;
+        this.priceLastFetched = now;
+
+        console.log(`✅ Setting BTCZ price to: $${price} (cached for ${this.PRICE_CACHE_DURATION / 60000} minutes)`);
+        this.fnSetBtczPrice(price);
+      } else {
+        console.log(`⚠️ No BitcoinZ price found in CoinGecko response:`, data);
+
+        // Use cached price if available
+        if (this.cachedPrice) {
+          console.log(`🔄 Using cached price as fallback: $${this.cachedPrice}`);
+          this.fnSetBtczPrice(this.cachedPrice);
+        }
+      }
+    } catch (error) {
+      console.log(`❌ Error fetching price from CoinGecko:`, error);
+
+      // Use cached price if available
+      if (this.cachedPrice) {
+        console.log(`🔄 Using cached price due to network error: $${this.cachedPrice}`);
+        this.fnSetBtczPrice(this.cachedPrice);
+        return;
+      }
+
+      // Fallback: try the old method as last resort
+      console.log("🔄 Trying fallback method...");
+      try {
+        const resultStr: string = native.litelib_execute("zecprice", "");
+        if (!resultStr.toLowerCase().startsWith("error")) {
+          const resultJSON = JSON.parse(resultStr);
+          if (resultJSON.zec_price) {
+            console.log(`✅ Fallback: Setting BTCZ price to: ${resultJSON.zec_price}`);
+            this.fnSetBtczPrice(resultJSON.zec_price);
+          }
+        }
+      } catch (fallbackError) {
+        console.log(`❌ Fallback method also failed:`, fallbackError);
+      }
     }
+  }
+
+  // Method to clear price cache (useful for testing or forcing fresh price fetch)
+  clearPriceCache() {
+    console.log("🗑️ Clearing price cache");
+    this.cachedPrice = undefined;
+    this.priceLastFetched = undefined;
+  }
+
+  // Method to get cache status for debugging
+  getPriceCacheStatus() {
+    if (!this.cachedPrice || !this.priceLastFetched) {
+      return { cached: false, price: null, age: null };
+    }
+
+    const age = Date.now() - this.priceLastFetched;
+    const isValid = age < this.PRICE_CACHE_DURATION;
+
+    return {
+      cached: true,
+      price: this.cachedPrice,
+      age: Math.round(age / 1000), // age in seconds
+      valid: isValid,
+      expiresIn: Math.round((this.PRICE_CACHE_DURATION - age) / 1000) // seconds until expiry
+    };
   }
 }
