@@ -78,10 +78,10 @@ jobs:
       - name: Build and sign macOS apps
         run: |
           # Build for ARM64 (Apple Silicon)
-          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arch arm64 --publish never
+          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arm64 --publish never
 
           # Build for x64 (Intel)
-          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arch x64 --publish never
+          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --x64 --publish never
 
           # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
           if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
