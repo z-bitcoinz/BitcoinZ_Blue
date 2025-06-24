@@ -559,7 +559,6 @@ export default class RouteApp extends React.Component<Props, AppState> {
                 path={routes.RECEIVE}
                 render={() => (
                   <Receive
-                    rerenderKey={receivePageState.rerenderKey}
                     addresses={addresses}
                     addressesWithBalance={addressesWithBalance}
                     addressPrivateKeys={addressPrivateKeys}
