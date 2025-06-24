@@ -38,7 +38,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle }) => {
             onClick={handleConnectionClick}
             title={getConnectionTooltip()}
           >
-            <i className={`fas ${isConnected ? 'fa-wifi' : 'fa-exclamation-triangle'} ${styles.connectionIcon} ${isConnected ? styles.connected : styles.disconnected}`} />
+            <i className={`fas ${isConnected ? 'fa-link' : 'fa-unlink'} ${styles.connectionIcon}`} />
           </div>
           <div className={styles.blockHeight}>
             <i className={`fas fa-cube ${styles.blockIcon}`} />

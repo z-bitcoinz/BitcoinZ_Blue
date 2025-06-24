@@ -65,17 +65,11 @@
 
 .connectionIcon {
   font-size: 10px;
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   transition: all 0.2s ease;
-}
-
-.connectionIcon.connected {
-  color: #4CAF50;
-  text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
-}
-
-.connectionIcon.disconnected {
-  color: #F44336;
-  text-shadow: 0 0 4px rgba(244, 67, 54, 0.4);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .connectionStatus:hover .connectionIcon {

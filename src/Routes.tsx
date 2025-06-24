@@ -648,6 +648,8 @@ const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
 
   const getPageTitle = (pathname: string): string | undefined => {
     switch (pathname) {
+      case routes.DASHBOARD:
+        return "HOME";
       case routes.SEND:
         return "SEND";
       case routes.RECEIVE:
@@ -659,7 +661,7 @@ const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
       case routes.ZCASHD:
         return "SERVER INFO";
       default:
-        return undefined; // No title for dashboard and other pages
+        return undefined; // No title for other pages
     }
   };
 
