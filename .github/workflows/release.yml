@@ -20,6 +20,13 @@ jobs:
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find . -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" | sort
 
       - name: Create Release
         id: create_release
@@ -54,7 +61,19 @@ jobs:
             - Security scanning integration
             - Code signing for all platforms
 
-            ## 📦 **Download the appropriate version for your system below** ⬇️
+            ## 📦 **Download Options** ⬇️
+
+            ### 🪟 **Windows (x64)**
+            - **Setup Installer** - `BitcoinZ Blue Setup *.exe` (Recommended)
+            - **Portable Version** - `BitcoinZ Blue-*-win.zip` (No installation required)
+
+            ### 🍎 **macOS**
+            - **Apple Silicon (M1/M2/M3)** - `BitcoinZ Blue-*-arm64-mac.zip`
+            - **Intel CPUs** - `BitcoinZ Blue-*-x64-mac.zip`
+
+            ### 🐧 **Linux**
+            - **Universal AppImage** - `BitcoinZ Blue-*.AppImage` (Recommended)
+            - **Debian/Ubuntu Package** - `bitcoinz-wallet-lite_*_amd64.deb`
 
             ## 🔒 **Security**
             - All applications are code-signed
