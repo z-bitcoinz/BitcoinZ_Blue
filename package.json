@@ -244,7 +244,8 @@
         "StartupWMClass": "bitcoinz-wallet-lite",
         "Categories": "Utility;Finance;",
         "MimeType": "x-scheme-handler/bitcoinz;",
-        "Keywords": "bitcoinz;wallet;crypto;"
+        "Keywords": "bitcoinz;wallet;crypto;",
+        "Exec": "sh -c 'export LD_LIBRARY_PATH=\"/opt/BitcoinZ Blue:${LD_LIBRARY_PATH}\"; exec \"/opt/BitcoinZ Blue/bitcoinz-wallet-lite\" \"$@\"' -- %U"
       }
     }
   },
