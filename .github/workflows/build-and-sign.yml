@@ -99,11 +99,11 @@ jobs:
           # Now use electron-builder with ad-hoc signing, skip rebuild
           echo "🔐 Building and signing macOS app..."
           npx electron-builder -m \
-            -c.extraMetadata.main=build/electron.js \
-            -c.mac.identity=null \
-            -c.mac.type=distribution \
-            -c.npmRebuild=false \
-            -c.buildDependenciesFromSource=false \
+            --config.extraMetadata.main=build/electron.js \
+            --config.mac.identity=null \
+            --config.mac.type=distribution \
+            --config.npmRebuild=false \
+            --config.buildDependenciesFromSource=false \
             --publish never
           
           # Verify the apps are signed BEFORE zipping
@@ -213,7 +213,7 @@ jobs:
           Copy-Item public/electron.js build/
           
           # Build with electron-builder
-          npx electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+          npx electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
         shell: powershell
 
       - name: Upload Windows Installer (EXE)
