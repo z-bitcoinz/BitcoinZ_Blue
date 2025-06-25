@@ -155,6 +155,14 @@ export default class Help extends Component<{}, HelpState> {
                     </div>
                   </div>
                   <div className={styles.securityTip}>
+                    <span className={styles.tipIcon}>📅</span>
+                    <div>
+                      <strong>Remember wallet birthday</strong> (creation date)
+                      <br />
+                      <small>Speeds up wallet restoration by skipping old blocks</small>
+                    </div>
+                  </div>
+                  <div className={styles.securityTip}>
                     <span className={styles.tipIcon}>❌</span>
                     <div>
                       <strong>Never share</strong> with anyone
@@ -162,6 +170,17 @@ export default class Help extends Component<{}, HelpState> {
                       <small>Not even BitcoinZ support or developers</small>
                     </div>
                   </div>
+                </div>
+
+                <div className={styles.safetyNote}>
+                  <strong>🎂 What is Wallet Birthday?</strong>
+                  <p>Your wallet birthday is the date when you first created your wallet. When restoring from seed phrase, the wallet only needs to scan blocks from this date forward, making restoration much faster.</p>
+                  <ul>
+                    <li>✅ <strong>Faster restoration</strong> - Skip scanning old blocks</li>
+                    <li>✅ <strong>Less bandwidth</strong> - Download only necessary data</li>
+                    <li>✅ <strong>Quicker sync</strong> - Get your wallet working sooner</li>
+                  </ul>
+                  <p><strong>Tip:</strong> Write down the creation date along with your seed phrase!</p>
                 </div>
               </div>
             </div>
