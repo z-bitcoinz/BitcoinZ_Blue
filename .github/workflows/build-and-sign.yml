@@ -77,7 +77,7 @@ jobs:
           echo "Starting macOS build..."
           yarn --version
           node --version
-          yarn dist:mac --verbose
+          yarn dist:mac
 
 
       - name: Upload macOS ARM64 (Apple Silicon)
@@ -129,7 +129,7 @@ jobs:
           yarn --version
           node --version
           yarn install
-          yarn dist:win --verbose
+          yarn dist:win
 
       - name: Upload Windows Installer (EXE)
         uses: actions/upload-artifact@v4
@@ -208,7 +208,7 @@ jobs:
           yarn --version
           node --version
           yarn install
-          yarn dist:linux --verbose
+          yarn dist:linux
 
       - name: Upload Linux AppImage (Universal)
         uses: actions/upload-artifact@v4
