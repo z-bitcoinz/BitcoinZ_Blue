@@ -41,6 +41,7 @@ import PasswordModal from "./components/PasswordModal";
 import ServerSelectModal from "./components/ServerSelectModal";
 import TopMenuBar from "./components/TopMenuBar";
 import BottomNavigation from "./components/BottomNavigation";
+import Help from "./components/Help";
 
 
 type Props = {};
@@ -619,6 +620,11 @@ export default class RouteApp extends React.Component<Props, AppState> {
               />
 
               <Route
+                path={routes.HELP}
+                render={() => <Help />}
+              />
+
+              <Route
                 path={routes.LOADING}
                 render={() => (
                   <LoadingScreen
@@ -660,6 +666,8 @@ const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
         return "ADDRESS BOOK";
       case routes.ZCASHD:
         return "SERVER INFO";
+      case routes.HELP:
+        return "HELP";
       default:
         return undefined; // No title for other pages
     }

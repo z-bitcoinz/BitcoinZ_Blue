@@ -1,0 +1,462 @@
+/* Help Component Styles */
+.helpContainer {
+  height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.helpContent {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.helpSection {
+  margin-bottom: 30px;
+}
+
+.helpSection h3 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.row {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.col {
+  flex: 1;
+  min-width: 300px;
+}
+
+.helpHeader {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.helpHeader h2 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.helpHeader p {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Tabs Styling */
+.helpTabs {
+  margin-bottom: 20px;
+}
+
+.helpTabs .nav-link {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  margin-right: 5px;
+  border-radius: 10px 10px 0 0;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.helpTabs .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.helpTabs .nav-link.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tabContent {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 0 15px 15px 15px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-height: 500px;
+}
+
+.tabContent h3 {
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Help Cards */
+.helpCard {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.helpCard:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.helpCard .card-header,
+.helpCardHeader {
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 15px 15px 0 0;
+  padding: 15px 20px;
+}
+
+.helpCard .card-body,
+.helpCardBody {
+  color: white;
+  padding: 20px;
+}
+
+.helpCard ul {
+  margin-bottom: 0;
+}
+
+.helpCard li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.helpCard code {
+  background: rgba(0, 0, 0, 0.3);
+  color: #ffd700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Confirmation Info */
+.confirmationInfo {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.confirmationItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.confirmationIcon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Auto-Shield Example */
+.autoShieldExample {
+  margin: 20px 0;
+}
+
+.beforeAfter {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.before, .after {
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+}
+
+.before h6, .after h6 {
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.addressExample {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tAddress {
+  color: #ff9999;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.zAddress {
+  color: #99ff99;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.arrow {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Auto-Shield Triggers */
+.autoShieldTriggers {
+  list-style: none;
+  padding: 0;
+}
+
+.autoShieldTriggers li {
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border-left: 4px solid #4CAF50;
+}
+
+/* Safety Note */
+.safetyNote {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.safetyNote ul {
+  margin-bottom: 0;
+  margin-top: 10px;
+}
+
+/* Send Steps */
+.sendSteps {
+  counter-reset: step-counter;
+  list-style: none;
+  padding: 0;
+}
+
+.sendSteps li {
+  counter-increment: step-counter;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid #2196F3;
+  position: relative;
+  padding-left: 50px;
+}
+
+.sendSteps li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #2196F3;
+  color: white;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Transaction Types */
+.transactionTypes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.transactionType {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.transactionType:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.typeIcon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+/* Troubleshooting Accordion */
+.troubleshootingAccordion {
+  margin-top: 20px;
+}
+
+.troubleshootingAccordion .accordion-item {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.troubleshootingAccordion .accordion-header button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  font-weight: 600;
+  padding: 15px 20px;
+}
+
+.troubleshootingAccordion .accordion-header button:not(.collapsed) {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: none;
+}
+
+.troubleshootingAccordion .accordion-header button:focus {
+  box-shadow: none;
+  border: none;
+}
+
+.troubleshootingAccordion .accordion-body {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  padding: 20px;
+}
+
+/* Security Tips */
+.securityTips {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.securityTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tipIcon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Help Footer */
+.helpFooter {
+  text-align: center;
+  margin-top: 40px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.helpFooter p {
+  margin-bottom: 10px;
+}
+
+.helpFooter a {
+  color: #87CEEB;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.helpFooter a:hover {
+  color: #B0E0E6;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .helpContainer {
+    padding: 15px;
+  }
+  
+  .helpHeader h2 {
+    font-size: 2rem;
+  }
+  
+  .tabContent {
+    padding: 20px;
+  }
+  
+  .beforeAfter {
+    flex-direction: column;
+  }
+  
+  .arrow {
+    transform: rotate(90deg);
+  }
+  
+  .confirmationInfo {
+    flex-direction: column;
+  }
+  
+  .transactionTypes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scrollbar Styling */
+.helpContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.helpContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.helpContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.helpContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
