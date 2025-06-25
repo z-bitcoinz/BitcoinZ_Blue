@@ -9,8 +9,12 @@ if (process.platform === 'linux') {
   
   // Set library path for production builds to find libffmpeg.so
   if (!isDev) {
-    const appPath = process.resourcesPath.replace('resources', '');
-    process.env.LD_LIBRARY_PATH = `${appPath}:${process.env.LD_LIBRARY_PATH || ''}`;
+    // For deb installations, the app is in /opt/BitcoinZ-Blue
+    // For AppImage, __dirname will be inside the mounted filesystem
+    const appDir = process.resourcesPath ? path.dirname(process.resourcesPath) : __dirname;
+    const libPath = appDir.includes('/opt/') ? appDir : path.join(appDir, '..');
+    
+    process.env.LD_LIBRARY_PATH = `${libPath}:${process.env.LD_LIBRARY_PATH || ''}`;
   }
 }
 
