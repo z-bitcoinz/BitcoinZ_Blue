@@ -81,6 +81,40 @@ jobs:
           node --version
           yarn dist:mac
 
+      - name: Sign macOS apps for distribution
+        run: |
+          echo "🔐 Signing macOS apps for distribution..."
+
+          # Sign ARM64 app
+          if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing ARM64 app for distribution"
+            # Remove quarantine attributes that might interfere
+            sudo xattr -r -d com.apple.quarantine "dist/mac-arm64/BitcoinZ Blue.app" 2>/dev/null || true
+            # Ad-hoc sign with proper entitlements
+            codesign --force --deep --sign - --options runtime "dist/mac-arm64/BitcoinZ Blue.app"
+            echo "✅ ARM64 app signed successfully"
+          fi
+
+          # Sign Intel app
+          if [ -d "dist/mac/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing Intel app for distribution"
+            # Remove quarantine attributes that might interfere
+            sudo xattr -r -d com.apple.quarantine "dist/mac/BitcoinZ Blue.app" 2>/dev/null || true
+            # Ad-hoc sign with proper entitlements
+            codesign --force --deep --sign - --options runtime "dist/mac/BitcoinZ Blue.app"
+            echo "✅ Intel app signed successfully"
+          fi
+
+          # Verify signatures
+          echo "🔍 Verifying signatures..."
+          if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
+            codesign --verify --verbose "dist/mac-arm64/BitcoinZ Blue.app" && echo "✅ ARM64 signature valid"
+          fi
+
+          if [ -d "dist/mac/BitcoinZ Blue.app" ]; then
+            codesign --verify --verbose "dist/mac/BitcoinZ Blue.app" && echo "✅ Intel signature valid"
+          fi
+
 
       - name: Upload macOS ARM64 (Apple Silicon)
         uses: actions/upload-artifact@v4

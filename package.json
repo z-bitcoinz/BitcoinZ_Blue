@@ -1,7 +1,7 @@
 {
   "name": "bitcoinz-wallet-lite",
   "productName": "BitcoinZ Wallet Lite",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "private": true,
   "description": "BitcoinZ Wallet Lite - A lightweight wallet for BitcoinZ",
   "license": "MIT",
@@ -199,6 +199,8 @@
     "mac": {
       "category": "public.app-category.productivity",
       "type": "distribution",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
       "target": [
         {
           "target": "zip",

@@ -669,7 +669,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       openErrorModal(
         "BitcoinZ Blue",
         <div className={cstyles.verticalflex}>
-          <div className={cstyles.margintoplarge}>BitcoinZ Blue v1.0.5</div>
+          <div className={cstyles.margintoplarge}>BitcoinZ Blue v1.0.6</div>
           <div className={cstyles.margintoplarge}>A modern light wallet for BitcoinZ.</div>
           <div className={cstyles.margintoplarge}>
             <br />
