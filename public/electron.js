@@ -9,12 +9,33 @@ if (process.platform === 'linux') {
   
   // Set library path for production builds to find libffmpeg.so
   if (!isDev) {
-    // For deb installations, the app is in /opt/BitcoinZ-Blue
-    // For AppImage, __dirname will be inside the mounted filesystem
-    const appDir = process.resourcesPath ? path.dirname(process.resourcesPath) : __dirname;
-    const libPath = appDir.includes('/opt/') ? appDir : path.join(appDir, '..');
+    // Try multiple possible locations for the libraries
+    const possiblePaths = [
+      "/opt/BitcoinZ Blue",  // Deb installation with space
+      "/opt/BitcoinZ-Blue",  // Deb installation without space (fallback)
+      process.resourcesPath ? path.dirname(process.resourcesPath) : "",
+      __dirname,
+      path.join(__dirname, ".."),
+      process.cwd()
+    ].filter(p => p); // Remove empty paths
     
-    process.env.LD_LIBRARY_PATH = `${libPath}:${process.env.LD_LIBRARY_PATH || ''}`;
+    // Add all possible paths to LD_LIBRARY_PATH
+    const libPaths = possiblePaths.join(":");
+    process.env.LD_LIBRARY_PATH = `${libPaths}:${process.env.LD_LIBRARY_PATH || ''}`;
+    
+    // Also try to load libffmpeg.so directly if we can find it
+    try {
+      const { existsSync } = require('fs');
+      for (const dir of possiblePaths) {
+        const ffmpegPath = path.join(dir, 'libffmpeg.so');
+        if (existsSync(ffmpegPath)) {
+          process.env.LD_LIBRARY_PATH = `${dir}:${process.env.LD_LIBRARY_PATH || ''}`;
+          break;
+        }
+      }
+    } catch (e) {
+      // Ignore errors in finding libffmpeg
+    }
   }
 }
 
