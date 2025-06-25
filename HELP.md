@@ -173,8 +173,24 @@ Total: 1,000.00 BTCZ ($50.00)
 ### 🔑 **Seed Phrase Security**
 - ✅ **Write down** your 24-word seed phrase
 - ✅ **Store safely** in multiple secure locations
+- ✅ **Remember wallet birthday** (creation date) for faster restoration
 - ✅ **Never share** with anyone
 - ✅ **Test recovery** before storing large amounts
+
+#### 🎂 **What is Wallet Birthday?**
+Your wallet birthday is the date when you first created your wallet. This information is crucial for efficient wallet restoration:
+
+**Why it matters:**
+- **Faster restoration**: Wallet only scans blocks from birthday forward
+- **Less bandwidth**: Skip downloading unnecessary old blockchain data
+- **Quicker sync**: Get your restored wallet working much sooner
+- **Efficiency**: No need to check transactions before wallet existed
+
+**Best practice**: Write down your wallet creation date along with your seed phrase. For example:
+```
+Seed Phrase: abandon ability able about above absent absorb abstract...
+Birthday: 2024-01-15 (or block height: 850000)
+```
 
 ### 💻 **Computer Security**
 - ✅ **Keep updated**: Update wallet regularly
@@ -225,6 +241,9 @@ A: Write down your 24-word seed phrase and store it securely. This can restore y
 
 ### **Q: Can I use the same wallet on multiple devices?**
 A: Yes, restore your wallet using the same seed phrase on different devices.
+
+### **Q: What is wallet birthday and why do I need it?**
+A: Wallet birthday is your wallet creation date. When restoring from seed phrase, providing this date makes restoration much faster by skipping old blockchain data that doesn't contain your transactions.
 
 ---
 
