@@ -4,6 +4,21 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// Check if we should skip the native build
+if (process.env.SKIP_NATIVE_BUILD === 'true') {
+  console.log('Skipping native build (SKIP_NATIVE_BUILD=true)');
+  
+  // Check if native.node already exists
+  const nativePath = path.join('src', 'native.node');
+  if (fs.existsSync(nativePath)) {
+    console.log('✅ Using existing native.node');
+    process.exit(0);
+  } else {
+    console.error('❌ Error: native.node not found and SKIP_NATIVE_BUILD is set');
+    process.exit(1);
+  }
+}
+
 console.log('Building native Rust module...');
 
 try {
@@ -43,12 +58,19 @@ try {
 
   if (!libPath) {
     // List all dylib/dll/so files to help debug
-    console.log('\nAvailable libraries:');
+    console.log('\\nAvailable libraries:');
     try {
-      const files = execSync(`find native/target/release -name "*.dylib" -o -name "*.so" -o -name "*.dll" | grep -v test`, { encoding: 'utf8' });
+      let findCmd;
+      if (process.platform === 'win32') {
+        findCmd = `dir /s /b native\\target\\release\\*.dll native\\target\\release\\*.lib 2>nul`;
+      } else {
+        findCmd = `find native/target/release -name "*.dylib" -o -name "*.so" -o -name "*.dll" 2>/dev/null | grep -v test || true`;
+      }
+      const files = execSync(findCmd, { encoding: 'utf8' });
       console.log(files);
     } catch (e) {
       // Ignore error if find fails
+      console.log('Could not list files:', e.message);
     }
     throw new Error(`Could not find built library ${libName}`);
   }
