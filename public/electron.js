@@ -6,6 +6,12 @@ const settings = require("electron-settings");
 // Disable sandbox if running on Linux to avoid permission issues
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox');
+  
+  // Set library path for production builds to find libffmpeg.so
+  if (!isDev) {
+    const appPath = process.resourcesPath.replace('resources', '');
+    process.env.LD_LIBRARY_PATH = `${appPath}:${process.env.LD_LIBRARY_PATH || ''}`;
+  }
 }
 
 class MenuBuilder {

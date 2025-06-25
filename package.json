@@ -233,12 +233,12 @@
           "arch": "x64"
         }
       ],
+      "executableName": "bitcoinz-wallet-lite",
       "desktop": {
         "Name": "BitcoinZ Blue",
         "Comment": "Shielded Lightclient for BitcoinZ",
         "GenericName": "Wallet",
         "Type": "Application",
-        "Exec": "env LD_LIBRARY_PATH=\"/opt/BitcoinZ Blue:$LD_LIBRARY_PATH\" /opt/BitcoinZ Blue/bitcoinz-wallet-lite %U",
         "StartupNotify": true,
         "StartupWMClass": "bitcoinz-wallet-lite",
         "Categories": "Utility;Finance;",
