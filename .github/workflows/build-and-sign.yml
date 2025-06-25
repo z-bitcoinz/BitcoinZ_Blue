@@ -235,18 +235,7 @@ jobs:
       - name: Sign Windows executables (enhanced self-signed)
         run: |
           # Create enhanced self-signed certificate with proper extensions
-          $cert = New-SelfSignedCertificate `
-            -Subject "CN=BitcoinZ Community, O=BitcoinZ Blue, C=US" `
-            -Type CodeSigning `
-            -KeySpec Signature `
-            -KeyUsage DigitalSignature `
-            -FriendlyName "BitcoinZ Blue Code Signing Certificate" `
-            -CertStoreLocation Cert:\CurrentUser\My `
-            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") `
-            -KeyExportPolicy Exportable `
-            -KeyLength 2048 `
-            -KeyAlgorithm RSA `
-            -HashAlgorithm SHA256
+          $cert = New-SelfSignedCertificate -Subject "CN=BitcoinZ Community, O=BitcoinZ Blue, C=US" -Type CodeSigning -KeySpec Signature -KeyUsage DigitalSignature -FriendlyName "BitcoinZ Blue Code Signing Certificate" -CertStoreLocation Cert:\CurrentUser\My -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") -KeyExportPolicy Exportable -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256
 
           # Export certificate for transparency
           $certPath = "Cert:\CurrentUser\My\$($cert.Thumbprint)"
@@ -257,11 +246,7 @@ jobs:
             Write-Host "🔐 Signing: $($_.Name)"
             
             # Sign with timestamp for long-term validity
-            Set-AuthenticodeSignature `
-              -FilePath $_.FullName `
-              -Certificate (Get-Item $certPath) `
-              -TimestampServer "http://timestamp.digicert.com" `
-              -HashAlgorithm SHA256
+            Set-AuthenticodeSignature -FilePath $_.FullName -Certificate (Get-Item $certPath) -TimestampServer "http://timestamp.digicert.com" -HashAlgorithm SHA256
             
             # Verify signature
             $sig = Get-AuthenticodeSignature $_.FullName
