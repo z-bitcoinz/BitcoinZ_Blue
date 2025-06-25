@@ -406,6 +406,9 @@ jobs:
   sigstore-sign:
     needs: [build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC authentication
+      contents: read
     steps:
       - uses: actions/checkout@v3
       
@@ -418,6 +421,8 @@ jobs:
         uses: sigstore/cosign-installer@v3
         
       - name: Sign artifacts with Sigstore
+        env:
+          COSIGN_EXPERIMENTAL: 1  # Enable keyless signing
         run: |
           echo "🔒 Starting Sigstore signing process..."
           
@@ -427,21 +432,27 @@ jobs:
           # Copy all artifacts to dist
           find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \) -exec cp {} dist/ \;
           
-          # Sign each artifact
+          # Find and sign artifacts
           cd dist
           for file in *; do
             if [ -f "$file" ]; then
               echo "🔐 Signing: $file"
               
-              # Sign with Sigstore (keyless signing)
-              cosign sign-blob \
+              # Sign with Sigstore using OIDC from GitHub Actions
+              # The --yes flag skips confirmation prompts
+              # COSIGN_EXPERIMENTAL=1 enables keyless signing with OIDC
+              if cosign sign-blob \
                 --output-signature="${file}.sig" \
                 --output-certificate="${file}.pem" \
-                "$file" --yes
-                
-              echo "✅ Signed: $file"
-              echo "   Signature: ${file}.sig"
-              echo "   Certificate: ${file}.pem"
+                --bundle="${file}.bundle" \
+                "$file" --yes; then
+                echo "✅ Signed: $file"
+                echo "   Signature: ${file}.sig"
+                echo "   Certificate: ${file}.pem"
+                echo "   Bundle: ${file}.bundle"
+              else
+                echo "⚠️  Warning: Failed to sign $file, continuing..."
+              fi
             fi
           done
           
@@ -460,8 +471,21 @@ jobs:
           
           # Verify each file
           for file in *.{exe,zip,AppImage,deb}; do
-              if [ -f "$file" ] && [ -f "${file}.sig" ] && [ -f "${file}.pem" ]; then
+              if [ -f "$file" ] && [ -f "${file}.bundle" ]; then
                   echo "🔐 Verifying: $file"
+                  
+                  # Use bundle file for verification (contains sig + cert)
+                  if cosign verify-blob \
+                      --bundle="${file}.bundle" \
+                      --certificate-identity-regexp=".*" \
+                      --certificate-oidc-issuer-regexp=".*" \
+                      "$file"; then
+                      echo "✅ Valid signature: $file"
+                  else
+                      echo "❌ Invalid signature: $file"
+                  fi
+              elif [ -f "$file" ] && [ -f "${file}.sig" ] && [ -f "${file}.pem" ]; then
+                  echo "🔐 Verifying: $file (legacy method)"
                   
                   if cosign verify-blob \
                       --certificate="${file}.pem" \
