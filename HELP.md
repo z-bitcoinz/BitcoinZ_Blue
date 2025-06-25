@@ -39,7 +39,8 @@ BitcoinZ Blue is a modern, cross-platform light wallet designed specifically for
 ### 🔒 **Shielded Addresses (Z-addresses)**
 - **Format**: Start with `zs1...`
 - **Privacy**: **Private** - amounts and recipients hidden
-- **Speed**: Slower - spendable after 2 confirmations (~5 minutes)
+- **Speed**: Fast - received funds spendable after 1 confirmation (~2.5 minutes)
+- **Auto-shield**: Funds moved by wallet need 2 confirmations (~5 minutes)
 - **Use case**: Private transactions, long-term storage
 
 ## 🔄 Auto-Shielding: Why Your Funds Move Automatically
@@ -54,8 +55,8 @@ BitcoinZ Blue automatically moves funds from transparent (T) to shielded (Z) add
 - **Automatic**: No manual privacy management needed
 
 ### ⏰ **When Does Auto-Shielding Occur?**
+- **When you make a transaction** - T-address balance automatically moves to Z-address
 - After receiving funds to a T-address
-- Before sending transactions
 - During wallet sync operations
 - When you have sufficient balance (> fee amount)
 
@@ -71,10 +72,14 @@ BitcoinZ Blue automatically moves funds from transparent (T) to shielded (Z) add
 - **Spendable after**: 1 confirmation (~2.5 minutes)
 - **Best for**: Quick transactions, exchange deposits
 
-### 🔒 **Shielded Funds**
+### 📨 **Received Shielded Funds**
+- **Spendable after**: 1 confirmation (~2.5 minutes)
+- **When**: Someone sends directly to your Z-address
+
+### 🔄 **Auto-Shielded Funds**
 - **Spendable after**: 2 confirmations (~5 minutes)
-- **Reason**: Enhanced cryptographic security
-- **Best for**: Private transactions, secure storage
+- **When**: Wallet moves your T-address balance to Z-address during transactions
+- **Reason**: Enhanced cryptographic security for wallet-generated transactions
 
 ### 📊 **Balance Display**
 ```
@@ -208,7 +213,9 @@ Total: 1,000.00 BTCZ ($50.00)
 A: Auto-shielding moved your funds from transparent to shielded addresses for privacy protection. Your funds are safe in your wallet.
 
 ### **Q: Why can't I spend my shielded funds immediately?**
-A: Shielded funds require 2 confirmations (~5 minutes) for cryptographic security. This is a protocol requirement.
+A: It depends on how you got them:
+- **Received directly**: Ready after 1 confirmation (~2.5 minutes)
+- **Auto-shielded**: Ready after 2 confirmations (~5 minutes) for enhanced security
 
 ### **Q: Is my wallet connecting to the right server?**
 A: Yes, BitcoinZ Blue connects to lightd.btcz.rocks:9067, the official BitcoinZ lightwalletd server.

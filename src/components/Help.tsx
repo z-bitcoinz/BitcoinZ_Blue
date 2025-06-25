@@ -48,6 +48,14 @@ export default class Help extends Component<{}, HelpState> {
                 </div>
 
                 <div className={styles.safetyNote}>
+                  <strong>🎯 When Auto-Shielding Happens:</strong>
+                  <ul>
+                    <li>✅ <strong>When you make a transaction</strong> - T-address balance moves to Z-address</li>
+                    <li>✅ After receiving funds to a T-address</li>
+                    <li>✅ During wallet sync operations</li>
+                    <li>✅ When you have sufficient balance (&gt; fee amount)</li>
+                  </ul>
+
                   <strong>💰 Your Funds Stay Safe:</strong>
                   <ul>
                     <li>✅ Funds move to YOUR shielded addresses</li>
@@ -63,7 +71,7 @@ export default class Help extends Component<{}, HelpState> {
           <div className={styles.helpSection}>
             <h3>⏱️ Confirmation Requirements</h3>
             <div className={styles.helpCard}>
-              <div className={styles.helpCardHeader}>🔐 Why 2 Confirmations for Shielded Funds?</div>
+              <div className={styles.helpCardHeader}>🔐 When Can You Spend Your Funds?</div>
               <div className={styles.helpCardBody}>
                 <div className={styles.confirmationInfo}>
                   <div className={styles.confirmationItem}>
@@ -75,15 +83,23 @@ export default class Help extends Component<{}, HelpState> {
                     </div>
                   </div>
                   <div className={styles.confirmationItem}>
-                    <span className={styles.confirmationIcon}>🔒</span>
+                    <span className={styles.confirmationIcon}>📨</span>
                     <div>
-                      <strong>Shielded Funds</strong>
+                      <strong>Received Shielded Funds</strong>
+                      <br />
+                      <small>Ready after 1 confirmation (~2.5 minutes)</small>
+                    </div>
+                  </div>
+                  <div className={styles.confirmationItem}>
+                    <span className={styles.confirmationIcon}>🔄</span>
+                    <div>
+                      <strong>Auto-Shielded Funds</strong>
                       <br />
                       <small>Ready after 2 confirmations (~5 minutes)</small>
                     </div>
                   </div>
                 </div>
-                <p><strong>Why the wait?</strong> Shielded transactions require additional cryptographic security to ensure they cannot be reversed or double-spent.</p>
+                <p><strong>Important:</strong> Auto-shielding happens when you make a transaction - the wallet automatically moves your T-address balance to Z-addresses for privacy.</p>
               </div>
             </div>
           </div>
@@ -95,7 +111,8 @@ export default class Help extends Component<{}, HelpState> {
               <div className={styles.helpCardBody}>
                 <ul>
                   <li>✅ Check available balance (not "confirming" funds)</li>
-                  <li>✅ Wait for shielded funds to mature (2 confirmations)</li>
+                  <li>✅ Wait for auto-shielded funds to mature (2 confirmations)</li>
+                  <li>✅ Received shielded funds are ready after 1 confirmation</li>
                   <li>✅ Verify recipient address format</li>
                   <li>✅ Ensure sufficient balance for fees</li>
                 </ul>
