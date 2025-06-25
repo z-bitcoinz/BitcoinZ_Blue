@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
@@ -74,7 +74,10 @@ jobs:
           
       - name: Build macOS app
         run: |
-          yarn dist:mac
+          echo "Starting macOS build..."
+          yarn --version
+          node --version
+          yarn dist:mac --verbose
 
 
       - name: Upload macOS ARM64 (Apple Silicon)
@@ -110,7 +113,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '17'
+          node-version: '20'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -122,8 +125,11 @@ jobs:
 
       - name: Build Windows app
         run: |
+          echo "Starting Windows build..."
+          yarn --version
+          node --version
           yarn install
-          yarn dist:win
+          yarn dist:win --verbose
 
       - name: Upload Windows Installer (EXE)
         uses: actions/upload-artifact@v4
@@ -187,7 +193,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '17'
+          node-version: '20'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Clean build artifacts
@@ -198,8 +204,11 @@ jobs:
 
       - name: Build Linux app
         run: |
+          echo "Starting Linux build..."
+          yarn --version
+          node --version
           yarn install
-          yarn dist:linux
+          yarn dist:linux --verbose
 
       - name: Upload Linux AppImage (Universal)
         uses: actions/upload-artifact@v4
