@@ -75,34 +75,39 @@ jobs:
       - name: Build macOS app with ad-hoc signing
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          # Enable ad-hoc signing to prevent "damaged" app errors
+          # Force electron-builder to use ad-hoc signing
           CSC_LINK: ""
           CSC_KEY_PASSWORD: ""
+          CODESIGN_IDENTITY: "-"  # This tells electron-builder to use ad-hoc signing
         run: |
           echo "Starting macOS build with ad-hoc signing..."
           yarn --version
           node --version
           
-          # Build the app with ad-hoc signing enabled
-          yarn dist:mac
+          # First build without packaging
+          yarn build
           
-          # Post-build: Apply ad-hoc signing to remove quarantine issues
-          echo "🔐 Applying ad-hoc code signing to macOS apps..."
+          # Now use electron-builder with ad-hoc signing
+          echo "🔐 Building and signing macOS app..."
+          npx electron-builder -m -c.mac.identity=null -c.mac.type=distribution --publish never
           
-          # Find all .app bundles in dist
+          # Verify the apps are signed BEFORE zipping
+          echo "📋 Verifying signatures..."
           find dist -name "*.app" -type d | while read -r app; do
-            echo "Signing: $app"
-            # Ad-hoc sign with hardened runtime disabled for better compatibility
-            codesign --force --deep --sign - "$app"
+            echo "Checking: $app"
+            if codesign -dv "$app" 2>&1 | grep -q "adhoc"; then
+              echo "✅ Ad-hoc signature found: $app"
+            else
+              echo "⚠️  No ad-hoc signature found, applying now..."
+              codesign --force --deep --sign - "$app"
+              echo "✅ Ad-hoc signature applied: $app"
+            fi
             
-            # Verify the signature
-            codesign -dv --verbose=4 "$app"
-            
-            # Remove quarantine attributes
+            # Remove extended attributes
             xattr -cr "$app"
           done
           
-          echo "✅ Ad-hoc signing complete"
+          echo "✅ macOS build and signing complete"
 
 
       - name: Upload macOS ARM64 (Apple Silicon)
