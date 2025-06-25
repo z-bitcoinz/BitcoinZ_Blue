@@ -1,15 +1,16 @@
 # Windows Security Guide for BitcoinZ Blue
 
-## 🛡️ Why Windows Shows Security Warnings
+## 🛡️ Enhanced Security with Free Code Signing
 
-Windows Defender SmartScreen and antivirus software protect users by warning about unsigned or unknown software. BitcoinZ Blue is safe, but as a new publisher, we may trigger these warnings initially.
+BitcoinZ Blue now includes **enhanced self-signed certificates** and **Sigstore signatures** to improve security and reduce warnings. While Windows may still show SmartScreen warnings for new publishers, our signing provides integrity verification.
 
-## ✅ Security Measures We've Implemented
+## ✅ Security Measures Implemented
 
-### 1. Digital Signatures
-- **Self-signed certificates** for integrity verification
-- **Sigstore signatures** for cryptographic proof
+### 1. Enhanced Digital Signatures
+- **Improved self-signed certificates** with proper extensions
+- **SHA256 hashing** for stronger security
 - **Timestamp servers** for long-term validity
+- **Exported certificates** for transparency
 
 ### 2. Multi-Engine Security Scanning
 - **VirusTotal scans** with 70+ antivirus engines
@@ -120,6 +121,30 @@ certutil -hashfile "BitcoinZ Blue Setup 1.0.0.exe" SHA256
 - **Verifiable** - Multiple signature methods
 - **Community** - Active development and support
 
+## 🛠️ For Developers - Testing Signing
+
+### Local Testing Script
+```bash
+# Run our automated test script
+./scripts/test-signing-local.sh
+
+# Or test manually with PowerShell:
+# Check signature
+Get-AuthenticodeSignature "dist\BitcoinZ Blue Setup*.exe"
+
+# Verify certificate
+$cert = Get-AuthenticodeSignature "dist\BitcoinZ Blue Setup*.exe" | Select-Object -ExpandProperty SignerCertificate
+$cert | Format-List *
+```
+
+### Build Process
+Our GitHub Actions workflow automatically:
+1. Creates an enhanced self-signed certificate
+2. Signs all executables with SHA256
+3. Timestamps signatures for long-term validity
+4. Exports certificate for transparency
+5. Applies Sigstore signatures
+
 ## 🆘 Troubleshooting
 
 ### If Installation Fails
@@ -140,13 +165,46 @@ certutil -hashfile "BitcoinZ Blue Setup 1.0.0.exe" SHA256
 - **Documentation** - Check README and guides
 - **Security Questions** - Contact maintainers directly
 
+## � Verifying Downloads
+
+### Method 1: Check Windows Signature
+```powershell
+# In PowerShell:
+Get-AuthenticodeSignature "BitcoinZ Blue Setup.exe" | Format-List
+```
+
+### Method 2: Verify Sigstore Signature
+```bash
+# Download cosign from https://github.com/sigstore/cosign
+cosign verify-blob \
+  --certificate="BitcoinZ-Blue-Setup.exe.pem" \
+  --signature="BitcoinZ-Blue-Setup.exe.sig" \
+  "BitcoinZ Blue Setup.exe"
+```
+
 ## 🔗 Additional Resources
 
-- **VirusTotal Reports** - Check latest scan results
-- **Sigstore Verification** - Verify cryptographic signatures
-- **GitHub Security** - Review automated security scans
-- **Windows Security** - Microsoft's security best practices
+- **Our Security Implementation** - Check `.github/workflows/build-and-sign.yml`
+- **VirusTotal Reports** - Scan results available for each release
+- **Sigstore Transparency** - Public verification logs
+- **Certificate Details** - Included with each release
+
+## 📝 Release Notes Template
+
+```
+✅ Windows Security Improvements:
+• Enhanced self-signed certificates for integrity verification
+• Sigstore signatures for cryptographic proof
+• Transparent build process via GitHub Actions
+
+To install BitcoinZ Blue:
+1. Download the installer or ZIP file
+2. If SmartScreen appears, click "More info" → "Run anyway"
+3. This is normal for new publishers and only happens once
+
+For additional verification, check the included certificate and Sigstore signatures.
+```
 
 ---
 
-**Remember:** Security warnings for new software are normal. Our comprehensive security measures ensure BitcoinZ Blue is safe to use.
+**Remember:** Security warnings for new software are normal. Our comprehensive security measures and transparent build process ensure BitcoinZ Blue is safe to use.

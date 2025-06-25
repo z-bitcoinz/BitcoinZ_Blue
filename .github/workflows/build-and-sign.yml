@@ -72,14 +72,37 @@ jobs:
           cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
-      - name: Build macOS app
+      - name: Build macOS app with ad-hoc signing
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Enable ad-hoc signing to prevent "damaged" app errors
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
         run: |
-          echo "Starting macOS build..."
+          echo "Starting macOS build with ad-hoc signing..."
           yarn --version
           node --version
+          
+          # Build the app with ad-hoc signing enabled
           yarn dist:mac
+          
+          # Post-build: Apply ad-hoc signing to remove quarantine issues
+          echo "🔐 Applying ad-hoc code signing to macOS apps..."
+          
+          # Find all .app bundles in dist
+          find dist -name "*.app" -type d | while read -r app; do
+            echo "Signing: $app"
+            # Ad-hoc sign with hardened runtime disabled for better compatibility
+            codesign --force --deep --sign - "$app"
+            
+            # Verify the signature
+            codesign -dv --verbose=4 "$app"
+            
+            # Remove quarantine attributes
+            xattr -cr "$app"
+          done
+          
+          echo "✅ Ad-hoc signing complete"
 
 
       - name: Upload macOS ARM64 (Apple Silicon)
@@ -149,17 +172,43 @@ jobs:
           path: |
             dist/*.zip
 
-      - name: Sign Windows executables (self-signed)
+      - name: Sign Windows executables (enhanced self-signed)
         run: |
-          # Create self-signed certificate for Windows
-          $cert = New-SelfSignedCertificate -Subject "CN=BitcoinZ Blue" -Type CodeSigning -KeyUsage DigitalSignature -FriendlyName "BitcoinZ Blue Code Signing" -CertStoreLocation Cert:\CurrentUser\My -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+          # Create enhanced self-signed certificate with proper extensions
+          $cert = New-SelfSignedCertificate `
+            -Subject "CN=BitcoinZ Community, O=BitcoinZ Blue, C=US" `
+            -Type CodeSigning `
+            -KeySpec Signature `
+            -KeyUsage DigitalSignature `
+            -FriendlyName "BitcoinZ Blue Code Signing Certificate" `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") `
+            -KeyExportPolicy Exportable `
+            -KeyLength 2048 `
+            -KeyAlgorithm RSA `
+            -HashAlgorithm SHA256
 
-          # Sign the executable
+          # Export certificate for transparency
           $certPath = "Cert:\CurrentUser\My\$($cert.Thumbprint)"
-          Set-AuthenticodeSignature -FilePath "dist\BitcoinZ Blue Setup 1.0.0.exe" -Certificate (Get-Item $certPath) -TimestampServer "http://timestamp.digicert.com"
+          Export-Certificate -Cert $certPath -FilePath "dist\BitcoinZ-Blue-Certificate.cer" -Type CERT
 
-          # Verify signature
-          Get-AuthenticodeSignature "dist\BitcoinZ Blue Setup 1.0.0.exe"
+          # Find and sign all executables
+          Get-ChildItem -Path dist -Filter *.exe | ForEach-Object {
+            Write-Host "🔐 Signing: $($_.Name)"
+            
+            # Sign with timestamp for long-term validity
+            Set-AuthenticodeSignature `
+              -FilePath $_.FullName `
+              -Certificate (Get-Item $certPath) `
+              -TimestampServer "http://timestamp.digicert.com" `
+              -HashAlgorithm SHA256
+            
+            # Verify signature
+            $sig = Get-AuthenticodeSignature $_.FullName
+            Write-Host "✅ Signature Status: $($sig.Status)"
+          }
+          
+          Write-Host "📜 Certificate exported to: dist\BitcoinZ-Blue-Certificate.cer"
         shell: powershell
 
       - name: Create Windows security report
@@ -227,7 +276,141 @@ jobs:
           name: BitcoinZ-Blue-Linux-DEB
           path: |
             dist/*.deb
+
+  # Sigstore signing job that runs after all builds
+  sigstore-sign:
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        
+      - name: Sign artifacts with Sigstore
+        run: |
+          echo "🔒 Starting Sigstore signing process..."
           
-
-
-
+          # Create dist directory
+          mkdir -p dist
+          
+          # Copy all artifacts to dist
+          find artifacts -type f \( -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \) -exec cp {} dist/ \;
+          
+          # Sign each artifact
+          cd dist
+          for file in *; do
+            if [ -f "$file" ]; then
+              echo "🔐 Signing: $file"
+              
+              # Sign with Sigstore (keyless signing)
+              cosign sign-blob \
+                --output-signature="${file}.sig" \
+                --output-certificate="${file}.pem" \
+                "$file" --yes
+                
+              echo "✅ Signed: $file"
+              echo "   Signature: ${file}.sig"
+              echo "   Certificate: ${file}.pem"
+            fi
+          done
+          
+          # Create verification script
+          cat > verify-signatures.sh << 'EOF'
+          #!/bin/bash
+          
+          # BitcoinZ Blue Signature Verification Script
+          echo "🔍 Verifying BitcoinZ Blue signatures..."
+          
+          # Install cosign if not present
+          if ! command -v cosign &> /dev/null; then
+              echo "Please install cosign from: https://github.com/sigstore/cosign#installation"
+              exit 1
+          fi
+          
+          # Verify each file
+          for file in *.{exe,zip,AppImage,deb}; do
+              if [ -f "$file" ] && [ -f "${file}.sig" ] && [ -f "${file}.pem" ]; then
+                  echo "🔐 Verifying: $file"
+                  
+                  if cosign verify-blob \
+                      --certificate="${file}.pem" \
+                      --signature="${file}.sig" \
+                      --certificate-identity-regexp=".*" \
+                      --certificate-oidc-issuer-regexp=".*" \
+                      "$file"; then
+                      echo "✅ Valid signature: $file"
+                  else
+                      echo "❌ Invalid signature: $file"
+                  fi
+              fi
+          done
+          
+          echo "🎉 Verification complete!"
+          EOF
+          
+          chmod +x verify-signatures.sh
+          
+          echo "🎉 Sigstore signing complete!"
+          echo ""
+          echo "📋 Signed files:"
+          ls -la *.sig *.pem 2>/dev/null || true
+          
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BitcoinZ-Blue-Signed-Artifacts
+          path: |
+            dist/*
+            
+      - name: Create signing report
+        run: |
+          cat > signing-report.md << 'EOF'
+          # BitcoinZ Blue Code Signing Report
+          
+          ## 🔐 Signing Methods Used
+          
+          ### macOS
+          - **Ad-hoc signing**: Prevents "damaged app" errors
+          - **Sigstore signatures**: Cryptographic verification
+          
+          ### Windows  
+          - **Self-signed certificate**: Basic integrity verification
+          - **Sigstore signatures**: Additional trust layer
+          
+          ### Linux
+          - **Sigstore signatures**: Primary verification method
+          
+          ## ✅ How to Verify Downloads
+          
+          1. Download the app and signature files (.sig, .pem)
+          2. Run the verification script: `./verify-signatures.sh`
+          3. Or manually verify with cosign:
+             ```bash
+             cosign verify-blob \
+               --certificate="app.pem" \
+               --signature="app.sig" \
+               --certificate-identity-regexp=".*" \
+               --certificate-oidc-issuer-regexp=".*" \
+               "app"
+             ```
+          
+          ## 🛡️ Security Benefits
+          
+          - **Transparency**: All signatures are publicly verifiable
+          - **Integrity**: Ensures files haven't been tampered with
+          - **Free**: No certificate costs or annual fees
+          - **Open Source**: Using Sigstore's transparent infrastructure
+          
+          ## 📖 Learn More
+          
+          - [Sigstore Documentation](https://docs.sigstore.dev/)
+          - [BitcoinZ Blue Security](https://github.com/z-bitcoinz/BitcoinZ_Blue)
+          EOF
+          
+          echo "📄 Signing report created"

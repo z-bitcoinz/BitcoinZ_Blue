@@ -1,0 +1,241 @@
+name: Test Code Signing
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_platform:
+        description: 'Platform to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - macos
+          - windows
+          - linux
+
+jobs:
+  test-macos-signing:
+    if: ${{ github.event.inputs.test_platform == 'all' || github.event.inputs.test_platform == 'macos' }}
+    runs-on: macos-latest
+    name: Test macOS Ad-hoc Signing
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create test app bundle
+        run: |
+          # Create a minimal test app
+          mkdir -p "Test.app/Contents/MacOS"
+          echo '#!/bin/bash' > "Test.app/Contents/MacOS/Test"
+          echo 'echo "Test app running"' >> "Test.app/Contents/MacOS/Test"
+          chmod +x "Test.app/Contents/MacOS/Test"
+          
+          # Create Info.plist
+          cat > "Test.app/Contents/Info.plist" << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>Test</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.test.app</string>
+              <key>CFBundleName</key>
+              <string>Test</string>
+              <key>CFBundleVersion</key>
+              <string>1.0</string>
+          </dict>
+          </plist>
+          EOF
+      
+      - name: Test ad-hoc signing
+        run: |
+          echo "🔐 Testing ad-hoc code signing..."
+          
+          # Apply ad-hoc signature
+          codesign --force --deep --sign - "Test.app"
+          
+          # Verify signature
+          echo "📋 Signature details:"
+          codesign -dv --verbose=4 "Test.app" 2>&1
+          
+          # Check for ad-hoc signature
+          if codesign -dv "Test.app" 2>&1 | grep -q "adhoc"; then
+            echo "✅ Ad-hoc signature verified!"
+          else
+            echo "❌ Ad-hoc signature verification failed!"
+            exit 1
+          fi
+          
+          # Remove quarantine
+          xattr -cr "Test.app"
+          echo "✅ Quarantine attributes removed"
+          
+          # Test Gatekeeper assessment
+          echo "🔍 Gatekeeper assessment:"
+          spctl -a -v "Test.app" 2>&1 || echo "Expected: Gatekeeper may reject ad-hoc signed apps"
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-signing-test
+          path: Test.app
+
+  test-windows-signing:
+    if: ${{ github.event.inputs.test_platform == 'all' || github.event.inputs.test_platform == 'windows' }}
+    runs-on: windows-latest
+    name: Test Windows Self-Signing
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create test executable
+        run: |
+          # Create a simple test executable
+          @"
+          using System;
+          class Program {
+              static void Main() {
+                  Console.WriteLine("Test executable running");
+              }
+          }
+          "@ | Out-File -FilePath test.cs
+          
+          # Compile
+          & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /out:test.exe test.cs
+        shell: powershell
+      
+      - name: Test self-signing
+        run: |
+          Write-Host "🔐 Testing Windows self-signing..." -ForegroundColor Yellow
+          
+          # Create self-signed certificate
+          $cert = New-SelfSignedCertificate `
+            -Subject "CN=Test Publisher, O=Test Org, C=US" `
+            -Type CodeSigning `
+            -KeySpec Signature `
+            -KeyUsage DigitalSignature `
+            -FriendlyName "Test Code Signing" `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") `
+            -KeyExportPolicy Exportable `
+            -KeyLength 2048 `
+            -KeyAlgorithm RSA `
+            -HashAlgorithm SHA256
+          
+          Write-Host "✅ Certificate created: $($cert.Subject)" -ForegroundColor Green
+          
+          # Sign the executable
+          $certPath = "Cert:\CurrentUser\My\$($cert.Thumbprint)"
+          Set-AuthenticodeSignature `
+            -FilePath "test.exe" `
+            -Certificate (Get-Item $certPath) `
+            -TimestampServer "http://timestamp.digicert.com" `
+            -HashAlgorithm SHA256
+          
+          # Verify signature
+          Write-Host "`n📋 Signature verification:" -ForegroundColor Yellow
+          $sig = Get-AuthenticodeSignature "test.exe"
+          Write-Host "Status: $($sig.Status)" -ForegroundColor Cyan
+          Write-Host "Certificate: $($sig.SignerCertificate.Subject)" -ForegroundColor Cyan
+          
+          if ($sig.Status -eq "Valid") {
+              Write-Host "✅ Self-signed signature verified!" -ForegroundColor Green
+          } else {
+              Write-Host "❌ Signature verification failed!" -ForegroundColor Red
+              exit 1
+          }
+          
+          # Export certificate
+          Export-Certificate -Cert $certPath -FilePath "test-cert.cer" -Type CERT
+          Write-Host "✅ Certificate exported to test-cert.cer" -ForegroundColor Green
+        shell: powershell
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-signing-test
+          path: |
+            test.exe
+            test-cert.cer
+
+  test-sigstore-signing:
+    if: ${{ github.event.inputs.test_platform == 'all' || github.event.inputs.test_platform == 'linux' }}
+    runs-on: ubuntu-latest
+    name: Test Sigstore Signing
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create test file
+        run: |
+          echo "Test file for Sigstore signing" > test-file.txt
+      
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+      
+      - name: Test Sigstore signing
+        run: |
+          echo "🔐 Testing Sigstore signing..."
+          
+          # Sign the test file
+          cosign sign-blob \
+            --output-signature="test-file.txt.sig" \
+            --output-certificate="test-file.txt.pem" \
+            "test-file.txt" --yes
+          
+          echo "✅ File signed with Sigstore"
+          
+          # Verify signature
+          echo "📋 Verifying signature..."
+          cosign verify-blob \
+            --certificate="test-file.txt.pem" \
+            --signature="test-file.txt.sig" \
+            --certificate-identity-regexp=".*" \
+            --certificate-oidc-issuer-regexp=".*" \
+            "test-file.txt"
+          
+          echo "✅ Sigstore signature verified!"
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigstore-signing-test
+          path: |
+            test-file.txt
+            test-file.txt.sig
+            test-file.txt.pem
+
+  summary:
+    needs: [test-macos-signing, test-windows-signing, test-sigstore-signing]
+    if: always()
+    runs-on: ubuntu-latest
+    name: Test Summary
+    steps:
+      - name: Check test results
+        run: |
+          echo "## 📊 Code Signing Test Summary"
+          echo ""
+          
+          # Check job statuses
+          if [[ "${{ needs.test-macos-signing.result }}" == "success" ]]; then
+            echo "✅ macOS ad-hoc signing: PASSED"
+          else
+            echo "❌ macOS ad-hoc signing: FAILED"
+          fi
+          
+          if [[ "${{ needs.test-windows-signing.result }}" == "success" ]]; then
+            echo "✅ Windows self-signing: PASSED"
+          else
+            echo "❌ Windows self-signing: FAILED"
+          fi
+          
+          if [[ "${{ needs.test-sigstore-signing.result }}" == "success" ]]; then
+            echo "✅ Sigstore signing: PASSED"
+          else
+            echo "❌ Sigstore signing: FAILED"
+          fi
+          
+          echo ""
+          echo "### 🔍 Next Steps:"
+          echo "1. Download artifacts to inspect signed files"
+          echo "2. Test on actual BitcoinZ Blue builds"
+          echo "3. Monitor user feedback after release"
