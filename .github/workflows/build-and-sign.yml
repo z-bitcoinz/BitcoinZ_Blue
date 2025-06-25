@@ -79,6 +79,19 @@ jobs:
           node --version
           yarn dist:mac
 
+      - name: Sign macOS apps (ad-hoc)
+        run: |
+          # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
+          if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing ARM64 app"
+            codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
+          fi
+
+          if [ -d "dist/mac/BitcoinZ Blue.app" ]; then
+            echo "✅ Signing Intel app"
+            codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
+          fi
+
 
       - name: Upload macOS ARM64 (Apple Silicon)
         uses: actions/upload-artifact@v4
