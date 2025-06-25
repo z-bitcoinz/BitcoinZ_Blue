@@ -73,6 +73,8 @@ jobs:
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Build macOS app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
           echo "Starting macOS build..."
           yarn --version

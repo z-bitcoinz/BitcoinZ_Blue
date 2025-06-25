@@ -199,8 +199,6 @@
     "mac": {
       "category": "public.app-category.productivity",
       "type": "distribution",
-      "hardenedRuntime": false,
-      "identity": null,
       "target": [
         {
           "target": "zip",
