@@ -116,10 +116,12 @@ jobs:
           
           # Now use electron-builder with ad-hoc signing, skip rebuild
           echo "🔐 Building and signing macOS app..."
+          # Build apps without DMG (to avoid Python issue)
           npx electron-builder -m \
             --config.extraMetadata.main=build/electron.js \
             --config.mac.identity=null \
             --config.mac.type=distribution \
+            --config.mac.target=dir \
             --config.npmRebuild=false \
             --config.buildDependenciesFromSource=false \
             --publish never
@@ -141,6 +143,20 @@ jobs:
           done
           
           echo "✅ macOS build and signing complete"
+          
+      - name: Create DMG files using custom script
+        run: |
+          echo "📦 Creating DMG files..."
+          # Make the script executable
+          chmod +x scripts/create-dmg.sh
+          
+          # Run the custom DMG creation script
+          ./scripts/create-dmg.sh
+          
+          echo "✅ DMG creation complete"
+          
+          # List created DMG files
+          ls -la dist/*.dmg || true
 
 
       - name: Upload macOS ARM64 (Apple Silicon)
