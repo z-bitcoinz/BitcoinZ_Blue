@@ -93,9 +93,13 @@ jobs:
           # Copy native module to the right place for electron-builder
           cp src/native.node build/
           
+          # Copy electron.js to build directory
+          cp public/electron.js build/
+          
           # Now use electron-builder with ad-hoc signing, skip rebuild
           echo "🔐 Building and signing macOS app..."
           npx electron-builder -m \
+            -c.extraMetadata.main=build/electron.js \
             -c.mac.identity=null \
             -c.mac.type=distribution \
             -c.npmRebuild=false \
@@ -204,6 +208,9 @@ jobs:
           
           # Copy native module to build directory
           Copy-Item src/native.node build/
+          
+          # Copy electron.js to build directory
+          Copy-Item public/electron.js build/
           
           # Build with electron-builder
           npx electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
