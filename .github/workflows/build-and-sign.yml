@@ -223,7 +223,7 @@ jobs:
           $dll = Get-ChildItem target/release/*.dll | Where-Object { $_.Name -match "bitcoinz|zecwallet" } | Select-Object -First 1
           if ($dll) {
             Copy-Item $dll.FullName ../src/native.node
-            echo "✅ Copied $($dll.Name) to src/native.node"
+            echo "[SUCCESS] Copied $($dll.Name) to src/native.node"
           } else {
             throw "Could not find native module DLL"
           }
@@ -279,7 +279,7 @@ jobs:
 
       - name: Sign Windows executables (enhanced self-signed)
         run: |
-          echo "🔐 Starting Windows code signing..."
+          echo "[LOCK] Starting Windows code signing..."
           
           # Create self-signed certificate
           $certParams = @{
@@ -317,7 +317,7 @@ jobs:
             Write-Host "Status: $($sig.Status)"
           }
           
-          Write-Host "✅ Windows signing complete"
+          Write-Host "[SUCCESS] Windows signing complete"
         shell: powershell
 
       - name: Upload Windows Installer (EXE)
@@ -341,13 +341,13 @@ jobs:
           echo "# Windows Security Report" > windows-security.md
           echo "" >> windows-security.md
           echo "## Code Signing Status" >> windows-security.md
-          echo "- ✅ Executable is digitally signed" >> windows-security.md
-          echo "- ✅ Self-signed certificate for integrity verification" >> windows-security.md
-          echo "- ✅ Timestamp server used for long-term validity" >> windows-security.md
+          echo "- [OK] Executable is digitally signed" >> windows-security.md
+          echo "- [OK] Self-signed certificate for integrity verification" >> windows-security.md
+          echo "- [OK] Timestamp server used for long-term validity" >> windows-security.md
           echo "" >> windows-security.md
           echo "## Windows Defender SmartScreen" >> windows-security.md
           echo "- First-time downloads may show SmartScreen warning" >> windows-security.md
-          echo "- Click 'More info' → 'Run anyway' to proceed" >> windows-security.md
+          echo "- Click 'More info' then 'Run anyway' to proceed" >> windows-security.md
           echo "- This is normal for new software publishers" >> windows-security.md
         shell: bash
 
