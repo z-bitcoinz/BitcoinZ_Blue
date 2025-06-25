@@ -50,6 +50,24 @@ jobs:
           rm -rf native/target
           rm -rf dist
 
+      - name: Setup Python for DMG creation
+        run: |
+          # Install Python 3 if not available
+          if ! command -v python3 &> /dev/null; then
+            echo "Installing Python 3..."
+            brew install python@3
+          fi
+          
+          # Create symlink for electron-builder DMG creation
+          echo "Python 3 location: $(which python3)"
+          # Use /usr/local/bin/python instead of /usr/bin/python as it's writable
+          if [ ! -f /usr/local/bin/python ]; then
+            ln -s $(which python3) /usr/local/bin/python
+          fi
+          
+          # Verify Python is available
+          /usr/local/bin/python --version
+          
       - name: Install dependencies
         run: yarn install
 
