@@ -229,16 +229,19 @@
           "arch": "x64"
         }
       ],
+      "deb": {
+        "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1", "libsecret-1-0"]
+      },
       "desktop": {
-        "Name": "ZecWallet Lite",
-        "Comment": "Shielded Lightclient for Zcash",
+        "Name": "BitcoinZ Blue",
+        "Comment": "Shielded Lightclient for BitcoinZ",
         "GenericName": "Wallet",
         "Type": "Application",
         "StartupNotify": true,
-        "StartupWMClass": "zecwalletlite",
-        "Categories": "Utility;",
-        "MimeType": "x-scheme-handler/zcash;",
-        "Keywords": "zecwallet;"
+        "StartupWMClass": "bitcoinz-wallet-lite",
+        "Categories": "Utility;Finance;",
+        "MimeType": "x-scheme-handler/bitcoinz;",
+        "Keywords": "bitcoinz;wallet;crypto;"
       }
     }
   },
