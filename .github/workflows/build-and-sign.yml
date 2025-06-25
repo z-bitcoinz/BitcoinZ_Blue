@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -42,7 +42,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '17'
-          cache: 'yarn'
+          # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
+
+      - name: Clean build artifacts
+        run: |
+          rm -rf node_modules
+          rm -rf native/target
+          rm -rf dist
 
       - name: Install dependencies
         run: yarn install
@@ -148,7 +154,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '17'
-          cache: 'yarn'
+          # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
+
+      - name: Clean build artifacts
+        run: |
+          rm -rf node_modules
+          rm -rf native/target
+          rm -rf dist
 
       - name: Build Windows app
         run: |
@@ -220,8 +232,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '17'
-          cache: 'yarn'
+          # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
+      - name: Clean build artifacts
+        run: |
+          rm -rf node_modules
+          rm -rf native/target
+          rm -rf dist
+
       - name: Build Linux app
         run: |
           yarn install
