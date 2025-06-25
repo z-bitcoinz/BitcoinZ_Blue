@@ -110,7 +110,7 @@
   },
   "scripts": {
     "start": "yarn neon && concurrently -k \"cross-env NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electronmon .\"",
-    "build": "yarn neon && node scripts/build.js",
+    "build": "yarn neon && cross-env NODE_OPTIONS=--openssl-legacy-provider node scripts/build.js",
     "test": "node scripts/test.js",
     "dist:win": "yarn build && electron-builder -w -c.extraMetadata.main=build/electron.js --publish never",
     "dist:mac": "yarn build && electron-builder -m -c.extraMetadata.main=build/electron.js --publish never",
