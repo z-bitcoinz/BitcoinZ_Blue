@@ -183,6 +183,10 @@
       "build/**/*",
       "node_modules/**/*"
     ],
+    "asarUnpack": [
+      "build/native-*.node",
+      "build/static/js/native-*.node"
+    ],
     "directories": {
       "buildResources": "public"
     },

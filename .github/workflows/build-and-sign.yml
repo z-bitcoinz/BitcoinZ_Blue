@@ -72,53 +72,10 @@ jobs:
           cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
-      - name: Build app
+      - name: Build macOS app
         run: |
-          yarn neon
-          node --openssl-legacy-provider scripts/build.js
-          
-      - name: Prepare for code signing
-        run: |
-          # Use ad-hoc signing (no certificate needed)
-          echo "✅ Preparing for ad-hoc code signing"
-            
-      - name: Build and sign macOS apps
-        run: |
-          # Build for ARM64 (Apple Silicon)
-          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --arm64 --publish never
+          yarn dist:mac
 
-          # Build for x64 (Intel)
-          yarn electron-builder -m --dir --config.extraMetadata.main=build/electron.js --x64 --publish never
-
-          # Ad-hoc sign the apps (removes some Gatekeeper restrictions)
-          if [ -d "dist/mac-arm64/BitcoinZ Blue.app" ]; then
-            echo "✅ Signing ARM64 app"
-            codesign --force --deep --sign - "dist/mac-arm64/BitcoinZ Blue.app"
-          fi
-
-          if [ -d "dist/mac/BitcoinZ Blue.app" ]; then
-            echo "✅ Signing Intel app"
-            codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
-          fi
-          
-      - name: Create ZIP files
-        run: |
-          cd dist
-
-          # Create ARM64 ZIP if it exists
-          if [ -d "mac-arm64/BitcoinZ Blue.app" ]; then
-            echo "✅ Creating ARM64 ZIP"
-            ditto -c -k --keepParent "mac-arm64/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-arm64-mac.zip"
-          fi
-
-          # Create Intel ZIP if it exists
-          if [ -d "mac/BitcoinZ Blue.app" ]; then
-            echo "✅ Creating Intel ZIP"
-            ditto -c -k --keepParent "mac/BitcoinZ Blue.app" "BitcoinZ Blue-1.0.0-x64-mac.zip"
-          fi
-
-          # List what we created
-          ls -la *.zip
 
       - name: Upload macOS ARM64 (Apple Silicon)
         uses: actions/upload-artifact@v4
@@ -126,7 +83,7 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-AppleSilicon
           path: |
-            dist/*arm64*.zip
+            dist/*arm64-mac.zip
 
       - name: Upload macOS Intel
         uses: actions/upload-artifact@v4
@@ -134,7 +91,7 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-Intel
           path: |
-            dist/*x64*.zip
+            dist/*mac.zip
 
 
   build-windows:
@@ -165,9 +122,7 @@ jobs:
       - name: Build Windows app
         run: |
           yarn install
-          yarn neon
-          node --openssl-legacy-provider scripts/build.js
-          yarn electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
+          yarn dist:win
 
       - name: Upload Windows Installer (EXE)
         uses: actions/upload-artifact@v4
@@ -243,9 +198,7 @@ jobs:
       - name: Build Linux app
         run: |
           yarn install
-          yarn neon
-          node --openssl-legacy-provider scripts/build.js
-          yarn electron-builder -l --config.extraMetadata.main=build/electron.js --publish never
+          yarn dist:linux
 
       - name: Upload Linux AppImage (Universal)
         uses: actions/upload-artifact@v4
