@@ -4,7 +4,7 @@
 cat > /usr/bin/bitcoinz-wallet-lite-wrapper << 'EOF'
 #!/bin/bash
 export LD_LIBRARY_PATH="/opt/BitcoinZ Blue:${LD_LIBRARY_PATH}"
-exec "/opt/BitcoinZ Blue/bitcoinz-wallet-lite" "$@"
+exec "/opt/BitcoinZ Blue/bitcoinz-wallet-lite" --no-sandbox "$@"
 EOF
 
 # Make wrapper executable
