@@ -12,10 +12,18 @@ module.exports = async function (params) {
   // Same appId in electron-builder.
   const appId = "com.bitcoinz.blue";
 
-  const appPath = params.artifactPaths.find((p) => p.endsWith(".dmg"));
+  // Look for DMG first (for notarization), then ZIP as fallback
+  const appPath = params.artifactPaths.find((p) => p.endsWith(".dmg")) || 
+                  params.artifactPaths.find((p) => p.endsWith(".zip"));
 
   if (!appPath || !fs.existsSync(appPath)) {
     console.log(`Skipping notarization - no DMG found or notarization not configured`);
+    return;
+  }
+
+  // Skip notarization for ZIP files
+  if (appPath.endsWith(".zip")) {
+    console.log(`Skipping notarization for ZIP file: ${appPath}`);
 
     // Remove quarantine attributes from app bundles to help with Gatekeeper
     const appBundles = params.artifactPaths.filter(p => p.includes(".app"));
