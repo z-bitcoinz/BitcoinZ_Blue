@@ -33,6 +33,8 @@ class LoadingScreenState {
   seed: string; // The new seed phrase for a newly created wallet or the seed phrase to restore from
 
   birthday: number; // Wallet birthday if we're restoring
+  
+  walletBirthday: number; // The birthday of a newly created wallet
 
   getinfoRetryCount: number;
 
@@ -47,6 +49,7 @@ class LoadingScreenState {
     this.newWalletError = null;
     this.seed = "";
     this.birthday = 0;
+    this.walletBirthday = 0;
   }
 }
 
@@ -309,7 +312,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       this.setState({ newWalletError: result });
     } else {
       const r = JSON.parse(result);
-      this.setState({ walletScreen: 2, seed: r.seed });
+      this.setState({ walletScreen: 2, seed: r.seed, walletBirthday: r.birthday });
     }
   };
 
@@ -357,7 +360,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   render() {
-    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday } =
+    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday } =
       this.state;
 
     const { openServerSelectModal } = this.props;
@@ -702,13 +705,29 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '8px',
                       padding: '16px',
-                      marginBottom: '24px',
+                      marginBottom: '16px',
                       fontSize: '13px',
                       color: 'white',
                       fontFamily: 'monospace',
                       wordBreak: 'break-word',
                       lineHeight: '1.4'
                     }}>{seed}</div>
+                    <div style={{
+                      background: 'rgba(255, 200, 0, 0.1)',
+                      border: '1px solid rgba(255, 200, 0, 0.3)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      marginBottom: '24px',
+                      fontSize: '13px',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      textAlign: 'center'
+                    }}>
+                      <strong>Wallet Birthday:</strong> Block {walletBirthday}
+                      <br />
+                      <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Save this block number along with your seed phrase. You'll need it if you restore your wallet.
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={this.startNewWallet}

@@ -736,7 +736,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     // Export Seed
     ipcRenderer.on("seed", () => {
       openPasswordAndUnlockIfNeeded(() => {
-        const seed = RPC.fetchSeed();
+        const { seed, birthday } = RPC.fetchSeedAndBirthday();
 
         openErrorModal(
           "Wallet Seed",
@@ -754,6 +754,12 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
               }}
             >
               {seed}
+            </div>
+            <hr />
+            <div style={{ textAlign: "center", padding: "10px", background: "rgba(255, 200, 0, 0.1)", borderRadius: "5px" }}>
+              <strong>Wallet Birthday:</strong> Block {birthday}
+              <br />
+              <small style={{ color: "#999" }}>Save this block number along with your seed phrase for wallet restoration.</small>
             </div>
             <hr />
           </div>

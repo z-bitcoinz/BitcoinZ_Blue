@@ -3,6 +3,11 @@ const isDev = require("electron-is-dev");
 const path = require("path");
 const settings = require("electron-settings");
 
+// Disable sandbox if running on Linux to avoid permission issues
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+}
+
 class MenuBuilder {
   mainWindow;
 

@@ -450,6 +450,13 @@ export default class RPC {
 
     return seedJSON.seed;
   }
+  
+  static fetchSeedAndBirthday(): { seed: string; birthday: number } {
+    const seedStr = native.litelib_execute("seed", "");
+    const seedJSON = JSON.parse(seedStr);
+
+    return { seed: seedJSON.seed, birthday: seedJSON.birthday };
+  }
 
   static fetchWalletHeight(): number {
     const heightStr = native.litelib_execute("height", "");
