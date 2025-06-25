@@ -197,11 +197,11 @@
       "entitlements": "./configs/entitlements.mac.inherit.plist",
       "target": [
         {
-          "target": "dir",
+          "target": "zip",
           "arch": "arm64"
         },
         {
-          "target": "dir",
+          "target": "zip",
           "arch": "x64"
         }
       ],
