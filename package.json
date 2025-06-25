@@ -176,7 +176,7 @@
   "homepage": "./",
   "main": "./public/electron.js",
   "build": {
-    "productName": "BitcoinZ-Blue",
+    "productName": "BitcoinZ Blue",
     "appId": "com.bitcoinz.blue",
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
@@ -221,7 +221,7 @@
       ]
     },
     "linux": {
-      "category": "Development",
+      "category": "Development", 
       "icon": "./resources/icon.icns",
       "target": [
         {
@@ -234,6 +234,7 @@
         }
       ],
       "executableName": "bitcoinz-wallet-lite",
+      "artifactName": "${name}_${version}_${arch}.${ext}",
       "desktop": {
         "Name": "BitcoinZ Blue",
         "Comment": "Shielded Lightclient for BitcoinZ",
