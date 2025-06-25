@@ -127,7 +127,7 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-AppleSilicon
           path: |
-            dist/*arm64-mac.zip
+            dist/*arm64.dmg
 
       - name: Upload macOS Intel
         uses: actions/upload-artifact@v4
@@ -135,7 +135,7 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-Intel
           path: |
-            dist/*mac.zip
+            dist/*x64.dmg
 
 
   build-windows:
@@ -164,13 +164,50 @@ jobs:
           if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
         shell: powershell
 
+      - name: Build native module for Windows
+        run: |
+          echo "Building native Rust module for Windows..."
+          cd native
+          
+          # Remove old lock file if exists
+          if (Test-Path "Cargo.lock") { 
+            Remove-Item "Cargo.lock" 
+          }
+          
+          # Build the native module
+          cargo build --release
+          
+          # Check what was built
+          echo "Built files:"
+          Get-ChildItem target/release/*.dll
+          
+          # Copy the DLL to src/native.node
+          $dll = Get-ChildItem target/release/*.dll | Where-Object { $_.Name -match "bitcoinz|zecwallet" } | Select-Object -First 1
+          if ($dll) {
+            Copy-Item $dll.FullName ../src/native.node
+            echo "✅ Copied $($dll.Name) to src/native.node"
+          } else {
+            throw "Could not find native module DLL"
+          }
+        shell: powershell
+
       - name: Build Windows app
         run: |
           echo "Starting Windows build..."
           yarn --version
           node --version
           yarn install
-          yarn dist:win
+          
+          # Build the app (skip native build as we already did it)
+          $env:SKIP_NATIVE_BUILD = "true"
+          yarn build
+          
+          # Copy native module to build directory
+          Copy-Item src/native.node build/
+          
+          # Build with electron-builder
+          npx electron-builder -w -c.extraMetadata.main=build/electron.js --publish never
+        shell: powershell
 
       - name: Upload Windows Installer (EXE)
         uses: actions/upload-artifact@v4

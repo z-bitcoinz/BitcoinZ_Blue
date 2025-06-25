@@ -201,11 +201,11 @@
       "type": "distribution",
       "target": [
         {
-          "target": "zip",
+          "target": "dmg",
           "arch": "arm64"
         },
         {
-          "target": "zip",
+          "target": "dmg",
           "arch": "x64"
         }
       ],
@@ -215,6 +215,21 @@
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.plist",
       "entitlementsInherit": "./configs/entitlements.mac.inherit.plist"
+    },
+    "dmg": {
+      "sign": false,
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "win": {
       "icon": "./resources/icon.ico",
