@@ -115,9 +115,10 @@ jobs:
 
       - name: Clean build artifacts
         run: |
-          rm -rf node_modules
-          rm -rf native/target
-          rm -rf dist
+          if (Test-Path "node_modules") { Remove-Item -Recurse -Force "node_modules" }
+          if (Test-Path "native/target") { Remove-Item -Recurse -Force "native/target" }
+          if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+        shell: powershell
 
       - name: Build Windows app
         run: |
