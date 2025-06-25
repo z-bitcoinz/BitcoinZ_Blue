@@ -209,7 +209,12 @@
           "arch": "x64"
         }
       ],
-      "icon": "./resources/icon.icns"
+      "icon": "./resources/icon.icns",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "./configs/entitlements.mac.plist",
+      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist"
     },
     "win": {
       "icon": "./resources/icon.ico",

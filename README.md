@@ -25,63 +25,69 @@ Download compiled binaries from our [release page](https://github.com/z-bitcoinz
 
 ### 🍎 macOS Installation Instructions
 
-**Important:** macOS may show security warnings for unsigned applications. Follow these steps:
+**✅ Good News: No more "damaged app" errors!** Thanks to our new ad-hoc code signing, macOS will no longer show the "damaged and can't be opened" error. You may still see an "unidentified developer" warning on first launch.
 
-#### **Method 1: Right-click to Open (Easiest)**
+#### **Method 1: Right-click to Open (Recommended)**
 1. Download the appropriate ZIP file for your Mac:
-   - **Apple Silicon (M1/M2/M3):** `BitcoinZ Blue-1.0.0-arm64-mac.zip`
-   - **Intel Macs:** `BitcoinZ Blue-1.0.0-x64-mac.zip`
+   - **Apple Silicon (M1/M2/M3):** `BitcoinZ Blue-*-arm64-mac.zip`
+   - **Intel Macs:** `BitcoinZ Blue-*-x64-mac.zip`
 2. Extract the ZIP file
 3. **Right-click** on `BitcoinZ Blue.app` → **Open**
-4. Click **"Open"** when macOS asks for confirmation
-5. The app will now run normally
+4. Click **"Open"** when macOS shows the security dialog
+5. The app will open normally from now on
 
-#### **Method 2: Remove Quarantine (Advanced)**
+#### **Alternative: System Settings**
+1. Try to open the app normally (double-click)
+2. When blocked, go to **System Settings** → **Privacy & Security**
+3. Look for BitcoinZ Blue and click **"Open Anyway"**
+4. Enter your password when prompted
+
+#### **Advanced: Command Line**
 ```bash
-# Remove quarantine from the app
-sudo xattr -rd com.apple.quarantine "/Applications/BitcoinZ Blue.app"
-
-# Or remove from ZIP before extracting
-xattr -d com.apple.quarantine "BitcoinZ Blue-1.0.0-arm64-mac.zip"
+# If the above methods don't work
+sudo spctl --add --label "BitcoinZ Blue" "/Applications/BitcoinZ Blue.app"
+sudo spctl --enable --label "BitcoinZ Blue"
 ```
 
-#### **Method 3: System Preferences**
-1. Go to **System Preferences** → **Security & Privacy**
-2. Click **"Open Anyway"** if the app was blocked
-3. Enter your password when prompted
+For more details, see our [macOS Security Guide](MACOS_SECURITY.md)
 
 ### 🪟 Windows Installation Instructions
 
-**Important:** Windows may show security warnings for new software publishers. This is normal and safe to bypass.
+**✅ Enhanced Security:** BitcoinZ Blue now includes enhanced self-signed certificates and Sigstore signatures for improved security verification.
 
-#### **Method 1: Windows Defender SmartScreen (Most Common)**
-1. Download `BitcoinZ Blue Setup 1.0.0.exe`
+#### **Method 1: Windows Defender SmartScreen**
+1. Download `BitcoinZ Blue Setup *.exe`
 2. If Windows shows "Windows protected your PC":
    - Click **"More info"**
    - Click **"Run anyway"**
-3. Follow the installation wizard
+3. This is normal for new publishers and only happens once
 
-#### **Method 2: Antivirus Software Warnings**
-1. If your antivirus blocks the download:
-   - Check our **VirusTotal report** (0 detections from 70+ engines)
-   - Add BitcoinZ Blue to your antivirus whitelist
-   - Download again
-2. The software is digitally signed and verified safe
-
-#### **Method 3: Corporate/Enterprise Environments**
-1. Show IT department our **security audit reports**
-2. Provide **VirusTotal scan results** (all clean)
-3. Reference **Sigstore signatures** for cryptographic verification
-4. All source code is available on GitHub for review
-
-#### **Verification for Windows Users**
+#### **Method 2: Verify Our Signatures**
 ```powershell
-# Check digital signature
-Get-AuthenticodeSignature "BitcoinZ Blue Setup 1.0.0.exe"
+# Check our digital signature
+Get-AuthenticodeSignature "BitcoinZ Blue Setup.exe" | Format-List
 
-# Verify file hash (compare with GitHub release)
-Get-FileHash "BitcoinZ Blue Setup 1.0.0.exe" -Algorithm SHA256
+# Certificate is included with each release for transparency
 ```
+
+#### **Additional Verification: Sigstore**
+All releases include Sigstore signatures for cryptographic verification:
+```bash
+# Verify with cosign (https://github.com/sigstore/cosign)
+cosign verify-blob --certificate="app.pem" --signature="app.sig" "app.exe"
+```
+
+For IT administrators and security details, see our [Windows Security Guide](WINDOWS_SECURITY.md)
+
+## 🔐 Code Signing & Security
+
+BitcoinZ Blue uses **free code signing solutions** to ensure security without expensive certificates:
+
+- **macOS:** Ad-hoc signing prevents "damaged app" errors
+- **Windows:** Enhanced self-signed certificates for integrity
+- **All Platforms:** Sigstore signatures for cryptographic verification
+
+Learn more: [Code Signing Documentation](CODE_SIGNING.md)
 
 ## 🔒 Privacy
 

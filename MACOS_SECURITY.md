@@ -1,91 +1,123 @@
 # macOS Security Solutions for BitcoinZ Blue
 
-## 🔒 Why macOS Blocks the App
+## ✅ Good News: No More "Damaged App" Errors!
 
-macOS Gatekeeper blocks unsigned applications downloaded from the internet to protect users from malware. BitcoinZ Blue is safe, but it's not signed with an Apple Developer certificate.
+BitcoinZ Blue now uses **ad-hoc code signing** which prevents the "damaged and can't be opened" error. However, you may still see an "unidentified developer" warning on first launch.
 
-## ✅ Solutions for Users
+## 🔒 Why macOS Shows Security Warnings
 
-### Method 1: Right-Click to Open (Recommended)
-1. Download the appropriate ZIP file for your Mac
+macOS Gatekeeper warns about apps from unidentified developers to protect users. BitcoinZ Blue is safe and now properly signed, just not with a paid Apple Developer certificate.
+
+## ✅ How to Open BitcoinZ Blue
+
+### For Downloaded Apps (Recommended Method)
+1. Download the appropriate ZIP file for your Mac (Intel or Apple Silicon)
 2. Extract the ZIP file
 3. **Right-click** on `BitcoinZ Blue.app` → **Open**
-4. Click **"Open"** when macOS asks for confirmation
-5. The app will now run normally in the future
+4. Click **"Open"** when macOS shows the security dialog
+5. The app will open normally from now on
 
-### Method 2: Terminal Command
+### Alternative: System Settings
+1. Try to open the app normally (double-click)
+2. When blocked, go to **System Settings** → **Privacy & Security**
+3. Look for BitcoinZ Blue and click **"Open Anyway"**
+4. Enter your password when prompted
+
+### For Advanced Users: Terminal
 ```bash
-# Remove quarantine attribute
-sudo xattr -rd com.apple.quarantine "/Applications/BitcoinZ Blue.app"
+# If the above methods don't work, use Terminal:
+sudo spctl --add --label "BitcoinZ Blue" "/Applications/BitcoinZ Blue.app"
+sudo spctl --enable --label "BitcoinZ Blue"
 ```
 
-### Method 3: System Preferences
-1. Go to **System Preferences** → **Security & Privacy**
-2. Click **"Open Anyway"** if the app was blocked
-3. Enter your password when prompted
+## 🎯 Current Signing Implementation (Free)
 
-## 🛠️ For Developers - Code Signing Options
+### What We Use:
+1. **Ad-hoc Code Signing**: Prevents "damaged app" errors
+2. **Proper Entitlements**: Configured permissions for app functionality
+3. **Sigstore Signatures**: Additional cryptographic verification
 
-### Option 1: Apple Developer Certificate ($99/year)
+### How It Works:
+- GitHub Actions automatically applies ad-hoc signing during builds
+- Quarantine attributes are removed from the app bundle
+- Users only see "unidentified developer" warning (not "damaged")
+- One-time approval process for users
+
+## 🛠️ For Developers - Testing Locally
+
+### Test Signing Script
 ```bash
-# Sign the app with Apple Developer certificate
-codesign --force --deep --sign "Developer ID Application: Your Name" "BitcoinZ Blue.app"
+# Run our automated test script
+./scripts/test-signing-local.sh
 
-# Notarize with Apple
-xcrun notarytool submit "BitcoinZ Blue.dmg" --keychain-profile "notarytool-profile" --wait
+# Or manually test:
+# 1. Build the app
+yarn dist:mac
+
+# 2. Apply ad-hoc signature
+codesign --force --deep --sign - "dist/mac/BitcoinZ Blue.app"
+
+# 3. Verify signature
+codesign -dv --verbose=4 "dist/mac/BitcoinZ Blue.app"
+
+# 4. Remove quarantine
+xattr -cr "dist/mac/BitcoinZ Blue.app"
 ```
 
-### Option 2: Self-Signed Certificate (Free)
+### Verification Commands
 ```bash
-# Create self-signed certificate
-security create-keypair -a rsa -s 2048 -f "BitcoinZ Blue Certificate"
-
-# Sign the app
-codesign --force --deep --sign "BitcoinZ Blue Certificate" "BitcoinZ Blue.app"
-```
-
-### Option 3: Ad-hoc Signing (Free)
-```bash
-# Ad-hoc sign (removes some restrictions)
-codesign --force --deep --sign - "BitcoinZ Blue.app"
-```
-
-## 📋 Build Process Integration
-
-Add to package.json:
-```json
-"afterSign": "./afterSignHook.js",
-"mac": {
-  "identity": null,
-  "hardenedRuntime": false
-}
-```
-
-## 🔍 Verification Commands
-
-```bash
-# Check code signature
+# Check signature status
 codesign -dv --verbose=4 "BitcoinZ Blue.app"
 
-# Check quarantine attributes
-xattr -l "BitcoinZ Blue.app"
+# Verify entitlements
+codesign -d --entitlements - "BitcoinZ Blue.app"
 
-# Verify app structure
+# Check Gatekeeper assessment
 spctl -a -v "BitcoinZ Blue.app"
 ```
 
-## 📝 User Instructions Template
+## 📋 Build Configuration
 
-Include this in release notes:
+Our `package.json` includes:
+```json
+"mac": {
+  "identity": null,              // Uses ad-hoc signing
+  "hardenedRuntime": false,      // Better compatibility
+  "gatekeeperAssess": false,     // Skip assessment during build
+  "entitlements": "./configs/entitlements.mac.plist",
+  "entitlementsInherit": "./configs/entitlements.mac.inherit.plist"
+}
+```
+
+## � Additional Security: Sigstore
+
+We also provide Sigstore signatures for cryptographic verification:
+```bash
+# Verify Sigstore signature (requires cosign)
+cosign verify-blob \
+  --certificate="BitcoinZ-Blue.pem" \
+  --signature="BitcoinZ-Blue.sig" \
+  "BitcoinZ-Blue-mac.zip"
+```
+
+## 📝 Release Notes Template
 
 ```
-⚠️ macOS Security Notice:
-macOS may show a security warning when opening BitcoinZ Blue for the first time.
+✅ macOS Security Improvements:
+• No more "damaged app" errors thanks to ad-hoc signing
+• One-time security approval still required
 
-To open the app:
-1. Right-click on BitcoinZ Blue.app
-2. Select "Open" from the menu
-3. Click "Open" in the security dialog
+To open BitcoinZ Blue:
+1. Right-click the app → Select "Open"
+2. Click "Open" in the security dialog
+3. The app will open normally from now on
 
-This is normal for unsigned applications and only needs to be done once.
+For additional verification, check our Sigstore signatures.
 ```
+
+## 🚀 Future Improvements
+
+While our free signing solution works well, future options include:
+- Apple Developer Program membership ($99/year) for full notarization
+- Third-party signing services
+- Community-funded developer certificate
