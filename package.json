@@ -199,8 +199,8 @@
     "mac": {
       "category": "public.app-category.productivity",
       "type": "distribution",
-      "hardenedRuntime": true,
-      "entitlements": "./configs/entitlements.mac.inherit.plist",
+      "hardenedRuntime": false,
+      "identity": null,
       "target": [
         {
           "target": "zip",
