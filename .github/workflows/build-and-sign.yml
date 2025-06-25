@@ -232,33 +232,35 @@ jobs:
       - name: Build Windows app
         run: |
           echo "Starting Windows build..."
-          yarn --version
+          npm --version
           node --version
           
-          # Clear yarn cache and set timeout
-          yarn cache clean
-          yarn config set network-timeout 600000
-          
-          # Install dependencies with retries
-          $retries = 3
-          for ($i = 1; $i -le $retries; $i++) {
-            try {
-              echo "Attempt $i of $retries: Installing dependencies..."
-              yarn install --frozen-lockfile --network-timeout 600000
-              echo "✅ Dependencies installed successfully"
-              break
-            } catch {
-              if ($i -eq $retries) {
-                throw "Failed to install dependencies after $retries attempts"
-              }
-              echo "⚠️ Attempt $i failed, retrying..."
-              Start-Sleep -Seconds 10
-            }
+          # Remove yarn.lock to use npm
+          if (Test-Path "yarn.lock") {
+            Remove-Item "yarn.lock"
+            echo "Removed yarn.lock to use npm instead"
           }
+          
+          # Configure npm for better reliability
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set loglevel verbose
+          
+          # Clean npm cache
+          npm cache clean --force
+          
+          # Install dependencies using npm (more stable on Windows)
+          echo "Installing dependencies with npm..."
+          npm install --no-audit --no-fund
+          
+          # Install cross-env globally if missing
+          npm install -g cross-env
           
           # Build the app (skip native build as we already did it)
           $env:SKIP_NATIVE_BUILD = "true"
-          yarn build
+          npm run build
           
           # Create build directory if it doesn't exist
           if (!(Test-Path "build")) {
