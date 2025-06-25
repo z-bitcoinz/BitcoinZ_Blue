@@ -188,7 +188,9 @@
     },
     "deb": {
       "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1", "libsecret-1-0"],
-      "packageCategory": "utils"
+      "packageCategory": "utils",
+      "afterInstall": "./scripts/deb-postinstall.sh",
+      "afterRemove": "./scripts/deb-postremove.sh"
     },
     "mac": {
       "category": "public.app-category.productivity",
@@ -244,8 +246,7 @@
         "StartupWMClass": "bitcoinz-wallet-lite",
         "Categories": "Utility;Finance;",
         "MimeType": "x-scheme-handler/bitcoinz;",
-        "Keywords": "bitcoinz;wallet;crypto;",
-        "Exec": "sh -c 'export LD_LIBRARY_PATH=\"/opt/BitcoinZ Blue:${LD_LIBRARY_PATH}\"; exec \"/opt/BitcoinZ Blue/bitcoinz-wallet-lite\" \"$@\"' -- %U"
+        "Keywords": "bitcoinz;wallet;crypto;"
       }
     }
   },
