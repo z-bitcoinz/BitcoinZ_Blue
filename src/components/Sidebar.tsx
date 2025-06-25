@@ -667,12 +667,18 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     // About
     ipcRenderer.on("about", () => {
       openErrorModal(
-        "Zecwallet Lite",
+        "BitcoinZ Blue",
         <div className={cstyles.verticalflex}>
-          <div className={cstyles.margintoplarge}>Zecwallet Lite v1.8.8</div>
-          <div className={cstyles.margintoplarge}>Built with Electron. Copyright (c) 2018-2022, Aditya Kulkarni.</div>
+          <div className={cstyles.margintoplarge}>BitcoinZ Blue v1.0.5</div>
+          <div className={cstyles.margintoplarge}>Built with Electron. A modern light wallet for BitcoinZ.</div>
           <div className={cstyles.margintoplarge}>
-            The MIT License (MIT) Copyright (c) 2018-2022 Zecwallet
+            Based on Zecwallet Lite, adapted for BitcoinZ with enhanced features and optimizations.
+            <br />
+            <br />
+            The MIT License (MIT) Copyright (c) 2024 BitcoinZ Community
+            <br />
+            <br />
+            Original Zecwallet Lite Copyright (c) 2018-2022, Aditya Kulkarni.
             <br />
             <br />
             Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -691,6 +697,11 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
             NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
             IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
             USE OR OTHER DEALINGS IN THE SOFTWARE.
+            <br />
+            <br />
+            🌐 GitHub: https://github.com/z-bitcoinz/BitcoinZ_Blue
+            <br />
+            💙 BitcoinZ Community Project
           </div>
         </div>
       );
