@@ -40,6 +40,12 @@ const navigationItems: NavigationItem[] = [
     routeName: routes.ADDRESSBOOK,
     iconName: "fa-user",
     id: "contact"
+  },
+  {
+    name: "Help",
+    routeName: routes.HELP,
+    iconName: "fa-question-circle",
+    id: "help"
   }
 ];
 
