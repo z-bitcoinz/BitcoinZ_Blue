@@ -5,7 +5,7 @@ import { Redirect, RouteComponentProps, withRouter } from "react-router";
 import TextareaAutosize from "react-textarea-autosize";
 import request from "request";
 import progress from "progress-stream";
-import native from "../native.node";
+import getNativeModule from "../native-loader";
 import routes from "../constants/routes.json";
 import { RPCConfig, Info } from "./AppState";
 import RPC from "../rpc";
@@ -149,12 +149,12 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     this.setupExitHandler();
 
     // Test to see if the wallet exists
-    if (!native.litelib_wallet_exists("main")) {
+    if (!getNativeModule().litelib_wallet_exists("main")) {
       // Show the wallet creation screen
       this.setState({ walletScreen: 1 });
     } else {
       try {
-        const result = native.litelib_initialize_existing(url);
+        const result = getNativeModule().litelib_initialize_existing(url);
         console.log(`Intialization: ${result}`);
         if (result !== "OK") {
           this.setState({
@@ -306,7 +306,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
 
   createNewWallet = () => {
     const { url } = this.state;
-    const result = native.litelib_initialize_new(url);
+    const result = getNativeModule().litelib_initialize_new(url);
 
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
@@ -350,7 +350,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
 
     const allowOverwrite = true;
 
-    const result = native.litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite);
+    const result = getNativeModule().litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite);
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
     } else {

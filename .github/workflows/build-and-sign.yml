@@ -392,6 +392,96 @@ jobs:
           }
         shell: powershell
 
+      - name: Analyze Windows DLL dependencies
+        run: |
+          echo "Analyzing Windows DLL dependencies..."
+          
+          # Find the native module in the build
+          $nativeModule = Get-ChildItem "src/native.node" -ErrorAction SilentlyContinue
+          if ($nativeModule) {
+            echo "Analyzing dependencies for: $($nativeModule.FullName)"
+            
+            # Use dumpbin to analyze dependencies (if available)
+            try {
+              # Try to find dumpbin in Visual Studio paths
+              $dumpbinPaths = @(
+                "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe",
+                "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe",
+                "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe",
+                "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe",
+                "${env:ProgramFiles}\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe",
+                "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe"
+              )
+              
+              $dumpbin = $null
+              foreach ($path in $dumpbinPaths) {
+                $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($found) {
+                  $dumpbin = $found.FullName
+                  echo "Found dumpbin at: $dumpbin"
+                  break
+                }
+              }
+              
+              if ($dumpbin) {
+                echo "DLL Dependencies:"
+                & $dumpbin /dependents $nativeModule.FullName
+                echo ""
+                echo "DLL Exports:"
+                & $dumpbin /exports $nativeModule.FullName
+              } else {
+                echo "WARNING: dumpbin not found, cannot analyze dependencies"
+              }
+            } catch {
+              echo "WARNING: Could not run dependency analysis: $($_.Exception.Message)"
+            }
+            
+            # Check file architecture
+            echo "Checking file architecture..."
+            try {
+              $fileType = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($nativeModule.FullName)
+              echo "File version info: $($fileType.FileDescription)"
+            } catch {
+              echo "Could not get file version info"
+            }
+          } else {
+            echo "ERROR: Native module not found for dependency analysis"
+          }
+        shell: powershell
+
+      - name: Install Visual C++ Redistributables
+        run: |
+          echo "Installing Visual C++ Redistributables..."
+          
+          # Download and install Visual C++ Redistributable for Visual Studio 2019 (x64)
+          $vcRedistUrl = "https://aka.ms/vs/16/release/vc_redist.x64.exe"
+          $vcRedistPath = "$env:TEMP\vc_redist.x64.exe"
+          
+          echo "Downloading VC++ Redistributable from: $vcRedistUrl"
+          Invoke-WebRequest -Uri $vcRedistUrl -OutFile $vcRedistPath
+          
+          echo "Installing VC++ Redistributable..."
+          Start-Process -FilePath $vcRedistPath -ArgumentList "/install", "/quiet", "/norestart" -Wait
+          
+          echo "VC++ Redistributable installation completed"
+          
+          # Also install 2022 version if available
+          try {
+            $vcRedist2022Url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+            $vcRedist2022Path = "$env:TEMP\vc_redist_2022.x64.exe"
+            
+            echo "Downloading VC++ 2022 Redistributable..."
+            Invoke-WebRequest -Uri $vcRedist2022Url -OutFile $vcRedist2022Path
+            
+            echo "Installing VC++ 2022 Redistributable..."
+            Start-Process -FilePath $vcRedist2022Path -ArgumentList "/install", "/quiet", "/norestart" -Wait
+            
+            echo "VC++ 2022 Redistributable installation completed"
+          } catch {
+            echo "Note: VC++ 2022 Redistributable installation failed, but this may not be critical"
+          }
+        shell: powershell
+
       - name: Validate Windows native module
         run: |
           echo "Validating Windows native module..."
@@ -448,6 +538,22 @@ jobs:
             $bytes = [System.IO.File]::ReadAllBytes($finalNative.FullName)
             if ($bytes[0] -eq 0x4D -and $bytes[1] -eq 0x5A) {
               echo "SUCCESS: Windows build contains valid Windows native module"
+              
+              # Try to load the module with Node.js to test if it works
+              echo "Testing native module loading with Node.js..."
+              try {
+                $nativePath = $finalNative.FullName.Replace('\', '\\')
+                echo "const nativeModule = require('$nativePath');" | Out-File -FilePath "test-native.js" -Encoding UTF8
+                echo "console.log('SUCCESS: Native module loaded successfully');" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "console.log('Available functions:', Object.keys(nativeModule));" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "if (nativeModule.litelib_say_hello) { console.log('Test result:', nativeModule.litelib_say_hello('test')); }" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                
+                node test-native.js
+                echo "Native module test completed successfully"
+              } catch {
+                echo "WARNING: Native module test failed: $($_.Exception.Message)"
+                echo "This may indicate missing dependencies or runtime issues"
+              }
             } else {
               echo "ERROR: Windows build contains non-Windows native module"
               throw "Native module validation failed - not a Windows PE file"

@@ -13,7 +13,7 @@ import {
 } from "./components/AppState";
 import { SendManyJson } from "./components/Send";
 
-import native from "./native.node";
+import getNativeModule from "./native-loader";
 
 export default class RPC {
   rpcConfig?: RPCConfig;
@@ -31,6 +31,11 @@ export default class RPC {
   updateDataLock: boolean;
 
   lastBlockHeight: number;
+
+  // Helper method to get native module with error handling
+  private static getNative() {
+    return getNativeModule();
+  }
   lastTxId?: string;
   lastBalance?: number;
   lastTxCount?: number;
@@ -93,30 +98,30 @@ export default class RPC {
   }
 
   static getDefaultFee(): number {
-    const feeStr = native.litelib_execute("defaultfee", "");
+    const feeStr = RPC.getNative().litelib_execute("defaultfee", "");
     const fee = JSON.parse(feeStr);
 
     return fee.defaultfee / 10 ** 8;
   }
 
   static doSync() {
-    const syncstr = native.litelib_execute("sync", "");
+    const syncstr = RPC.getNative().litelib_execute("sync", "");
     console.log(`Sync exec result: ${syncstr}`);
   }
 
   static doRescan() {
-    const syncstr = native.litelib_execute("rescan", "");
+    const syncstr = RPC.getNative().litelib_execute("rescan", "");
     console.log(`rescan exec result: ${syncstr}`);
   }
 
   static doSyncStatus(): string {
-    const syncstr = native.litelib_execute("syncstatus", "");
+    const syncstr = RPC.getNative().litelib_execute("syncstatus", "");
     console.log(`syncstatus: ${syncstr}`);
     return syncstr;
   }
 
   static doSave() {
-    const savestr = native.litelib_execute("save", "");
+    const savestr = RPC.getNative().litelib_execute("save", "");
     console.log(`Save status: ${savestr}`);
   }
 
@@ -136,11 +141,11 @@ export default class RPC {
     const latest_txid = RPC.getLastTxid();
 
     // Also check balance and transaction count for better detection
-    const balanceStr = native.litelib_execute("balance", "");
+    const balanceStr = RPC.getNative().litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
     const currentBalance = balanceJSON.tbalance + balanceJSON.zbalance;
 
-    const listStr = native.litelib_execute("list", "");
+    const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
     const currentTxCount = listJSON.length;
 
@@ -221,7 +226,7 @@ export default class RPC {
 
   // Special method to get the Info object. This is used both internally and by the Loading screen
   static getInfoObject(): Info {
-    const infostr = native.litelib_execute("info", "");
+    const infostr = RPC.getNative().litelib_execute("info", "");
     try {
       const infoJSON = JSON.parse(infostr);
 
@@ -235,7 +240,7 @@ export default class RPC {
       info.currencyName = info.testnet ? "TBTCZ" : "BTCZ";
       info.solps = 0;
 
-      const encStatus = native.litelib_execute("encryptionstatus", "");
+      const encStatus = RPC.getNative().litelib_execute("encryptionstatus", "");
       const encJSON = JSON.parse(encStatus);
       info.encrypted = encJSON.encrypted;
       info.locked = encJSON.locked;
@@ -258,18 +263,18 @@ export default class RPC {
       return `Error: Couldn't parse ${birthday} as a number`;
     }
 
-    const address = native.litelib_execute("import", JSON.stringify(args));
+    const address = RPC.getNative().litelib_execute("import", JSON.stringify(args));
 
     return address;
   }
 
   async fetchWalletSettings() {
-    const download_memos_str = native.litelib_execute("getoption", "download_memos");
+    const download_memos_str = RPC.getNative().litelib_execute("getoption", "download_memos");
     const download_memos = JSON.parse(download_memos_str).download_memos;
 
     let spam_filter_threshold = "0";
     try {
-      const spam_filter_str = native.litelib_execute("getoption", "spam_filter_threshold");
+      const spam_filter_str = RPC.getNative().litelib_execute("getoption", "spam_filter_threshold");
       spam_filter_threshold = JSON.parse(spam_filter_str).spam_filter_threshold;
       // console.log(`Spam filter threshold: ${spam_filter_threshold}`);
 
@@ -290,7 +295,7 @@ export default class RPC {
   }
 
   static async setWalletSettingOption(name: string, value: string): Promise<string> {
-    const r = native.litelib_execute("setoption", `${name}=${value}`);
+    const r = RPC.getNative().litelib_execute("setoption", `${name}=${value}`);
 
     RPC.doSave();
     return r;
@@ -306,11 +311,11 @@ export default class RPC {
 
   // This method will get the total balances
   fetchTotalBalance() {
-    const balanceStr = native.litelib_execute("balance", "");
+    const balanceStr = RPC.getNative().litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
 
     // Get unconfirmed transactions to calculate pending balances
-    const listStr = native.litelib_execute("list", "");
+    const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
     const unconfirmedTxs = listJSON.filter((tx: any) => tx.unconfirmed);
 
@@ -355,7 +360,7 @@ export default class RPC {
     this.fnSetTotalBalance(balance);
 
     // Fetch pending notes and UTXOs
-    const pendingNotes = native.litelib_execute("notes", "");
+    const pendingNotes = RPC.getNative().litelib_execute("notes", "");
     const pendingJSON = JSON.parse(pendingNotes);
 
     const pendingAddressBalances = new Map();
@@ -409,21 +414,21 @@ export default class RPC {
   }
 
   static getLastTxid(): string {
-    const lastTxid = native.litelib_execute("lasttxid", "");
+    const lastTxid = RPC.getNative().litelib_execute("lasttxid", "");
     const lastTxidJSON = JSON.parse(lastTxid);
 
     return lastTxidJSON.last_txid;
   }
 
   static getPrivKeyAsString(address: string): string {
-    const privKeyStr = native.litelib_execute("export", address);
+    const privKeyStr = RPC.getNative().litelib_execute("export", address);
     const privKeyJSON = JSON.parse(privKeyStr);
 
     return privKeyJSON[0].private_key;
   }
 
   static getViewKeyAsString(address: string): string {
-    const privKeyStr = native.litelib_execute("export", address);
+    const privKeyStr = RPC.getNative().litelib_execute("export", address);
     const privKeyJSON = JSON.parse(privKeyStr);
 
     return privKeyJSON[0].viewing_key;
@@ -435,7 +440,7 @@ export default class RPC {
     const addressTypeStr = type === AddressType.sapling ? "z" : "t";
     console.log(`Creating address with type string: ${addressTypeStr}`);
 
-    const addrStr = native.litelib_execute("new", addressTypeStr);
+    const addrStr = RPC.getNative().litelib_execute("new", addressTypeStr);
     console.log(`Native module returned: ${addrStr}`);
 
     const addrJSON = JSON.parse(addrStr);
@@ -445,21 +450,21 @@ export default class RPC {
   }
 
   static fetchSeed(): string {
-    const seedStr = native.litelib_execute("seed", "");
+    const seedStr = RPC.getNative().litelib_execute("seed", "");
     const seedJSON = JSON.parse(seedStr);
 
     return seedJSON.seed;
   }
   
   static fetchSeedAndBirthday(): { seed: string; birthday: number } {
-    const seedStr = native.litelib_execute("seed", "");
+    const seedStr = RPC.getNative().litelib_execute("seed", "");
     const seedJSON = JSON.parse(seedStr);
 
     return { seed: seedJSON.seed, birthday: seedJSON.birthday };
   }
 
   static fetchWalletHeight(): number {
-    const heightStr = native.litelib_execute("height", "");
+    const heightStr = RPC.getNative().litelib_execute("height", "");
     const heightJSON = JSON.parse(heightStr);
 
     return heightJSON.height;
@@ -467,7 +472,7 @@ export default class RPC {
 
   // Fetch all T and Z transactions
   fetchTandZTransactions(latestBlockHeight: number) {
-    const listStr = native.litelib_execute("list", "");
+    const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
     //console.log(listJSON);
 
@@ -597,12 +602,12 @@ export default class RPC {
   // Send a transaction using the already constructed sendJson structure
   async sendTransaction(sendJson: SendManyJson[], setSendProgress: (p?: SendProgress) => void): Promise<string> {
     // First, get the previous send progress id, so we know which ID to track
-    const prevProgress = JSON.parse(native.litelib_execute("sendprogress", ""));
+    const prevProgress = JSON.parse(RPC.getNative().litelib_execute("sendprogress", ""));
     const prevSendId = prevProgress.id;
 
     try {
       console.log(`Sending ${JSON.stringify(sendJson)}`);
-      native.litelib_execute("send", JSON.stringify(sendJson));
+      RPC.getNative().litelib_execute("send", JSON.stringify(sendJson));
     } catch (err) {
       // TODO Show a modal with the error
       console.log(`Error sending Tx: ${err}`);
@@ -614,7 +619,7 @@ export default class RPC {
     // The send command is async, so we need to poll to get the status
     const sendTxPromise: Promise<string> = new Promise((resolve, reject) => {
       const intervalID = setInterval(() => {
-        const progress = JSON.parse(native.litelib_execute("sendprogress", ""));
+        const progress = JSON.parse(RPC.getNative().litelib_execute("sendprogress", ""));
         console.log(progress);
 
         const updatedProgress = new SendProgress();
@@ -675,7 +680,7 @@ export default class RPC {
   }
 
   async encryptWallet(password: string): Promise<boolean> {
-    const resultStr = native.litelib_execute("encrypt", password);
+    const resultStr = RPC.getNative().litelib_execute("encrypt", password);
     const resultJSON = JSON.parse(resultStr);
 
     // To update the wallet encryption status
@@ -688,7 +693,7 @@ export default class RPC {
   }
 
   async decryptWallet(password: string): Promise<boolean> {
-    const resultStr = native.litelib_execute("decrypt", password);
+    const resultStr = RPC.getNative().litelib_execute("decrypt", password);
     const resultJSON = JSON.parse(resultStr);
 
     // To update the wallet encryption status
@@ -701,7 +706,7 @@ export default class RPC {
   }
 
   async lockWallet(): Promise<boolean> {
-    const resultStr = native.litelib_execute("lock", "");
+    const resultStr = RPC.getNative().litelib_execute("lock", "");
     const resultJSON = JSON.parse(resultStr);
 
     // To update the wallet encryption status
@@ -711,7 +716,7 @@ export default class RPC {
   }
 
   async unlockWallet(password: string): Promise<boolean> {
-    const resultStr = native.litelib_execute("unlock", password);
+    const resultStr = RPC.getNative().litelib_execute("unlock", password);
     const resultJSON = JSON.parse(resultStr);
 
     // To update the wallet encryption status
@@ -782,7 +787,7 @@ export default class RPC {
       // Fallback: try the old method as last resort
       console.log("🔄 Trying fallback method...");
       try {
-        const resultStr: string = native.litelib_execute("zecprice", "");
+        const resultStr: string = RPC.getNative().litelib_execute("zecprice", "");
         if (!resultStr.toLowerCase().startsWith("error")) {
           const resultJSON = JSON.parse(resultStr);
           if (resultJSON.zec_price) {
