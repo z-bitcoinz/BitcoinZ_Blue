@@ -456,6 +456,10 @@ if (isDev) {
 }
 
 function createWindow() {
+  console.log(`Creating window - isDev: ${isDev}, platform: ${process.platform}`);
+  console.log(`__dirname: ${__dirname}`);
+  console.log(`process.resourcesPath: ${process.resourcesPath}`);
+  
   const mainWindow = new BrowserWindow({
     width: 901,
     height: 640,
@@ -471,7 +475,37 @@ function createWindow() {
 
   // Load from localhost if in development
   // Otherwise load index.html file
-  mainWindow.loadURL(isDev ? "http://localhost:3000" : `file://${path.join(__dirname, "../build/index.html")}`);
+  const indexPath = isDev ? "http://localhost:3000" : `file://${path.join(__dirname, "index.html")}`;
+  console.log(`Loading from: ${indexPath}`);
+  
+  mainWindow.loadURL(indexPath).catch((error) => {
+    console.error(`Failed to load URL: ${indexPath}`, error);
+  });
+  
+  // Add error handling for page load failures
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error(`Page failed to load: ${validatedURL}`, `Error ${errorCode}: ${errorDescription}`);
+    
+    // Try alternative paths if the main one fails
+    if (!isDev && errorCode === -6) { // ERR_FILE_NOT_FOUND
+      console.log('Trying alternative paths...');
+      const alternatives = [
+        `file://${path.join(process.resourcesPath, 'app.asar.unpacked/build/index.html')}`,
+        `file://${path.join(process.resourcesPath, 'app.asar/build/index.html')}`,
+        `file://${path.join(__dirname, '../build/index.html')}`,
+      ];
+      
+      for (const altPath of alternatives) {
+        console.log(`Trying: ${altPath}`);
+        try {
+          mainWindow.loadURL(altPath);
+          break;
+        } catch (e) {
+          console.error(`Failed alternative: ${altPath}`, e);
+        }
+      }
+    }
+  });
 
   // Wait for the renderer process to signal that IPC listeners are ready
   // before building the menu to prevent race conditions
@@ -530,10 +564,20 @@ function createWindow() {
     }, 5 * 1000);
   });
 
-  // Open DevTools if in dev mode
-  if (isDev) {
+  // Open DevTools if in dev mode or on Windows for debugging
+  if (isDev || process.platform === 'win32') {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
+  
+  // Log when the page finishes loading
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Page loaded successfully');
+  });
+  
+  // Log any console messages from the renderer process
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`Renderer console [${level}]: ${message} (${sourceId}:${line})`);
+  });
 }
 
 app.commandLine.appendSwitch("in-process-gpu");
