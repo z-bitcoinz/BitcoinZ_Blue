@@ -490,6 +490,7 @@ jobs:
           $locations = @(
             "src/native.node",
             "build/native.node", 
+            "dist/win-unpacked/resources/app.asar.unpacked/build/native.node",
             "dist/win-unpacked/resources/app.asar.unpacked/build/native-*.node"
           )
           
@@ -533,7 +534,10 @@ jobs:
           }
           
           # Final validation - ensure we have a Windows native module
-          $finalNative = Get-ChildItem "dist/win-unpacked/resources/app.asar.unpacked/build/*.node" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $finalNative = Get-ChildItem "dist/win-unpacked/resources/app.asar.unpacked/build/native.node" -ErrorAction SilentlyContinue
+          if (!$finalNative) {
+            $finalNative = Get-ChildItem "dist/win-unpacked/resources/app.asar.unpacked/build/*.node" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
           if ($finalNative) {
             $bytes = [System.IO.File]::ReadAllBytes($finalNative.FullName)
             if ($bytes[0] -eq 0x4D -and $bytes[1] -eq 0x5A) {

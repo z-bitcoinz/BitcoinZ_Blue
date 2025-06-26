@@ -109,13 +109,13 @@
     "workbox-webpack-plugin": "5.1.4"
   },
   "scripts": {
-    "start": "yarn neon && concurrently -k \"cross-env NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electronmon .\"",
-    "build": "yarn neon && cross-env NODE_OPTIONS=--openssl-legacy-provider node scripts/build.js",
+    "start": "yarn neon && concurrently -k \"cross-env NODE_ENV=production BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electronmon .\"",
+    "build": "yarn neon && cross-env node scripts/build.js",
     "test": "node scripts/test.js",
     "dist:win": "yarn build && electron-builder -w -c.extraMetadata.main=build/electron.js -c.npmRebuild=true --publish never",
     "dist:mac": "yarn build && electron-builder -m -c.extraMetadata.main=build/electron.js --publish never",
     "dist:linux": "yarn build && electron-builder -l -c.extraMetadata.main=build/electron.js --publish never",
-    "react-start": "cross-env NODE_OPTIONS=--openssl-legacy-provider node scripts/start.js",
+    "react-start": "cross-env node scripts/start.js",
     "neon": "node scripts/build-native.js"
   },
   "electronmon": {
@@ -184,6 +184,7 @@
       "node_modules/**/*"
     ],
     "asarUnpack": [
+      "build/native.node",
       "build/native-*.node",
       "build/static/js/native-*.node"
     ],
