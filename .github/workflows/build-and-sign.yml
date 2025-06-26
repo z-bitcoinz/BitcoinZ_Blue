@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '17'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -192,7 +192,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -664,7 +664,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Clean build artifacts
