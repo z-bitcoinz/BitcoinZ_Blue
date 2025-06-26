@@ -115,7 +115,7 @@ The RPC class (`src/rpc.ts`) acts as the central coordinator:
 2. **Rust Version**: Requires Rust 1.62+ (specified in `rust-toolchain`)
 3. **Node.js Compatibility**: 
    - Requires Node.js v14 or v16 (NOT v17+ due to OpenSSL issues with Webpack 4)
-   - Project uses `NODE_OPTIONS=--openssl-legacy-provider` for compatibility
+   - Node.js 16 is recommended for best compatibility
 4. **Dependency Structure**: 
    - Uses custom zecwalletlitelib in `/lib` directory
    - Native bindings built via Neon.js in `/native` directory
