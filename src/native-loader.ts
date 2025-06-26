@@ -55,11 +55,9 @@ function loadNativeModule(): any {
     console.log(`Architecture: ${process.arch}`);
     console.log(`Node.js version: ${process.version}`);
     
-    // Try different loading strategies
+    // Try different loading strategies (only within src/)
     const loadAttempts = [
       () => require('./native.node'),
-      () => require('../build/native.node'),
-      () => require('../../build/native.node'),
     ];
     
     for (let i = 0; i < loadAttempts.length; i++) {

@@ -542,11 +542,19 @@ jobs:
               # Try to load the module with Node.js to test if it works
               echo "Testing native module loading with Node.js..."
               try {
-                $nativePath = $finalNative.FullName.Replace('\', '\\')
-                echo "const nativeModule = require('$nativePath');" | Out-File -FilePath "test-native.js" -Encoding UTF8
-                echo "console.log('SUCCESS: Native module loaded successfully');" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
-                echo "console.log('Available functions:', Object.keys(nativeModule));" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
-                echo "if (nativeModule.litelib_say_hello) { console.log('Test result:', nativeModule.litelib_say_hello('test')); }" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                $nativePath = $finalNative.FullName.Replace('\', '/')
+                echo "try {" | Out-File -FilePath "test-native.js" -Encoding UTF8
+                echo "  const nativeModule = require('$nativePath');" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  console.log('SUCCESS: Native module loaded successfully');" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  console.log('Available functions:', Object.keys(nativeModule));" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  if (nativeModule.litelib_say_hello) {" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "    console.log('Test result:', nativeModule.litelib_say_hello('test'));" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  }" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "} catch (error) {" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  console.error('Native module test failed:', error.message);" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  console.error('Error code:', error.code);" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "  process.exit(1);" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
+                echo "}" | Out-File -FilePath "test-native.js" -Append -Encoding UTF8
                 
                 node test-native.js
                 echo "Native module test completed successfully"
