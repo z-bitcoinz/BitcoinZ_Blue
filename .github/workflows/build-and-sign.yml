@@ -204,32 +204,32 @@ jobs:
 
       - name: Build native module for Windows
         run: |
-          echo "🔧 Building native Rust module for Windows..."
+          echo "Building native Rust module for Windows..."
           cd native
           
           # Remove old lock file if exists
           if (Test-Path "Cargo.lock") { 
             Remove-Item "Cargo.lock" 
-            echo "🗑️  Removed existing Cargo.lock"
+            echo "Removed existing Cargo.lock"
           }
           
           # Verify Rust toolchain
-          echo "🦀 Rust toolchain info:"
+          echo "Rust toolchain info:"
           rustc --version
           cargo --version
           
           # Clean any previous builds
           if (Test-Path "target") {
             Remove-Item -Recurse -Force "target"
-            echo "🧹 Cleaned previous build artifacts"
+            echo "Cleaned previous build artifacts"
           }
           
           # Build the native module with verbose output
-          echo "🔨 Building native module..."
+          echo "Building native module..."
           cargo build --release --verbose
           
           # Check what was built - be more thorough
-          echo "📁 Checking build output:"
+          echo "Checking build output:"
           if (Test-Path "target/release") {
             echo "Contents of target/release:"
             Get-ChildItem target/release -Force | Format-Table Name, Length, LastWriteTime
@@ -237,7 +237,7 @@ jobs:
             # Look for all possible DLL names
             $allDlls = Get-ChildItem target/release/*.dll -ErrorAction SilentlyContinue
             if ($allDlls) {
-              echo "📦 Found DLL files:"
+              echo "Found DLL files:"
               $allDlls | ForEach-Object { echo "  - $($_.Name) ($($_.Length) bytes)" }
             }
             
@@ -256,7 +256,7 @@ jobs:
               $found = Get-ChildItem "target/release/$pattern" -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike "*deps*" } | Select-Object -First 1
               if ($found) {
                 $targetDll = $found
-                echo "✅ Found target DLL with pattern '$pattern': $($found.Name)"
+                echo "SUCCESS: Found target DLL with pattern '$pattern': $($found.Name)"
                 break
               }
             }
@@ -264,56 +264,56 @@ jobs:
             if ($targetDll) {
               # Verify it's a Windows DLL
               $fileInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($targetDll.FullName)
-              echo "📋 DLL Info: $($fileInfo.FileDescription)"
+              echo "DLL Info: $($fileInfo.FileDescription)"
               
               # Copy to the correct location
               Copy-Item $targetDll.FullName ../src/native.node
-              echo "✅ [SUCCESS] Copied $($targetDll.Name) to src/native.node"
+              echo "SUCCESS: Copied $($targetDll.Name) to src/native.node"
               
               # Verify the copied file
               if (Test-Path "../src/native.node") {
                 $copiedSize = (Get-Item "../src/native.node").Length
-                echo "✅ Verified: native.node exists ($copiedSize bytes)"
+                echo "SUCCESS: Verified native.node exists ($copiedSize bytes)"
               } else {
-                throw "❌ ERROR: Failed to copy DLL to src/native.node"
+                throw "ERROR: Failed to copy DLL to src/native.node"
               }
             } else {
-              echo "❌ ERROR: Could not find any suitable DLL files"
+              echo "ERROR: Could not find any suitable DLL files"
               echo "Available files in target/release:"
               Get-ChildItem target/release | Format-Table Name, Length
               throw "No native module DLL found"
             }
           } else {
-            throw "❌ ERROR: target/release directory not found - build may have failed"
+            throw "ERROR: target/release directory not found - build may have failed"
           }
         shell: powershell
 
       - name: Build Windows app
         run: |
-          echo "🔧 Starting Windows application build..."
+          echo "Starting Windows application build..."
           npm --version
           node --version
           
           # Verify native module was built correctly
           if (Test-Path "src/native.node") {
             $nativeSize = (Get-Item "src/native.node").Length
-            echo "✅ Native module found: $nativeSize bytes"
+            echo "SUCCESS: Native module found: $nativeSize bytes"
             
             # Try to get file type info
             try {
               $fileInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("src/native.node")
-              echo "📋 Native module info: $($fileInfo.FileDescription)"
+              echo "Native module info: $($fileInfo.FileDescription)"
             } catch {
-              echo "📋 Native module: Windows binary (file info unavailable)"
+              echo "Native module: Windows binary (file info unavailable)"
             }
           } else {
-            throw "❌ ERROR: Native module not found at src/native.node"
+            throw "ERROR: Native module not found at src/native.node"
           }
           
           # Remove yarn.lock to use npm
           if (Test-Path "yarn.lock") {
             Remove-Item "yarn.lock"
-            echo "🗑️  Removed yarn.lock to use npm instead"
+            echo "Removed yarn.lock to use npm instead"
           }
           
           # Configure npm for better reliability
@@ -327,14 +327,14 @@ jobs:
           npm cache clean --force
           
           # Install dependencies using npm (more stable on Windows)
-          echo "📦 Installing dependencies with npm..."
+          echo "Installing dependencies with npm..."
           npm install --no-audit --no-fund
           
           # Install cross-env globally if missing
           npm install -g cross-env
           
           # Build the app (skip native build as we already did it)
-          echo "🏗️  Building application..."
+          echo "Building application..."
           $env:SKIP_NATIVE_BUILD = "true"
           npm run build
           
@@ -347,33 +347,33 @@ jobs:
           Copy-Item src/native.node build/
           if (Test-Path "build/native.node") {
             $buildNativeSize = (Get-Item "build/native.node").Length
-            echo "✅ Native module copied to build: $buildNativeSize bytes"
+            echo "SUCCESS: Native module copied to build: $buildNativeSize bytes"
           } else {
-            throw "❌ ERROR: Failed to copy native module to build directory"
+            throw "ERROR: Failed to copy native module to build directory"
           }
           
           # Copy electron.js to build directory
           Copy-Item public/electron.js build/
-          echo "✅ Copied electron.js to build directory"
+          echo "SUCCESS: Copied electron.js to build directory"
           
           # Build with electron-builder
-          echo "📦 Building Windows installer and portable app..."
+          echo "Building Windows installer and portable app..."
           npx electron-builder -w --config.extraMetadata.main=build/electron.js --publish never
           
           # Verify the build artifacts
-          echo "📋 Build verification:"
+          echo "Build verification:"
           if (Test-Path "dist") {
             $exeFiles = Get-ChildItem dist/*.exe -ErrorAction SilentlyContinue
             $zipFiles = Get-ChildItem dist/*.zip -ErrorAction SilentlyContinue
             
             if ($exeFiles) {
-              echo "✅ Windows installer created:"
-              $exeFiles | ForEach-Object { echo "  📄 $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)" }
+              echo "SUCCESS: Windows installer created:"
+              $exeFiles | ForEach-Object { echo "  $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)" }
             }
             
             if ($zipFiles) {
-              echo "✅ Windows portable created:"
-              $zipFiles | ForEach-Object { echo "  📦 $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)" }
+              echo "SUCCESS: Windows portable created:"
+              $zipFiles | ForEach-Object { echo "  $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)" }
             }
             
             # Check if native module is in the final package
@@ -381,20 +381,20 @@ jobs:
             if (Test-Path $winUnpacked) {
               $nativeInPackage = Get-ChildItem "$winUnpacked/resources/app.asar.unpacked/build/*.node" -ErrorAction SilentlyContinue
               if ($nativeInPackage) {
-                echo "✅ Native module found in packaged app:"
-                $nativeInPackage | ForEach-Object { echo "  🔧 $($_.Name) ($($_.Length) bytes)" }
+                echo "SUCCESS: Native module found in packaged app:"
+                $nativeInPackage | ForEach-Object { echo "  $($_.Name) ($($_.Length) bytes)" }
               } else {
-                echo "⚠️  Warning: Native module not found in packaged app"
+                echo "WARNING: Native module not found in packaged app"
               }
             }
           } else {
-            throw "❌ ERROR: dist directory not created - electron-builder may have failed"
+            throw "ERROR: dist directory not created - electron-builder may have failed"
           }
         shell: powershell
 
       - name: Validate Windows native module
         run: |
-          echo "🔍 Validating Windows native module..."
+          echo "Validating Windows native module..."
           
           # Check native module in different locations
           $locations = @(
@@ -407,7 +407,7 @@ jobs:
             $files = Get-ChildItem $location -ErrorAction SilentlyContinue
             if ($files) {
               foreach ($file in $files) {
-                echo "📋 Checking: $($file.FullName)"
+                echo "Checking: $($file.FullName)"
                 echo "   Size: $($file.Length) bytes"
                 echo "   Modified: $($file.LastWriteTime)"
                 
@@ -426,17 +426,17 @@ jobs:
                       if ($peOffset -lt $bytes.Length -3 -and 
                           $bytes[$peOffset] -eq 0x50 -and 
                           $bytes[$peOffset+1] -eq 0x45) {
-                        echo "   ✅ File format: Windows PE (DLL)"
+                        echo "   SUCCESS: File format is Windows PE (DLL)"
                       } else {
-                        echo "   ⚠️  File format: Unknown (has MZ header but no PE signature)"
+                        echo "   WARNING: File format unknown (has MZ header but no PE signature)"
                       }
                     } else {
-                      echo "   ❌ File format: Not a Windows PE file"
+                      echo "   ERROR: File format is not a Windows PE file"
                       echo "   First 4 bytes: $($bytes[0..3] -join ' ')"
                     }
                   }
                 } catch {
-                  echo "   ⚠️  Could not analyze file format: $($_.Exception.Message)"
+                  echo "   WARNING: Could not analyze file format: $($_.Exception.Message)"
                 }
               }
             }
@@ -447,13 +447,13 @@ jobs:
           if ($finalNative) {
             $bytes = [System.IO.File]::ReadAllBytes($finalNative.FullName)
             if ($bytes[0] -eq 0x4D -and $bytes[1] -eq 0x5A) {
-              echo "✅ SUCCESS: Windows build contains valid Windows native module"
+              echo "SUCCESS: Windows build contains valid Windows native module"
             } else {
-              echo "❌ ERROR: Windows build contains non-Windows native module"
+              echo "ERROR: Windows build contains non-Windows native module"
               throw "Native module validation failed - not a Windows PE file"
             }
           } else {
-            echo "❌ ERROR: No native module found in final Windows package"
+            echo "ERROR: No native module found in final Windows package"
             throw "Native module validation failed - file not found"
           }
         shell: powershell
