@@ -1,7 +1,7 @@
 {
   "name": "bitcoinz-wallet-lite",
   "productName": "BitcoinZ Wallet Lite",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "BitcoinZ Wallet Lite - A lightweight wallet for BitcoinZ",
   "license": "MIT",
@@ -243,6 +243,21 @@
           "arch": "x64"
         }
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BitcoinZ Blue",
+      "installerIcon": "./resources/icon.ico",
+      "uninstallerIcon": "./resources/icon.ico",
+      "installerHeaderIcon": "./resources/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "artifactName": "${productName} Setup ${version}.${ext}"
     },
     "linux": {
       "category": "Development", 

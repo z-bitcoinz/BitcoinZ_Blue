@@ -74,7 +74,7 @@ export default class RPC {
     this.rpcConfig = rpcConfig;
 
     if (!this.refreshTimerID) {
-      this.refreshTimerID = setInterval(() => this.refresh(false), 3 * 60 * 1000); // 3 mins
+      this.refreshTimerID = setInterval(() => this.refresh(false), 60 * 1000); // 1 min
     }
 
     if (!this.updateTimerId) {
@@ -126,7 +126,7 @@ export default class RPC {
   }
 
   static deinitialize() {
-    const str = native.litelib_deinitialize();
+    const str = RPC.getNative().litelib_deinitialize();
     console.log(`Deinitialize status: ${str}`);
   }
 
