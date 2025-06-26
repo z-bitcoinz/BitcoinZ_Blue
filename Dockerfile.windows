@@ -1,0 +1,60 @@
+# Use Ubuntu for cross-compilation
+FROM ubuntu:20.04
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    gcc-mingw-w64-x86-64 \
+    g++-mingw-w64-x86-64 \
+    pkg-config \
+    libssl-dev \
+    git \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 16
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Add Windows target
+RUN rustup target add x86_64-pc-windows-gnu
+
+# Install Yarn
+RUN npm install -g yarn
+
+# Set up cargo config for cross-compilation
+RUN mkdir -p /root/.cargo && \
+    echo '[target.x86_64-pc-windows-gnu]' >> /root/.cargo/config.toml && \
+    echo 'linker = "x86_64-w64-mingw32-gcc"' >> /root/.cargo/config.toml && \
+    echo 'ar = "x86_64-w64-mingw32-ar"' >> /root/.cargo/config.toml
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+RUN yarn install
+
+# Copy source code
+COPY . .
+
+# Build native module for Windows
+RUN cd native && \
+    cargo build --release --target x86_64-pc-windows-gnu
+
+# Copy the Windows DLL to the right place
+RUN cp native/target/x86_64-pc-windows-gnu/release/bitcoinz_wallet_lite.dll src/native.node
+
+# Build the application
+RUN yarn build
+
+# The final build artifacts will be in /app/build
+CMD ["echo", "Build complete. Windows artifacts are ready."]
