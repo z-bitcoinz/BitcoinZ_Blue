@@ -2,7 +2,32 @@ const { app, BrowserWindow, Menu, shell, ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
 const settings = require("electron-settings");
-const getNativeModule = require("../src/native-loader");
+
+// Fix for native module loading in production builds
+let getNativeModule;
+try {
+  if (isDev) {
+    // In development, load from src directory
+    getNativeModule = require("../src/native-loader");
+  } else {
+    // In production, the native module should be in the same directory
+    // or in the app.asar.unpacked directory
+    try {
+      // First try the bundled version
+      getNativeModule = require("./native-loader");
+    } catch (e) {
+      // If that fails, try the unpacked version
+      const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'build', 'native-loader');
+      getNativeModule = require(unpackedPath);
+    }
+  }
+} catch (error) {
+  console.error('Failed to load native module:', error);
+  // Create a fallback that will error when called
+  getNativeModule = () => {
+    throw new Error('Native module could not be loaded. Please ensure the application was built correctly.');
+  };
+}
 
 // Disable sandbox if running on Linux to avoid permission issues
 if (process.platform === 'linux') {
