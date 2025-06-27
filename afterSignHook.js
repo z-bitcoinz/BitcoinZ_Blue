@@ -52,19 +52,21 @@ module.exports = async function (params) {
   await signAppBundle(appBundle);
 
   // Check for notarization credentials
-  if (process.env.appleId && process.env.appleIdPassword) {
+  if (process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && process.env.APPLE_TEAM_ID) {
     // Look for DMG for notarization
-    const dmgPath = params.artifactPaths.find((p) => p.endsWith(".dmg"));
+    const dmgPath = params.artifactPaths?.find((p) => p.endsWith(".dmg"));
     
     if (dmgPath && fs.existsSync(dmgPath)) {
       console.log(`Notarizing ${appId} found at ${dmgPath}`);
       
       try {
         await electron_notarize.notarize({
+          tool: 'notarytool',
           appBundleId: appId,
           appPath: dmgPath,
-          appleId: process.env.appleId,
-          appleIdPassword: process.env.appleIdPassword,
+          appleId: process.env.APPLE_ID,
+          appleIdPassword: process.env.APPLE_ID_PASSWORD,
+          teamId: process.env.APPLE_TEAM_ID,
         });
         console.log(`✅ Done notarizing ${appId}`);
       } catch (error) {
@@ -73,6 +75,7 @@ module.exports = async function (params) {
     }
   } else {
     console.log('ℹ️  No Apple credentials provided, skipping notarization');
+    console.log('   Required: APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID');
   }
 };
 
@@ -84,18 +87,31 @@ async function signAppBundle(appBundle) {
   }
   
   try {
-    console.log(`🔐 Ensuring ad-hoc signature on ${appBundle}`);
-    
     // Check if already signed
     let signCheck = '';
+    let isProperlySignedWithDeveloperID = false;
+    
     try {
       signCheck = execSync(`codesign -dv "${appBundle}" 2>&1`, { encoding: 'utf8' });
+      isProperlySignedWithDeveloperID = signCheck.includes('Developer ID Application');
     } catch (e) {
       // No signature found
     }
     
-    if (!signCheck.includes('adhoc') && !signCheck.includes('Authority')) {
-      console.log('⚠️  No signature detected, applying ad-hoc signature...');
+    // If we have a signing identity and the app isn't already signed with Developer ID
+    if (process.env.APPLE_SIGNING_IDENTITY && !isProperlySignedWithDeveloperID) {
+      console.log(`🔐 Signing with Developer ID: ${appBundle}`);
+      
+      const entitlementsPath = path.join(__dirname, 'configs', 'entitlements.mac.plist');
+      if (fs.existsSync(entitlementsPath)) {
+        execSync(`codesign --force --deep --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime --entitlements "${entitlementsPath}" "${appBundle}"`, { stdio: 'inherit' });
+        console.log('✅ Developer ID signature applied');
+      } else {
+        execSync(`codesign --force --deep --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime "${appBundle}"`, { stdio: 'inherit' });
+        console.log('✅ Developer ID signature applied (no entitlements file)');
+      }
+    } else if (!signCheck.includes('adhoc') && !signCheck.includes('Authority')) {
+      console.log(`🔐 Applying ad-hoc signature: ${appBundle}`);
       execSync(`codesign --force --deep --sign - "${appBundle}"`, { stdio: 'inherit' });
       console.log('✅ Ad-hoc signature applied');
     } else {
@@ -111,6 +127,6 @@ async function signAppBundle(appBundle) {
     console.log('📋 Signature verification:', verifyResult.split('\n')[0]);
     
   } catch (error) {
-    console.error(`❌ Error during ad-hoc signing: ${error.message}`);
+    console.error(`❌ Error during signing: ${error.message}`);
   }
 }
