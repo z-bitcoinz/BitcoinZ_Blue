@@ -90,18 +90,55 @@ jobs:
           cargo build --release
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
-      - name: Build macOS app with ad-hoc signing
+      - name: Import Apple Developer Certificate
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          # Force electron-builder to use ad-hoc signing
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          CODESIGN_IDENTITY: "-"  # This tells electron-builder to use ad-hoc signing
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Only run if certificate is provided
+          if [ -z "$APPLE_CERTIFICATE_BASE64" ]; then
+            echo "⚠️  No Apple certificate provided, will use ad-hoc signing"
+            exit 0
+          fi
+          
+          echo "🔐 Importing Apple Developer Certificate..."
+          
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          
+          # Import certificate from secrets
+          echo $APPLE_CERTIFICATE_BASE64 | base64 --decode > $CERTIFICATE_PATH
+          
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # Set key partition list (allows codesign to access the certificate)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          echo "✅ Certificate imported successfully"
+          
+      - name: Build macOS app with proper signing
+        env:
+          # Use certificate if available, otherwise ad-hoc
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: true
           # Skip rebuilding native deps since we already built them
           ELECTRON_BUILDER_SKIP_REBUILD: true
+          # Hardened runtime for notarization
+          HARDENED_RUNTIME: true
         timeout-minutes: 30  # Add timeout to prevent hanging
         run: |
-          echo "Starting macOS build with ad-hoc signing..."
+          echo "Starting macOS build..."
           yarn --version
           node --version
           
@@ -114,29 +151,30 @@ jobs:
           # Copy electron.js to build directory
           cp public/electron.js build/
           
-          # Now use electron-builder with ad-hoc signing, skip rebuild
-          echo "🔐 Building and signing macOS app..."
+          # Determine signing approach
+          if [ -z "$CSC_LINK" ]; then
+            echo "🔐 Building with ad-hoc signing..."
+            SIGN_OPTS="--config.mac.identity=null"
+          else
+            echo "🔐 Building with Developer ID certificate..."
+            SIGN_OPTS="--config.mac.hardenedRuntime=true"
+          fi
+          
           # Build apps without DMG (to avoid Python issue)
           npx electron-builder -m \
             --config.extraMetadata.main=build/electron.js \
-            --config.mac.identity=null \
             --config.mac.type=distribution \
             --config.mac.target=dir \
             --config.npmRebuild=false \
             --config.buildDependenciesFromSource=false \
+            $SIGN_OPTS \
             --publish never
           
-          # Verify the apps are signed BEFORE zipping
+          # Verify the apps are signed
           echo "📋 Verifying signatures..."
           find dist -name "*.app" -type d | while read -r app; do
             echo "Checking: $app"
-            if codesign -dv "$app" 2>&1 | grep -q "adhoc"; then
-              echo "✅ Ad-hoc signature found: $app"
-            else
-              echo "⚠️  No ad-hoc signature found, applying now..."
-              codesign --force --deep --sign - "$app"
-              echo "✅ Ad-hoc signature applied: $app"
-            fi
+            codesign -dv --verbose=4 "$app" 2>&1
             
             # Remove extended attributes
             xattr -cr "$app"
@@ -144,7 +182,10 @@ jobs:
           
           echo "✅ macOS build and signing complete"
           
-      - name: Create DMG files using custom script
+      - name: Create and Sign DMG files
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
           echo "📦 Creating DMG files..."
           # Make the script executable
@@ -153,10 +194,65 @@ jobs:
           # Run the custom DMG creation script
           ./scripts/create-dmg.sh
           
+          # Sign DMG files if certificate is available
+          if [ -n "$APPLE_CERTIFICATE_BASE64" ] && [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+            echo "🔐 Signing DMG files..."
+            for dmg in dist/*.dmg; do
+              if [ -f "$dmg" ]; then
+                echo "Signing: $dmg"
+                codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
+                echo "Verifying: $dmg"
+                codesign -dv --verbose=4 "$dmg"
+              fi
+            done
+          else
+            echo "⚠️  No certificate available, DMGs will not be signed"
+          fi
+          
           echo "✅ DMG creation complete"
           
           # List created DMG files
           ls -la dist/*.dmg || true
+      
+      - name: Notarize macOS Apps
+        if: env.APPLE_ID != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Only run if credentials are provided
+          if [ -z "$APPLE_ID" ] || [ -z "$APPLE_ID_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "⚠️  Notarization credentials not provided, skipping notarization"
+            exit 0
+          fi
+          
+          echo "🔐 Starting notarization process..."
+          
+          # Notarize each DMG
+          for dmg in dist/*.dmg; do
+            if [ -f "$dmg" ]; then
+              echo "📤 Submitting for notarization: $dmg"
+              
+              # Submit for notarization
+              xcrun notarytool submit "$dmg" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_ID_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait \
+                --timeout 30m
+              
+              # Staple the ticket
+              echo "📌 Stapling notarization ticket to: $dmg"
+              xcrun stapler staple "$dmg"
+              
+              # Verify
+              echo "✅ Verifying notarization: $dmg"
+              spctl -a -t open --context context:primary-signature -v "$dmg"
+            fi
+          done
+          
+          echo "✅ Notarization complete"
 
 
       - name: Upload macOS ARM64 (Apple Silicon)

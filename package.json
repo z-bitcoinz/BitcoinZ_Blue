@@ -178,6 +178,7 @@
   "build": {
     "productName": "BitcoinZ Blue",
     "appId": "com.bitcoinz.blue",
+    "afterSign": "./notarize.js",
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
@@ -211,11 +212,13 @@
         }
       ],
       "icon": "./resources/icon.icns",
-      "identity": null,
-      "hardenedRuntime": false,
+      "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.plist",
-      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist"
+      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist",
+      "notarize": {
+        "teamId": "${APPLE_TEAM_ID}"
+      }
     },
     "dmg": {
       "sign": false,
