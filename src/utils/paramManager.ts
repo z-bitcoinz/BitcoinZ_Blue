@@ -213,16 +213,17 @@ export class ParamManager {
 
       // Download from internet
       try {
-        // Calculate total size for simple message
-        const totalSizeMB = Math.round((PARAM_SIZES['sapling-spend.params'] + PARAM_SIZES['sapling-output.params']) / 1024 / 1024);
+        // Download the file
         
         await this.downloadFile(
           PARAM_URLS[filename as keyof typeof PARAM_URLS], 
           destPath, 
           PARAM_SIZES[filename as keyof typeof PARAM_SIZES],
-          (fileProgress, message) => {
+          (fileProgress: number, message: string) => {
             // Just pass through the simple MB message
-            progressCallback?.(fileProgress, message);
+            if (progressCallback) {
+              progressCallback(fileProgress, message);
+            }
           }
         );
 
