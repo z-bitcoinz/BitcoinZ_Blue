@@ -181,17 +181,11 @@ export class ParamManager {
     const libParamsPath = path.join(__dirname, '..', '..', '..', 'lib', 'zcash-params');
     const hasLibParams = fs.existsSync(libParamsPath);
 
-    let currentProgress = 0;
-    const totalFiles = Object.keys(PARAM_HASHES).length;
-    let filesProcessed = 0;
-
     for (const [filename, expectedHash] of Object.entries(PARAM_HASHES)) {
       const destPath = path.join(paramsPath, filename);
       
       // Check if file already exists and is valid
       if (fs.existsSync(destPath) && this.verifyFileHash(destPath, expectedHash)) {
-        filesProcessed++;
-        currentProgress = (filesProcessed / totalFiles) * 100;
         continue;
       }
 
@@ -202,8 +196,6 @@ export class ParamManager {
           fs.copyFileSync(sourcePath, destPath);
           
           if (this.verifyFileHash(destPath, expectedHash)) {
-            filesProcessed++;
-            currentProgress = (filesProcessed / totalFiles) * 100;
             continue;
           } else {
             fs.unlinkSync(destPath);
@@ -231,9 +223,6 @@ export class ParamManager {
         if (!this.verifyFileHash(destPath, expectedHash)) {
           throw new Error(`Downloaded file verification failed`);
         }
-
-        filesProcessed++;
-        currentProgress = (filesProcessed / totalFiles) * 100;
       } catch (error) {
         throw new Error(`Failed to download ${filename}: ${error.message}`);
       }
