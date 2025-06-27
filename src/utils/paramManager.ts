@@ -108,8 +108,10 @@ export class ParamManager {
         response.on('data', (chunk) => {
           downloadedBytes += chunk.length;
           const progress = (downloadedBytes / expectedSize) * 100;
+          const downloadedMB = Math.round(downloadedBytes / 1024 / 1024);
+          const totalMB = Math.round(expectedSize / 1024 / 1024);
           if (progressCallback) {
-            progressCallback(Math.min(progress, 100), `Downloading: ${Math.round(progress)}%`);
+            progressCallback(Math.min(progress, 100), `Downloading: ${downloadedMB} MB / ${totalMB} MB`);
           }
         });
 
@@ -186,13 +188,10 @@ export class ParamManager {
     for (const [filename, expectedHash] of Object.entries(PARAM_HASHES)) {
       const destPath = path.join(paramsPath, filename);
       
-      progressCallback?.(currentProgress, `Checking ${filename}...`);
-
       // Check if file already exists and is valid
       if (fs.existsSync(destPath) && this.verifyFileHash(destPath, expectedHash)) {
         filesProcessed++;
         currentProgress = (filesProcessed / totalFiles) * 100;
-        progressCallback?.(currentProgress, `${filename} verified`);
         continue;
       }
 
@@ -200,13 +199,11 @@ export class ParamManager {
       if (hasLibParams) {
         const sourcePath = path.join(libParamsPath, filename);
         if (fs.existsSync(sourcePath)) {
-          progressCallback?.(currentProgress, `Copying ${filename} from development files...`);
           fs.copyFileSync(sourcePath, destPath);
           
           if (this.verifyFileHash(destPath, expectedHash)) {
             filesProcessed++;
             currentProgress = (filesProcessed / totalFiles) * 100;
-            progressCallback?.(currentProgress, `${filename} copied and verified`);
             continue;
           } else {
             fs.unlinkSync(destPath);
@@ -215,33 +212,33 @@ export class ParamManager {
       }
 
       // Download from internet
-      progressCallback?.(currentProgress, `Downloading ${filename}...`);
       try {
+        // Calculate total size for simple message
+        const totalSizeMB = Math.round((PARAM_SIZES['sapling-spend.params'] + PARAM_SIZES['sapling-output.params']) / 1024 / 1024);
+        
         await this.downloadFile(
           PARAM_URLS[filename as keyof typeof PARAM_URLS], 
           destPath, 
           PARAM_SIZES[filename as keyof typeof PARAM_SIZES],
           (fileProgress, message) => {
-            const overallProgress = currentProgress + (fileProgress / totalFiles);
-            progressCallback?.(overallProgress, message);
+            // Just pass through the simple MB message
+            progressCallback?.(fileProgress, message);
           }
         );
 
         // Verify downloaded file
-        progressCallback?.(currentProgress, `Verifying ${filename}...`);
         if (!this.verifyFileHash(destPath, expectedHash)) {
-          throw new Error(`Downloaded file hash mismatch for ${filename}`);
+          throw new Error(`Downloaded file verification failed`);
         }
 
         filesProcessed++;
         currentProgress = (filesProcessed / totalFiles) * 100;
-        progressCallback?.(currentProgress, `${filename} downloaded and verified`);
       } catch (error) {
         throw new Error(`Failed to download ${filename}: ${error.message}`);
       }
     }
 
-    progressCallback?.(100, 'All parameters ready!');
+    progressCallback?.(100, 'Setup complete! You can now send private transactions.');
   }
 
   /**

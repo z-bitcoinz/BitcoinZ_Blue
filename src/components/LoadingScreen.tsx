@@ -147,13 +147,13 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     const { url } = this.state;
 
     // First, check if Sapling parameters are set up
-    this.setState({ currentStatus: "Checking cryptographic parameters..." });
+    this.setState({ currentStatus: "Checking privacy features..." });
     
     const paramManager = ParamManager.getInstance();
     const paramsValid = await paramManager.areParamsValid();
     
     if (!paramsValid) {
-      this.setState({ currentStatus: "Setting up cryptographic parameters..." });
+      this.setState({ currentStatus: "Setting up BitcoinZ privacy features (one-time download)..." });
       
       try {
         await paramManager.setupParams((progress, message) => {
@@ -163,14 +163,13 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         this.setState({
           currentStatus: (
             <span>
-              Error setting up parameters
-              <br />
-              {error.message}
+              Setup failed. Please check your internet connection.
               <br />
               <br />
-              Please download manually from:
+              For help visit: getbtcz.com/support
               <br />
-              https://download.z.cash/downloads/
+              <br />
+              Error: {error.message}
             </span>
           ),
           currentStatusIsError: true,
