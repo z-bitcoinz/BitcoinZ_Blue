@@ -11,6 +11,7 @@ import { RPCConfig, Info } from "./AppState";
 import RPC from "../rpc";
 import Logo from "../assets/img/logobig.png";
 import Utils from "../utils/utils";
+import { ParamManager } from "../utils/paramManager";
 
 const { ipcRenderer } = window.require("electron");
 const fs = window.require("fs");
@@ -145,7 +146,40 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     // Try to load the light client
     const { url } = this.state;
 
-    // First, set up the exit handler
+    // First, check if Sapling parameters are set up
+    this.setState({ currentStatus: "Checking cryptographic parameters..." });
+    
+    const paramManager = ParamManager.getInstance();
+    const paramsValid = await paramManager.areParamsValid();
+    
+    if (!paramsValid) {
+      this.setState({ currentStatus: "Setting up cryptographic parameters..." });
+      
+      try {
+        await paramManager.setupParams((progress, message) => {
+          this.setState({ currentStatus: message });
+        });
+      } catch (error) {
+        this.setState({
+          currentStatus: (
+            <span>
+              Error setting up parameters
+              <br />
+              {error.message}
+              <br />
+              <br />
+              Please download manually from:
+              <br />
+              https://download.z.cash/downloads/
+            </span>
+          ),
+          currentStatusIsError: true,
+        });
+        return;
+      }
+    }
+
+    // Now set up the exit handler
     this.setupExitHandler();
 
     // Test to see if the wallet exists

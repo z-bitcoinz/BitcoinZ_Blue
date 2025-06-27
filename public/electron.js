@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, shell, ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
 const settings = require("electron-settings");
+const getNativeModule = require("../src/native-loader");
 
 // Disable sandbox if running on Linux to avoid permission issues
 if (process.platform === 'linux') {
@@ -465,6 +466,7 @@ function createWindow() {
     height: 640,
     minHeight: 450,
     minWidth: 901,
+    show: false, // Don't show window until it's ready
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -477,6 +479,13 @@ function createWindow() {
   // Otherwise load index.html file
   const indexPath = isDev ? "http://localhost:3000" : `file://${path.join(__dirname, "index.html")}`;
   console.log(`Loading from: ${indexPath}`);
+  
+  // Show window when ready (fixes Linux visibility issue)
+  mainWindow.once('ready-to-show', () => {
+    console.log('Window ready to show');
+    mainWindow.show();
+    mainWindow.focus();
+  });
   
   mainWindow.loadURL(indexPath).catch((error) => {
     console.error(`Failed to load URL: ${indexPath}`, error);
@@ -528,6 +537,20 @@ function createWindow() {
   // Add handler for getting app data path (replacement for remote.app.getPath)
   ipcMain.handle("get-app-data-path", async () => {
     return app.getPath("appData");
+  });
+
+  // Add handler for testing embedded parameters
+  ipcMain.handle("test-embedded-params", async () => {
+    try {
+      // Check if the native module has embedded parameters by trying to access them
+      const native = getNativeModule();
+      // This is a simple check - in reality the native module would need a test method
+      // For now, we'll assume embedded params work if the native module loads
+      return native !== null && native !== undefined;
+    } catch (error) {
+      console.error("Failed to test embedded params:", error);
+      return false;
+    }
   });
 
   mainWindow.on("close", (event) => {
