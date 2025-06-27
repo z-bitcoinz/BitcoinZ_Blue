@@ -2,9 +2,36 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = async function (context) {
-  // Only process Linux builds
+  console.log('AfterPack hook: Processing build...');
+  
+  // Copy native-loader.js to build directory if it doesn't exist
+  const appOutDir = context.appOutDir;
+  const resourcesDir = path.join(appOutDir, 'resources');
+  
+  // Ensure the native-loader module is accessible in production
+  const sourceNativeLoader = path.join(__dirname, 'src', 'native-loader.js');
+  const buildNativeLoader = path.join(__dirname, 'build', 'native-loader.js');
+  
+  // First check if TypeScript was compiled to JavaScript
+  if (fs.existsSync(sourceNativeLoader)) {
+    try {
+      // Create native-loader.js in build directory
+      if (!fs.existsSync(buildNativeLoader)) {
+        const buildDir = path.join(__dirname, 'build');
+        if (!fs.existsSync(buildDir)) {
+          fs.mkdirSync(buildDir, { recursive: true });
+        }
+        fs.copyFileSync(sourceNativeLoader, buildNativeLoader);
+        console.log('AfterPack hook: Copied native-loader.js to build directory');
+      }
+    } catch (err) {
+      console.error('AfterPack hook: Error copying native-loader:', err);
+    }
+  }
+  
+  // Only process Linux builds for wrapper script
   if (context.packager.platform.name === 'linux') {
-    console.log('AfterPack hook: Processing Linux build...');
+    console.log('AfterPack hook: Creating Linux wrapper script...');
     
     const appOutDir = context.appOutDir;
     const executableName = context.packager.executableName || 'bitcoinz-wallet-lite';
