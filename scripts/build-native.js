@@ -54,7 +54,7 @@ try {
   console.log('🦀 Executing cargo build...');
   const startTime = Date.now();
   
-  execSync('cargo build --release --manifest-path native/Cargo.toml', { 
+  execSync('cargo build --release --features embed_params --manifest-path native/Cargo.toml', { 
     stdio: 'inherit',
     env: { 
       ...process.env, 

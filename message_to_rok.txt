@@ -1,0 +1,30 @@
+Hi Rok,
+
+Thanks for inviting me to App Store Connect! I accepted the invitation.
+
+I'm working on the BitcoinZ Blue wallet and need to set up code signing for macOS. Could you help me with one of these options:
+
+OPTION 1 (Easiest - 5 minutes):
+Could you quickly create a Developer ID certificate and share it with me?
+1. Go to https://developer.apple.com/account
+2. Click "Certificates, IDs & Profiles" → Certificates → "+"
+3. Choose "Developer ID Application" 
+4. Create and download the certificate
+5. Export from Keychain as .p12 with a password
+6. Send me:
+   - The .p12 file
+   - The password
+   - Your Team ID (found in Membership section)
+   - Your Apple ID email
+
+OPTION 2 (Better long-term):
+Add me to the Apple Developer Program team:
+1. Go to https://developer.apple.com/account
+2. Click "People"
+3. Invite me with "Admin" or "App Manager" role
+4. I'll handle the rest
+
+Either option works! Option 1 is quicker if you're busy.
+
+Thanks!
+Simon
