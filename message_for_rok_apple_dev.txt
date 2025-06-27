@@ -1,0 +1,41 @@
+Hi Rok,
+
+I need your help with Apple Developer access for the BitcoinZ Blue wallet project. We need to properly sign the macOS builds to avoid security warnings for users.
+
+Could you help with ONE of these options?
+
+**OPTION 1: Add me to your Apple Developer team (Best for ongoing work)**
+1. Go to https://developer.apple.com/account
+2. Click "People" → "Invite People"
+3. Add my email: [YOUR EMAIL HERE]
+4. Give me "Admin" or "App Manager" role (so I can create certificates)
+5. I'll accept the invitation and handle the rest
+
+**OPTION 2: Create a Developer ID certificate (Quick solution)**
+1. Go to https://developer.apple.com/account
+2. Click "Certificates, IDs & Profiles"
+3. Click "+" to create new certificate
+4. Choose "Developer ID Application" (NOT Mac App Store)
+5. Follow the steps to create the certificate
+6. Download and install it in Keychain Access
+7. Export as .p12 file with a password
+8. Send me:
+   - The .p12 certificate file
+   - The password for the .p12
+   - Your Team ID (found in Membership section)
+   - Your Apple ID email
+
+**Why we need this:**
+- Users get "unidentified developer" warnings without proper signing
+- macOS Gatekeeper blocks unsigned apps
+- Notarization requires Developer ID certificate
+- Professional distribution for BitcoinZ Blue
+
+The certificate lasts 5 years and allows unlimited app signing. Once set up, all BitcoinZ Blue releases will be properly signed and notarized.
+
+Let me know which option works better for you. Option 2 takes about 10 minutes if you're in a hurry.
+
+Thanks!
+Simon
+
+P.S. I already set up all the GitHub Actions workflows for automatic signing - just need the certificate to make it work.
