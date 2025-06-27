@@ -87,7 +87,7 @@ jobs:
 
           # Generate new lock file and build (allow warnings)
           cargo generate-lockfile
-          cargo build --release
+          cargo build --release --features embed_params
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Import Apple Developer Certificate
@@ -322,7 +322,7 @@ jobs:
           
           # Build the native module with verbose output
           echo "Building native module..."
-          cargo build --release --verbose
+          cargo build --release --features embed_params --verbose
           
           # Check what was built - be more thorough
           echo "Checking build output:"
