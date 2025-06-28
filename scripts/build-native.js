@@ -3,6 +3,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // Check if we should skip the native build
 if (process.env.SKIP_NATIVE_BUILD === 'true') {
@@ -30,6 +31,42 @@ if (process.env.SKIP_NATIVE_BUILD === 'true') {
     console.error('   This usually means the native module build step failed or was skipped');
     process.exit(1);
   }
+}
+
+// Verify Sapling parameters before building
+console.log('🔍 Verifying Sapling parameters...');
+
+const EXPECTED_HASHES = {
+  'sapling-spend.params': '8e48ffd23abb3a5fd9c5589204f32d9c31285a04b78096ba40a79b75677efc13',
+  'sapling-output.params': '2f0ebbcbb9bb0bcffe95a397e7eba89c29eb4dde6191c339db88570e3f3fb0e4'
+};
+
+const paramsDir = path.join(__dirname, '..', 'lib', 'zcash-params');
+
+for (const [filename, expectedHash] of Object.entries(EXPECTED_HASHES)) {
+  const filePath = path.join(paramsDir, filename);
+  
+  if (!fs.existsSync(filePath)) {
+    console.error(`❌ Missing Sapling parameter file: ${filename}`);
+    console.error(`   Please download from: https://download.z.cash/downloads/${filename}`);
+    process.exit(1);
+  }
+  
+  // Calculate SHA256 hash
+  const fileBuffer = fs.readFileSync(filePath);
+  const hashSum = crypto.createHash('sha256');
+  hashSum.update(fileBuffer);
+  const actualHash = hashSum.digest('hex');
+  
+  if (actualHash !== expectedHash) {
+    console.error(`❌ Invalid hash for ${filename}`);
+    console.error(`   Expected: ${expectedHash}`);
+    console.error(`   Actual:   ${actualHash}`);
+    console.error(`   File may be corrupted. Please re-download from https://download.z.cash/downloads/`);
+    process.exit(1);
+  }
+  
+  console.log(`✅ ${filename} verified (${fs.statSync(filePath).size} bytes)`);
 }
 
 console.log('🔨 Building native Rust module...');
