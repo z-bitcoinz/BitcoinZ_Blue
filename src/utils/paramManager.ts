@@ -86,7 +86,7 @@ export class ParamManager {
       const file = fs.createWriteStream(destPath);
       let downloadedBytes = 0;
 
-      https.get(url, (response) => {
+      https.get(url, (response: any) => {
         if (response.statusCode === 302 || response.statusCode === 301) {
           // Handle redirects
           file.close();
@@ -104,7 +104,7 @@ export class ParamManager {
           return;
         }
 
-        response.on('data', (chunk) => {
+        response.on('data', (chunk: any) => {
           downloadedBytes += chunk.length;
           const progress = (downloadedBytes / expectedSize) * 100;
           const downloadedMB = Math.round(downloadedBytes / 1024 / 1024);
@@ -120,7 +120,7 @@ export class ParamManager {
           file.close();
           resolve();
         });
-      }).on('error', (err) => {
+      }).on('error', (err: any) => {
         fs.unlinkSync(destPath);
         reject(err);
       });
@@ -223,7 +223,7 @@ export class ParamManager {
           throw new Error(`Downloaded file verification failed`);
         }
       } catch (error) {
-        throw new Error(`Failed to download ${filename}: ${error.message}`);
+        throw new Error(`Failed to download ${filename}: ${(error as Error).message}`);
       }
     }
 

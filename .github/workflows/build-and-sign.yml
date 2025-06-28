@@ -282,6 +282,8 @@ jobs:
           path: |
             dist/*x64*.dmg
             dist/*-x64.dmg
+            dist/BitcoinZ Blue-*-x64.dmg
+            dist/*.dmg
 
 
   build-windows:
