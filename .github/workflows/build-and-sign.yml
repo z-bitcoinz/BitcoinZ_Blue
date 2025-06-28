@@ -254,6 +254,16 @@ jobs:
           
           echo "✅ Notarization complete"
 
+      - name: List dist directory contents
+        run: |
+          echo "📁 Contents of dist directory:"
+          ls -la dist/ || echo "dist directory not found"
+          echo ""
+          echo "📁 DMG files in dist:"
+          ls -la dist/*.dmg || echo "No DMG files found"
+          echo ""
+          echo "📁 All files matching patterns:"
+          find dist -name "*.dmg" -o -name "*.app" -o -name "*.zip" || echo "No matching files"
 
       - name: Upload macOS ARM64 (Apple Silicon)
         uses: actions/upload-artifact@v4
@@ -261,7 +271,8 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-AppleSilicon
           path: |
-            dist/*arm64.dmg
+            dist/*arm64*.dmg
+            dist/*-arm64.dmg
 
       - name: Upload macOS Intel
         uses: actions/upload-artifact@v4
@@ -269,7 +280,8 @@ jobs:
         with:
           name: BitcoinZ-Blue-macOS-Intel
           path: |
-            dist/*x64.dmg
+            dist/*x64*.dmg
+            dist/*-x64.dmg
 
 
   build-windows:

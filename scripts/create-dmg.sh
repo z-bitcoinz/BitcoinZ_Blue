@@ -11,7 +11,7 @@ echo ""
 
 # Configuration
 APP_NAME="BitcoinZ Blue"
-VERSION="1.0.6"
+VERSION="1.0.9"
 DIST_DIR="dist"
 
 # Check if dist directory exists
