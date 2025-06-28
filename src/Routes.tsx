@@ -344,6 +344,12 @@ export default class RouteApp extends React.Component<Props, AppState> {
     this.setState({ prevSyncId });
   };
 
+  handleCurrencyChange = (currency: string) => {
+    // Force refresh of price data to update all UI
+    this.rpc.getZecPrice();
+    // You can add more logic here if needed to refresh specific components
+  };
+
   setInfo = (newInfo: Info) => {
     // If the price is not set in this object, copy it over from the current object
     const { info } = this.state;
@@ -535,7 +541,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
-          {hasLatestBlock && <TopMenuBarWithLocation info={info} />}
+          {hasLatestBlock && <TopMenuBarWithLocation info={info} onCurrencyChange={this.handleCurrencyChange} />}
 
           {/* Main Content Container */}
           <div className={cstyles.contentcontainer}>
@@ -649,7 +655,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
 }
 
 // Helper component to get current location and pass page title
-const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
+const TopMenuBarWithLocation: React.FC<{ info: Info; onCurrencyChange?: (currency: string) => void }> = ({ info, onCurrencyChange }) => {
   const location = useLocation();
 
   const getPageTitle = (pathname: string): string | undefined => {
@@ -673,5 +679,5 @@ const TopMenuBarWithLocation: React.FC<{ info: Info }> = ({ info }) => {
     }
   };
 
-  return <TopMenuBar info={info} pageTitle={getPageTitle(location.pathname)} />;
+  return <TopMenuBar info={info} pageTitle={getPageTitle(location.pathname)} onCurrencyChange={onCurrencyChange} />;
 };

@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-else-return */
 /* eslint-disable no-plusplus */
+import { currencyManager } from "./currencyManager";
+
 export const NO_CONNECTION: string = "Could not connect to bitcoinzd";
 
 export default class Utils {
@@ -226,17 +228,30 @@ export default class Utils {
   // BitcoinZ-specific: USD conversion with better precision handling for small amounts
   static getBtczToUsdStringBtcz(price: number | null, btczValue: number | null): string {
     if (!price || !btczValue) {
-      return "USD --";
+      const currency = currencyManager.getCurrentCurrency();
+      return `${currency.code} --`;
     }
 
-    const usdValue = price * btczValue;
+    const currency = currencyManager.getCurrentCurrency();
+    const fiatValue = price * btczValue;
 
-    // For very small USD values (less than $0.01), show more decimal places
-    if (usdValue < 0.01 && usdValue > 0) {
-      return `USD ${usdValue.toFixed(4)}`;
+    // For very small values (less than 0.01), show more decimal places
+    if (fiatValue < 0.01 && fiatValue > 0) {
+      return `${currency.code} ${currencyManager.formatCurrency(fiatValue, currency.code)}`;
     }
 
-    return `USD ${usdValue.toFixed(2)}`;
+    return `${currency.code} ${currencyManager.formatCurrency(fiatValue, currency.code)}`;
+  }
+
+  // New method for better currency formatting
+  static getBtczToFiatString(price: number | null, btczValue: number | null): string {
+    if (!price || !btczValue) {
+      const currency = currencyManager.getCurrentCurrency();
+      return `${currency.symbol}--`;
+    }
+
+    const fiatValue = price * btczValue;
+    return currencyManager.formatCurrency(fiatValue);
   }
 
   static utf16Split(s: string, chunksize: number): string[] {

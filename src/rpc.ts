@@ -12,6 +12,7 @@ import {
   WalletSettings,
 } from "./components/AppState";
 import { SendManyJson } from "./components/Send";
+import { currencyManager } from "./utils/currencyManager";
 
 import getNativeModule from "./native-loader";
 
@@ -728,58 +729,40 @@ export default class RPC {
   async getZecPrice() {
     console.log("🔍 Attempting to fetch BTCZ price...");
 
-    // Check if we have a cached price that's still valid
-    const now = Date.now();
-    if (this.cachedPrice && this.priceLastFetched && (now - this.priceLastFetched) < this.PRICE_CACHE_DURATION) {
-      console.log(`💾 Using cached BTCZ price: $${this.cachedPrice} (cached ${Math.round((now - this.priceLastFetched) / 1000)}s ago)`);
-      this.fnSetBtczPrice(this.cachedPrice);
-      return;
-    }
-
-    console.log("🌐 Fetching fresh price from CoinGecko...");
-
     try {
-      // Fetch BitcoinZ price directly from CoinGecko API
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoinz&vs_currencies=usd');
+      // Get exchange rates from currency manager (which handles caching)
+      const rates = await currencyManager.getExchangeRates();
+      
+      // Get the current currency from currency manager
+      const currentCurrency = currencyManager.getCurrentCurrency();
+      const rate = rates.get(currentCurrency.code);
 
-      if (!response.ok) {
-        console.log(`❌ CoinGecko API error: ${response.status} ${response.statusText}`);
-
-        // If we have a cached price (even if expired), use it as fallback
-        if (this.cachedPrice) {
-          console.log(`🔄 Using expired cached price as fallback: $${this.cachedPrice}`);
-          this.fnSetBtczPrice(this.cachedPrice);
+      if (rate) {
+        console.log(`✅ Setting BTCZ price in ${currentCurrency.code}: ${currentCurrency.symbol}${rate}`);
+        this.fnSetBtczPrice(rate);
+        
+        // Cache USD price for backward compatibility
+        const usdRate = rates.get('USD');
+        if (usdRate) {
+          this.cachedPrice = usdRate;
+          this.priceLastFetched = Date.now();
         }
-        return;
-      }
-
-      const data = await response.json();
-      console.log(`📈 CoinGecko response:`, data);
-
-      if (data.bitcoinz && data.bitcoinz.usd) {
-        const price = data.bitcoinz.usd;
-
-        // Cache the new price
-        this.cachedPrice = price;
-        this.priceLastFetched = now;
-
-        console.log(`✅ Setting BTCZ price to: $${price} (cached for ${this.PRICE_CACHE_DURATION / 60000} minutes)`);
-        this.fnSetBtczPrice(price);
       } else {
-        console.log(`⚠️ No BitcoinZ price found in CoinGecko response:`, data);
-
-        // Use cached price if available
-        if (this.cachedPrice) {
-          console.log(`🔄 Using cached price as fallback: $${this.cachedPrice}`);
-          this.fnSetBtczPrice(this.cachedPrice);
+        console.log(`⚠️ No ${currentCurrency.code} price found`);
+        
+        // Fallback to USD if available
+        const usdRate = rates.get('USD');
+        if (usdRate) {
+          console.log(`🔄 Using USD price as fallback: $${usdRate}`);
+          this.fnSetBtczPrice(usdRate);
         }
       }
     } catch (error) {
-      console.log(`❌ Error fetching price from CoinGecko:`, error);
+      console.log(`❌ Error fetching prices:`, error);
 
       // Use cached price if available
       if (this.cachedPrice) {
-        console.log(`🔄 Using cached price due to network error: $${this.cachedPrice}`);
+        console.log(`🔄 Using cached USD price due to error: $${this.cachedPrice}`);
         this.fnSetBtczPrice(this.cachedPrice);
         return;
       }
