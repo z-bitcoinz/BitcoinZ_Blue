@@ -28,6 +28,7 @@ import ScrollPane from "./ScrollPane";
 import ArrowUpLight from "../assets/img/arrow_up_dark.png";
 import { BalanceBlockHighlight } from "./BalanceBlocks";
 import RPC from "../rpc";
+import { currencyManager } from "../utils/currencyManager";
 import routes from "../constants/routes.json";
 import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
 import { TransactionSuccessModal, TransactionSuccessModalData } from "./TransactionSuccessModal";
@@ -69,6 +70,8 @@ const ToAddrBox = ({
   addressBook,
   openErrorModal,
 }: ToAddrBoxProps) => {
+  const [inputInFiat, setInputInFiat] = React.useState(false);
+  const [fiatInputValue, setFiatInputValue] = React.useState("");
   const isMemoDisabled = !Utils.isZaddr(toaddr.to);
 
   const addressIsValid =
@@ -106,7 +109,8 @@ const ToAddrBox = ({
     setSendButtonEnable(buttonstate);
   }, [buttonstate, setSendButtonEnable]);
 
-  const usdValue = Utils.getBtczToUsdStringBtcz(btczPrice, toaddr.amount);
+  const currency = currencyManager.getCurrentCurrency();
+  const fiatValue = btczPrice ? currencyManager.formatCurrency(toaddr.amount * btczPrice) : `${currency.symbol}--`;
 
   const addReplyTo = () => {
     if (toaddr.memo.endsWith(fromAddress)) {
@@ -251,18 +255,70 @@ const ToAddrBox = ({
         </div>
         <div style={{ marginTop: "8px" }}>
           <div className={[cstyles.flexspacebetween].join(" ")} style={{ marginBottom: "2px" }}>
-            <div className={cstyles.sublight} style={{ fontSize: "12px" }}>Amount</div>
+            <div className={cstyles.sublight} style={{ fontSize: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              Amount
+              <button
+                type="button"
+                onClick={() => setInputInFiat(!inputInFiat)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  fontSize: '10px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                {inputInFiat ? `${currency.code} → BTCZ` : `BTCZ → ${currency.code}`}
+              </button>
+            </div>
             <div className={cstyles.validationerror} style={{ fontSize: "11px" }}>
-              {amountError ? <span className={cstyles.red}>{amountError}</span> : <span>{usdValue}</span>}
+              {amountError ? <span className={cstyles.red}>{amountError}</span> : (
+                <span>{inputInFiat ? `${toaddr.amount ? toaddr.amount.toFixed(8) : '0'} BTCZ` : fiatValue}</span>
+              )}
             </div>
           </div>
           <div className={[cstyles.flexspacebetween].join(" ")}>
             <input
               type="number"
               step="any"
-              value={isNaN(toaddr.amount) ? "" : toaddr.amount}
-              onChange={(e) => updateToField(toaddr.id as number, null, e, null)}
-              placeholder="0"
+              value={inputInFiat ? fiatInputValue : (isNaN(toaddr.amount) ? "" : toaddr.amount)}
+              onChange={(e) => {
+                if (inputInFiat) {
+                  setFiatInputValue(e.target.value);
+                  const fiatAmount = parseFloat(e.target.value);
+                  if (!isNaN(fiatAmount) && btczPrice) {
+                    const btczAmount = fiatAmount / btczPrice;
+                    const syntheticEvent = {
+                      target: { value: btczAmount.toString() }
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    updateToField(toaddr.id as number, null, syntheticEvent, null);
+                  } else if (e.target.value === "") {
+                    const syntheticEvent = {
+                      target: { value: "" }
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    updateToField(toaddr.id as number, null, syntheticEvent, null);
+                  }
+                } else {
+                  updateToField(toaddr.id as number, null, e, null);
+                  // Update fiat input value when BTCZ changes
+                  const btczAmount = parseFloat(e.target.value);
+                  if (!isNaN(btczAmount) && btczPrice) {
+                    setFiatInputValue((btczAmount * btczPrice).toFixed(2));
+                  } else {
+                    setFiatInputValue("");
+                  }
+                }
+              }}
+              placeholder={inputInFiat ? `0 ${currency.code}` : "0 BTCZ"}
               style={{
                 flex: 1,
                 marginRight: "8px",
@@ -419,7 +475,7 @@ const ConfirmModalToAddr = ({ toaddr, info }: ConfirmModalToAddrProps) => {
           </div>
           {toaddr.to !== "Fee" && (
             <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>
-              {Utils.getBtczToUsdStringBtcz(info.btczPrice, toaddr.amount)}
+              {info.btczPrice ? currencyManager.formatCurrency(toaddr.amount * info.btczPrice) : ""}
             </div>
           )}
         </div>
@@ -560,8 +616,8 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
               </span>
               <span className={[cstyles.small, styles.btczsmallpart].join(" ")}>{smallPart}</span>
             </div>
-            <div className={[cstyles.normal, { color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }].join(" ")}>
-              {Utils.getBtczToUsdStringBtcz(info.btczPrice, sendingTotal)}
+            <div className={[cstyles.normal].join(" ")} style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }}>
+              {info.btczPrice ? currencyManager.formatCurrency(sendingTotal * info.btczPrice) : ""}
             </div>
           </div>
         </div>
