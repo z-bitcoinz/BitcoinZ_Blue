@@ -4,7 +4,6 @@ import QRCode from "qrcode.react";
 import styles from "./Receive.module.css";
 import Utils from "../utils/utils";
 import { AddressBalance, Info, ReceivePageState, AddressBookEntry, AddressDetail, AddressType } from "./AppState";
-import ScrollPane from "./ScrollPane";
 
 const { shell, clipboard } = window.require("electron");
 
@@ -201,11 +200,17 @@ type Props = {
 
 export default class Receive extends Component<Props> {
   state = {
-    addressFilter: 'all' as 'all' | 'private' | 'transparent'
+    addressFilter: 'all' as 'all' | 'private' | 'transparent',
+    currentPage: 1,
+    itemsPerPage: 20
   };
 
   setAddressFilter = (filter: 'all' | 'private' | 'transparent') => {
-    this.setState({ addressFilter: filter });
+    this.setState({ addressFilter: filter, currentPage: 1 }); // Reset to page 1 when filter changes
+  };
+
+  setCurrentPage = (page: number) => {
+    this.setState({ currentPage: page });
   };
 
   render() {
@@ -233,7 +238,6 @@ export default class Receive extends Component<Props> {
 
     const zaddrs = addresses
       .filter((a) => Utils.isSapling(a.address))
-      .slice(0, 100)
       .map((a) => new AddressBalance(a.address, addressMap.get(a.address) || 0));
 
     let defaultZaddr = zaddrs.length ? zaddrs[0].address : "";
@@ -249,7 +253,6 @@ export default class Receive extends Component<Props> {
 
     const taddrs = addresses
       .filter((a) => Utils.isTransparent(a.address))
-      .slice(0, 100)
       .map((a) => new AddressBalance(a.address, addressMap.get(a.address) || 0));
 
     let defaultTaddr = taddrs.length ? taddrs[0].address : "";
@@ -288,6 +291,13 @@ export default class Receive extends Component<Props> {
       if (a.type === 'transparent' && b.type === 'private') return 1;
       return 0;
     });
+
+    // Pagination calculations
+    const { currentPage, itemsPerPage } = this.state;
+    const totalPages = Math.ceil(filteredAddresses.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedAddresses = filteredAddresses.slice(startIndex, endIndex);
 
     return (
       <div className={styles.receivePageContainer}>
@@ -329,59 +339,88 @@ export default class Receive extends Component<Props> {
             </div>
           </div>
 
-          <div className={styles.unifiedContent}>
-            <ScrollPane offsetHeight={240} className={styles.fullHeightScroll} scrollbarType="glass">
-              {filteredAddresses.length > 0 ? (
-                <div className={styles.addressList}>
-                  {filteredAddresses.map((a) => (
-                    <AddressBlock
-                      key={a.address}
-                      addressBalance={a}
-                      currencyName={info.currencyName}
-                      label={addressBookMap.get(a.address)}
-                      btczPrice={info.btczPrice}
-                      privateKey={addressPrivateKeys.get(a.address)}
-                      viewKey={addressViewKeys.get(a.address)}
-                      fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
-                      fetchAndSetSingleViewKey={fetchAndSetSingleViewKey}
-                      addressType={a.type}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.noAddressesMessage}>
-                  <i className="fas fa-info-circle" />
-                  <p>No {this.state.addressFilter === 'all' ? '' : this.state.addressFilter} addresses found.</p>
-                  <p>Create a new address using the buttons below.</p>
-                </div>
+          {/* Action Buttons - Compact Top Section */}
+          <div className={styles.topActionBar}>
+            <div className={styles.compactButtonGroup}>
+              {(this.state.addressFilter === 'all' || this.state.addressFilter === 'private') && (
+                <button
+                  className={styles.compactActionButton}
+                  onClick={() => createNewAddress(AddressType.sapling)}
+                  type="button"
+                  title="Create new private address"
+                >
+                  <i className="fas fa-plus-circle" />
+                  <span>New Private</span>
+                </button>
               )}
-
-              <div className={styles.actionButtonsContainer}>
-                <div className={styles.buttonRow}>
-                  {(this.state.addressFilter === 'all' || this.state.addressFilter === 'private') && (
-                    <button
-                      className={styles.modernButton}
-                      onClick={() => createNewAddress(AddressType.sapling)}
-                      type="button"
-                    >
-                      <i className="fas fa-shield-alt" />
-                      New Private Address
-                    </button>
-                  )}
-                  {(this.state.addressFilter === 'all' || this.state.addressFilter === 'transparent') && (
-                    <button
-                      className={styles.modernButton}
-                      type="button"
-                      onClick={() => createNewAddress(AddressType.transparent)}
-                    >
-                      <i className="fas fa-eye" />
-                      New Transparent Address
-                    </button>
-                  )}
-                </div>
-              </div>
-            </ScrollPane>
+              {(this.state.addressFilter === 'all' || this.state.addressFilter === 'transparent') && (
+                <button
+                  className={styles.compactActionButton}
+                  type="button"
+                  onClick={() => createNewAddress(AddressType.transparent)}
+                  title="Create new transparent address"
+                >
+                  <i className="fas fa-plus-circle" />
+                  <span>New Transparent</span>
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Address List */}
+          {filteredAddresses.length > 0 ? (
+            <div className={styles.addressList}>
+              {paginatedAddresses.map((a) => (
+                <AddressBlock
+                  key={a.address}
+                  addressBalance={a}
+                  currencyName={info.currencyName}
+                  label={addressBookMap.get(a.address)}
+                  btczPrice={info.btczPrice}
+                  privateKey={addressPrivateKeys.get(a.address)}
+                  viewKey={addressViewKeys.get(a.address)}
+                  fetchAndSetSinglePrivKey={fetchAndSetSinglePrivKey}
+                  fetchAndSetSingleViewKey={fetchAndSetSingleViewKey}
+                  addressType={a.type}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noAddressesMessage}>
+              <i className="fas fa-info-circle" />
+              <p>No {this.state.addressFilter === 'all' ? '' : this.state.addressFilter} addresses found.</p>
+              <p>Create a new address using the buttons below.</p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredAddresses.length > itemsPerPage && (
+            <div className={styles.paginationContainer}>
+              <button
+                className={styles.paginationButton}
+                onClick={() => this.setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                type="button"
+              >
+                <i className="fas fa-chevron-left" />
+                Previous
+              </button>
+              
+              <span className={styles.paginationInfo}>
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <button
+                className={styles.paginationButton}
+                onClick={() => this.setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                type="button"
+              >
+                Next
+                <i className="fas fa-chevron-right" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -9,9 +9,10 @@
 
 .receivePageContent {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scroll */
   padding: 8px 20px;
-  padding-bottom: 50px; /* Space for bottom navigation */
+  padding-bottom: 80px; /* Extra space for bottom navigation and content */
   padding-top: 15px; /* Space for top menu bar */
 }
 
@@ -83,16 +84,54 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Unified Content Layout */
-.unifiedContent {
-  height: calc(100vh - 200px); /* Full height minus header, filter buttons, and navigation */
+/* Removed unified content layout - no longer needed */
+
+/* Top Action Bar - Compact Design */
+.topActionBar {
+  margin: 16px 0 20px 0;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
 }
 
-.fullHeightScroll {
-  flex: 1;
-  height: 100%;
+.compactButtonGroup {
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.compactActionButton {
+  background: rgba(74, 144, 226, 0.2);
+  border: 1px solid rgba(74, 144, 226, 0.4);
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.compactActionButton:hover {
+  background: rgba(74, 144, 226, 0.35);
+  border-color: rgba(74, 144, 226, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(74, 144, 226, 0.3);
+}
+
+.compactActionButton i {
+  font-size: 14px;
+}
+
+.compactActionButton span {
+  font-size: 12px;
 }
 
 /* Address List Container */
@@ -100,7 +139,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 /* Compact Address Block Layout */
@@ -179,6 +218,7 @@
 .actionButtonsContainer {
   margin-top: 24px;
   padding: 20px 0;
+  padding-bottom: 40px; /* Extra padding to ensure visibility */
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -567,4 +607,55 @@
 .noAddressesMessage p:first-of-type {
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* Pagination Styles */
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.paginationButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.paginationButton:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.paginationInfo {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 120px;
+  text-align: center;
 }
