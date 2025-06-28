@@ -71,7 +71,7 @@ if [ -d "${DIST_DIR}/mac-arm64" ]; then
 fi
 
 if [ -d "${DIST_DIR}/mac" ]; then
-    create_dmg "intel" "${DIST_DIR}/mac"
+    create_dmg "x64" "${DIST_DIR}/mac"
 fi
 
 echo ""
