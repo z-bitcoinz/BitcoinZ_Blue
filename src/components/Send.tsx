@@ -31,6 +31,7 @@ import RPC from "../rpc";
 import routes from "../constants/routes.json";
 import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
 import { TransactionSuccessModal, TransactionSuccessModalData } from "./TransactionSuccessModal";
+import { TransactionLoader } from "./TransactionLoader";
 
 type OptionType = {
   value: string;
@@ -54,7 +55,7 @@ type ToAddrBoxProps = {
   setMaxAmount: (id: number, total: number) => void;
   totalAmountAvailable: number;
   addressBook: AddressBookEntry[];
-  openErrorModal: (title: string, body: string) => void;
+  openErrorModal: (title: string, body: string | JSX.Element) => void;
 };
 const ToAddrBox = ({
   toaddr,
@@ -449,7 +450,7 @@ type ConfirmModalProps = {
   clearToAddrs: () => void;
   closeModal: () => void;
   modalIsOpen: boolean;
-  openErrorModal: (title: string, body: string) => void;
+  openErrorModal: (title: string, body: string | JSX.Element) => void;
   openPasswordAndUnlockIfNeeded: (successCallback: () => void | Promise<void>) => void;
   openTransactionSuccessModal: (txid: string) => void;
 };
@@ -499,12 +500,16 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
 
     // This will be replaced by either a success TXID or error message that the user
     // has to close manually.
-    openErrorModal("Computing Transaction", "Please wait...This could take a while");
+    openErrorModal("Computing Transaction", <TransactionLoader />);
     const setSendProgress = (progress?: SendProgress) => {
       if (progress && progress.sendInProgress) {
         openErrorModal(
           `Computing Transaction`,
-          `Step ${progress.progress} of ${progress.total}. ETA ${progress.etaSeconds}s`
+          <TransactionLoader 
+            progress={progress.progress} 
+            total={progress.total} 
+            etaSeconds={progress.etaSeconds} 
+          />
         );
       }
     };
@@ -615,7 +620,7 @@ type Props = {
   setSendTo: (targets: BitcoinzURITarget[] | BitcoinzURITarget) => void;
   sendTransaction: (sendJson: SendManyJson[], setSendProgress: (p?: SendProgress) => void) => Promise<string>;
   setSendPageState: (sendPageState: SendPageState) => void;
-  openErrorModal: (title: string, body: string) => void;
+  openErrorModal: (title: string, body: string | JSX.Element) => void;
   closeErrorModal: () => void;
   info: Info;
   openPasswordAndUnlockIfNeeded: (successCallback: () => void) => void;

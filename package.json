@@ -1,7 +1,7 @@
 {
   "name": "bitcoinz-wallet-lite",
   "productName": "BitcoinZ Wallet Lite",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "private": true,
   "description": "BitcoinZ Wallet Lite - A lightweight wallet for BitcoinZ",
   "license": "MIT",
@@ -173,7 +173,7 @@
     "util": "^0.12.5",
     "wait-on": "^5.2.1"
   },
-  "homepage": "",
+  "homepage": "./",
   "main": "./public/electron.js",
   "build": {
     "productName": "BitcoinZ Blue",

@@ -169,7 +169,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               For help visit: getbtcz.com/support
               <br />
               <br />
-              Error: {error.message}
+              Error: {(error as Error).message}
             </span>
           ),
           currentStatusIsError: true,

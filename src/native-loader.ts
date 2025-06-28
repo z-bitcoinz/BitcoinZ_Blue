@@ -1,6 +1,8 @@
 /* eslint-disable import/no-dynamic-require */
 /* eslint-disable global-require */
 
+declare const __non_webpack_require__: typeof require;
+
 let nativeModule: any = null;
 let loadError: string | null = null;
 
@@ -55,35 +57,92 @@ function loadNativeModule(): any {
     console.log(`Architecture: ${process.arch}`);
     console.log(`Node.js version: ${process.version}`);
     
-    // Try different loading strategies (only within src/)
-    const loadAttempts = [
-      () => require('./native.node'),
-    ];
+    // In production/webpack builds, the native module is processed by file-loader
+    // and gets a hashed name. We need to handle both development and production cases.
+    let loadedModule = null;
     
-    for (let i = 0; i < loadAttempts.length; i++) {
-      try {
-        console.log(`Loading attempt ${i + 1}...`);
-        nativeModule = loadAttempts[i]();
-        console.log('SUCCESS: Native module loaded successfully');
-        console.log('Available functions:', Object.keys(nativeModule));
+    try {
+      // First try the direct import which webpack will handle
+      const nativeModulePath = require('./native.node');
+      console.log('Webpack provided path:', nativeModulePath);
+      
+      // In webpack builds, require('./native.node') returns the path string
+      // We need to require that path to get the actual module
+      if (typeof nativeModulePath === 'string') {
+        // This is a webpack build - load from the hashed path
+        loadedModule = __non_webpack_require__(nativeModulePath);
+      } else {
+        // Direct load worked (development mode)
+        loadedModule = nativeModulePath;
+      }
+    } catch (e: any) {
+      console.log('Direct import failed, trying fallback:', e.message);
+      
+      // Fallback for Electron production builds
+      // Try to load from the app's resource path
+      const electron = (window as any).require ? (window as any).require('electron') : null;
+      if (electron && electron.remote) {
+        const path = electron.remote.require('path');
+        const fs = electron.remote.require('fs');
+        const app = electron.remote.app;
         
-        // Test a basic function if available
-        if (nativeModule.litelib_say_hello) {
-          try {
-            const testResult = nativeModule.litelib_say_hello('connection-test');
-            console.log('Native module test result:', testResult);
-          } catch (testError) {
-            console.warn('Native module loaded but test function failed:', testError);
-          }
+        const possiblePaths = [
+          path.join(__dirname, 'native.node'),
+          path.join(app.getAppPath(), 'build', 'native.node'),
+        ];
+        
+        // Add resourcesPath if available (Electron production only)
+        if ((process as any).resourcesPath) {
+          possiblePaths.push(path.join((process as any).resourcesPath, 'app.asar.unpacked', 'build', 'native.node'));
         }
         
-        return nativeModule;
-      } catch (attemptError) {
-        console.log(`Loading attempt ${i + 1} failed:`, getDetailedError(attemptError));
+        // Also check for hashed versions in the build directory
+        const buildDir = path.join(app.getAppPath(), 'build');
+        if (fs.existsSync(buildDir)) {
+          const files = fs.readdirSync(buildDir);
+          files.forEach((file: string) => {
+            if (/^native-[a-f0-9]+\.node$/.test(file)) {
+              possiblePaths.unshift(path.join(buildDir, file));
+            }
+          });
+        }
+        
+        for (const modulePath of possiblePaths) {
+          try {
+            if (fs.existsSync(modulePath)) {
+              console.log(`Trying to load from: ${modulePath}`);
+              loadedModule = __non_webpack_require__(modulePath);
+              if (loadedModule) {
+                console.log(`Successfully loaded from: ${modulePath}`);
+                break;
+              }
+            }
+          } catch (err: any) {
+            console.log(`Failed to load from ${modulePath}:`, err.message);
+          }
+        }
       }
     }
     
-    throw new Error('All loading attempts failed');
+    if (!loadedModule) {
+      throw new Error('Could not load native module from any location');
+    }
+    
+    nativeModule = loadedModule;
+    console.log('SUCCESS: Native module loaded successfully');
+    console.log('Available functions:', Object.keys(nativeModule));
+    
+    // Test a basic function if available
+    if (nativeModule.litelib_say_hello) {
+      try {
+        const testResult = nativeModule.litelib_say_hello('connection-test');
+        console.log('Native module test result:', testResult);
+      } catch (testError) {
+        console.warn('Native module loaded but test function failed:', testError);
+      }
+    }
+    
+    return nativeModule;
     
   } catch (error) {
     console.error('CRITICAL: Failed to load native module');
