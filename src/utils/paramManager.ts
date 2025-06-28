@@ -1,10 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import * as crypto from 'crypto';
-import * as https from 'https';
-
 const { ipcRenderer } = window.require('electron');
+const fs = window.require('fs');
+const path = window.require('path');
+const os = window.require('os');
+const crypto = window.require('crypto');
+const https = window.require('https');
 
 // Expected SHA256 hashes for the parameter files
 const PARAM_HASHES = {
