@@ -123,6 +123,35 @@ export class CurrencyManager {
       ? SUPPORTED_CURRENCIES[currencyCode] 
       : this.currentCurrency;
 
+    // Handle very small numbers by using more decimals
+    let decimals = currency.decimals;
+    if (amount > 0 && amount < 0.01) {
+      // For very small amounts, show up to 8 decimals
+      // but remove trailing zeros
+      const formatted = amount.toFixed(8);
+      const trimmed = formatted.replace(/\.?0+$/, '');
+      const formattedAmount = trimmed;
+      
+      // Position symbol based on currency conventions
+      switch (currency.code) {
+        case 'EUR':
+        case 'GBP':
+        case 'INR':
+        case 'CNY':
+        case 'JPY':
+        case 'KRW':
+          return `${currency.symbol}${formattedAmount}`;
+        case 'PLN':
+        case 'CZK':
+        case 'SEK':
+        case 'NOK':
+        case 'THB':
+          return `${formattedAmount} ${currency.symbol}`;
+        default:
+          return `${currency.symbol}${formattedAmount}`;
+      }
+    }
+
     // Handle special formatting for currencies with 0 decimals
     const formattedAmount = currency.decimals === 0 
       ? Math.round(amount).toLocaleString()

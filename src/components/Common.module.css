@@ -9,7 +9,7 @@
   padding-top: 20px; /* Space for top menu bar */
   padding-bottom: 40px; /* Space for bottom navigation */
   height: calc(100vh - 60px); /* Full height minus top/bottom bars */
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .well {
