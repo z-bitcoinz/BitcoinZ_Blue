@@ -327,7 +327,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                 Batch Progress: {batch_progress.toFixed(2)}%. Total progress: {progress.toFixed(2)}%.
                 <br />
                 <br />
-                Please wait... This could take several minutes or hours
+                Light wallet sync in progress... Usually takes just a few minutes
               </div>
             );
             me.setState({ currentStatus });
