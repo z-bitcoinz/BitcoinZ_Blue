@@ -186,17 +186,67 @@ export default class Help extends Component<{}, HelpState> {
             </div>
           </div>
 
+          <div className={styles.helpSection}>
+            <h3>🌐 BitcoinZ Resources & Community Support</h3>
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>📚 Official BitcoinZ Homepage</div>
+              <div className={styles.helpCardBody}>
+                <div className={styles.resourceLink}>
+                  <a href="https://getbtcz.com" target="_blank" rel="noopener noreferrer" className={styles.mainResource}>
+                    <span className={styles.resourceIcon}>🌍</span>
+                    <div className={styles.resourceInfo}>
+                      <strong>getbtcz.com</strong>
+                      <p>All information about BitcoinZ - whitepapers, wallets, exchanges, roadmap, and more!</p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>💬 Live Support from Community</div>
+              <div className={styles.helpCardBody}>
+                <div className={styles.communityLinks}>
+                  <a href="https://discord.com/invite/K59mxyf" target="_blank" rel="noopener noreferrer" className={styles.communityLink}>
+                    <span className={styles.communityIcon}>💙</span>
+                    <div className={styles.communityInfo}>
+                      <strong>Discord Community</strong>
+                      <p>Join our active Discord server for real-time help and discussions</p>
+                    </div>
+                  </a>
+                  
+                  <a href="https://t.me/btczofficialgroup" target="_blank" rel="noopener noreferrer" className={styles.communityLink}>
+                    <span className={styles.communityIcon}>📱</span>
+                    <div className={styles.communityInfo}>
+                      <strong>Telegram Group</strong>
+                      <p>@btczofficialgroup - Get instant support from the community</p>
+                    </div>
+                  </a>
+                </div>
+
+                <div className={styles.safetyNote} style={{ marginTop: '20px' }}>
+                  <strong>🤝 Community Guidelines:</strong>
+                  <ul>
+                    <li>✅ Be respectful and helpful to all members</li>
+                    <li>✅ Never share your private keys or seed phrases</li>
+                    <li>✅ Verify information from official sources</li>
+                    <li>✅ Report suspicious activity to moderators</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className={styles.helpFooter}>
             <p>
               <strong>BitcoinZ Blue</strong> - Modern. Secure. Private. 💙
             </p>
             <p>
               <small>
-                For technical support, visit our{" "}
+                For development updates, visit our{" "}
                 <a href="https://github.com/z-bitcoinz/BitcoinZ_Blue" target="_blank" rel="noopener noreferrer">
                   GitHub repository
-                </a>{" "}
-                or join the BitcoinZ community.
+                </a>
               </small>
             </p>
           </div>

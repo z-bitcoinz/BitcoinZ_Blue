@@ -14,11 +14,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
     currencyManager.getCurrentCurrency().code
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [showPriceInHeader, setShowPriceInHeader] = useState<boolean>(
+    localStorage.getItem('btcz_wallet_show_price_header') === 'true'
+  );
 
   const handleCurrencyChange = (currencyCode: string) => {
     setSelectedCurrency(currencyCode);
     currencyManager.setCurrentCurrency(currencyCode);
     onCurrencyChange(currencyCode);
+  };
+
+  const handlePriceToggle = () => {
+    const newValue = !showPriceInHeader;
+    setShowPriceInHeader(newValue);
+    localStorage.setItem('btcz_wallet_show_price_header', newValue.toString());
   };
 
   const filteredCurrencies = Object.values(SUPPORTED_CURRENCIES).filter(currency => 
@@ -55,11 +64,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
           </button>
         </div>
 
+        <div className={styles.toggleSection}>
+          <div className={styles.toggleItem}>
+            <span className={styles.toggleLabel}>Show Price in Header</span>
+            <label className={styles.toggleSwitch}>
+              <input
+                type="checkbox"
+                checked={showPriceInHeader}
+                onChange={handlePriceToggle}
+              />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
+        </div>
+
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Display Currency</h3>
-          <p className={styles.sectionDescription}>
-            Choose your preferred currency for displaying values
-          </p>
 
           <div className={styles.searchContainer}>
             <i className="fas fa-search" />
