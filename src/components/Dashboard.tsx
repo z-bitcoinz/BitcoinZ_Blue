@@ -45,6 +45,15 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                 <div className={styles.mainBalanceUsd}>
                   {Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.total)}
                 </div>
+                {totalBalance.pendingChange > 0 && (
+                  <div className={styles.pendingChangeNotice}>
+                    <i className="fas fa-clock"></i>
+                    <span>{Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ change pending</span>
+                    <div className={styles.pendingChangeTooltip}>
+                      Your transaction is being processed. The change will appear shortly.
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Balance Breakdown Section */}

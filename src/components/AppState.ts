@@ -42,6 +42,9 @@ export class TotalBalance {
   // Total confirmed balance (excluding pending)
   totalConfirmed: number;
 
+  // Pending change from sent transactions not yet in mempool
+  pendingChange: number;
+
   constructor() {
     this.uabalance = 0;
     this.zbalance = 0;
@@ -54,6 +57,7 @@ export class TotalBalance {
     this.pendingShielded = 0;
     this.totalPending = 0;
     this.totalConfirmed = 0;
+    this.pendingChange = 0;
   }
 }
 
@@ -247,10 +251,16 @@ export class SendProgress {
 export class WalletSettings {
   download_memos: string;
   spam_filter_threshold: number;
+  smart_note_management: boolean;
+  target_note_count: number;
+  auto_shield_threshold: number;
 
   constructor() {
     this.download_memos = "wallet";
     this.spam_filter_threshold = 0;
+    this.smart_note_management = false;
+    this.target_note_count = 10;
+    this.auto_shield_threshold = 0.1;
   }
 }
 
