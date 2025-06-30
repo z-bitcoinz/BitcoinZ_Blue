@@ -134,7 +134,6 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
           setLockError(`Too many failed attempts (${totalAttempts} total). Progressive lockout level ${lockoutLevel} active.`);
         } else {
           const remaining = securityManager.getAttemptsRemaining();
-          const totalAttempts = securityManager.getTotalFailedAttempts();
           setLockError(`Incorrect 4-digit PIN. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining before lockout.`);
         }
       }

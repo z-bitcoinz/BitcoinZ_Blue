@@ -124,7 +124,6 @@ export class CurrencyManager {
       : this.currentCurrency;
 
     // Handle very small numbers by using more decimals
-    let decimals = currency.decimals;
     if (amount > 0 && amount < 0.01) {
       // For very small amounts, show up to 8 decimals
       // but remove trailing zeros

@@ -50,7 +50,7 @@ type Props = {};
 
 // Lock Screen Wrapper Component
 const LockScreenWrapper: React.FC = () => {
-  const { isLocked, hasPin, verifyPin, lockError, attemptsRemaining, isInLockout, lockoutTimeRemaining, clearError } = useLock();
+  const { isLocked, hasPin, verifyPin, lockError, attemptsRemaining, isInLockout, lockoutTimeRemaining } = useLock();
 
   if (!hasPin || !isLocked) {
     return null;
