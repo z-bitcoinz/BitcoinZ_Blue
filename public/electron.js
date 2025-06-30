@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, shell, ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
+const fs = require("fs");
 const settings = require("electron-settings");
 
 // Fix for native module loading in production builds
@@ -562,6 +563,42 @@ function createWindow() {
   // Add handler for getting app data path (replacement for remote.app.getPath)
   ipcMain.handle("get-app-data-path", async () => {
     return app.getPath("appData");
+  });
+
+  // Helper function to get wallet data directory
+  function getWalletDataDir() {
+    const userDataPath = app.getPath('userData');
+    return path.join(userDataPath, 'bitcoinz-lightwallet');
+  }
+
+  // Security settings IPC handlers
+  ipcMain.handle('save-security-settings', async (event, settings) => {
+    try {
+      const walletDataDir = getWalletDataDir();
+      await fs.promises.mkdir(walletDataDir, { recursive: true });
+      const settingsPath = path.join(walletDataDir, 'security-settings.json');
+      await fs.promises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving security settings:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('load-security-settings', async (event) => {
+    try {
+      const walletDataDir = getWalletDataDir();
+      await fs.promises.mkdir(walletDataDir, { recursive: true });
+      const settingsPath = path.join(walletDataDir, 'security-settings.json');
+      if (await fs.promises.access(settingsPath).then(() => true).catch(() => false)) {
+        const data = await fs.promises.readFile(settingsPath, 'utf8');
+        return JSON.parse(data);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading security settings:', error);
+      return null;
+    }
   });
 
   // Add handler for testing embedded parameters

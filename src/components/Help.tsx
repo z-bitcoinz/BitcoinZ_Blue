@@ -135,6 +135,38 @@ export default class Help extends Component<{}, HelpState> {
           <div className={styles.helpSection}>
             <h3>🔒 Security Best Practices</h3>
             <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🔐 PIN Protection</div>
+              <div className={styles.helpCardBody}>
+                <div className={styles.securityTips}>
+                  <div className={styles.securityTip}>
+                    <span className={styles.tipIcon}>🔢</span>
+                    <div>
+                      <strong>4-digit PIN</strong> protects your wallet
+                      <br />
+                      <small>Quick access while maintaining security</small>
+                    </div>
+                  </div>
+                  <div className={styles.securityTip}>
+                    <span className={styles.tipIcon}>⚡</span>
+                    <div>
+                      <strong>Progressive lockout</strong> prevents brute force
+                      <br />
+                      <small>Lockout time increases with failed attempts</small>
+                    </div>
+                  </div>
+                  <div className={styles.securityTip}>
+                    <span className={styles.tipIcon}>🔒</span>
+                    <div>
+                      <strong>Auto-lock options</strong> available in settings
+                      <br />
+                      <small>Lock on app close or after inactivity</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
               <div className={styles.helpCardHeader}>🔑 Seed Phrase Security</div>
               <div className={styles.helpCardBody}>
                 <div className={styles.securityTips}>
