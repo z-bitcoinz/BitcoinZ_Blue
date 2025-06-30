@@ -206,8 +206,13 @@ export default class RouteApp extends React.Component<Props, AppState> {
     this.setState({ totalBalance });
   };
 
-  setWalletSettings = (walletSettings: WalletSettings) => {
+  setWalletSettings = async (walletSettings: WalletSettings) => {
+    console.log(`📝 Setting wallet settings:`, walletSettings);
     this.setState({ walletSettings });
+
+    // Note: Smart notes functionality removed as it's not supported by BitcoinZ backend
+    // Only display settings are saved locally
+    console.log(`✅ Wallet settings updated (display settings only)`);
   };
 
   updateWalletSettings = async () => {
@@ -541,7 +546,14 @@ export default class RouteApp extends React.Component<Props, AppState> {
 
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
-          {hasLatestBlock && <TopMenuBarWithLocation info={info} onCurrencyChange={this.handleCurrencyChange} />}
+          {hasLatestBlock && (
+            <TopMenuBarWithLocation 
+              info={info} 
+              onCurrencyChange={this.handleCurrencyChange}
+              walletSettings={walletSettings}
+              onWalletSettingsChange={this.setWalletSettings}
+            />
+          )}
 
           {/* Main Content Container */}
           <div className={cstyles.contentcontainer}>
@@ -655,7 +667,12 @@ export default class RouteApp extends React.Component<Props, AppState> {
 }
 
 // Helper component to get current location and pass page title
-const TopMenuBarWithLocation: React.FC<{ info: Info; onCurrencyChange?: (currency: string) => void }> = ({ info, onCurrencyChange }) => {
+const TopMenuBarWithLocation: React.FC<{ 
+  info: Info; 
+  onCurrencyChange?: (currency: string) => void;
+  walletSettings?: WalletSettings;
+  onWalletSettingsChange?: (settings: WalletSettings) => void;
+}> = ({ info, onCurrencyChange, walletSettings, onWalletSettingsChange }) => {
   const location = useLocation();
 
   const getPageTitle = (pathname: string): string | undefined => {
@@ -679,5 +696,13 @@ const TopMenuBarWithLocation: React.FC<{ info: Info; onCurrencyChange?: (currenc
     }
   };
 
-  return <TopMenuBar info={info} pageTitle={getPageTitle(location.pathname)} onCurrencyChange={onCurrencyChange} />;
+  return (
+    <TopMenuBar 
+      info={info} 
+      pageTitle={getPageTitle(location.pathname)} 
+      onCurrencyChange={onCurrencyChange}
+      walletSettings={walletSettings}
+      onWalletSettingsChange={onWalletSettingsChange}
+    />
+  );
 };

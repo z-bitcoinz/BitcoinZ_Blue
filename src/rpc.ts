@@ -46,6 +46,9 @@ export default class RPC {
   private priceLastFetched?: number;
   private readonly PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+  // Track pending transactions that haven't appeared in mempool yet
+  private pendingTransactions: Map<string, { sentTime: number; totalSpent: number; changeAmount: number }> = new Map();
+
   constructor(
     fnSetTotalBalance: (tb: TotalBalance) => void,
     fnSetAddressesWithBalance: (abs: AddressBalance[]) => void,
@@ -288,17 +291,28 @@ export default class RPC {
       console.log(`Error getting spam filter threshold: ${e}`);
     }
 
+    // Smart note management settings removed - not supported by BitcoinZ backend
+    let smart_note_management = false;
+    let target_note_count = 10;
+    let auto_shield_threshold = 0.1;
+
     const wallet_settings = new WalletSettings();
     wallet_settings.download_memos = download_memos;
     wallet_settings.spam_filter_threshold = parseInt(spam_filter_threshold);
+    wallet_settings.smart_note_management = smart_note_management;
+    wallet_settings.target_note_count = target_note_count;
+    wallet_settings.auto_shield_threshold = auto_shield_threshold;
 
     this.fnSetWalletSettings(wallet_settings);
   }
 
   static async setWalletSettingOption(name: string, value: string): Promise<string> {
+    console.log(`🔧 Setting wallet option: ${name} = ${value}`);
     const r = RPC.getNative().litelib_execute("setoption", `${name}=${value}`);
+    console.log(`🔧 Set option result: ${r}`);
 
     RPC.doSave();
+    console.log(`💾 Wallet saved after setting ${name}`);
     return r;
   }
 
@@ -357,6 +371,23 @@ export default class RPC {
 
     // Total includes both confirmed and pending
     balance.total = balance.uabalance + balance.zbalance + balance.transparent;
+
+    // Calculate pending change from transactions not yet in mempool
+    let totalPendingChange = 0;
+    const now = Date.now();
+    const PENDING_TIMEOUT = 60 * 1000; // 1 minute timeout for pending transactions
+    
+    // Clean up old pending transactions and calculate total pending change
+    for (const [txId, pendingTx] of this.pendingTransactions) {
+      if (now - pendingTx.sentTime > PENDING_TIMEOUT) {
+        // Remove old pending transactions
+        this.pendingTransactions.delete(txId);
+      } else {
+        totalPendingChange += pendingTx.changeAmount;
+      }
+    }
+    
+    balance.pendingChange = totalPendingChange;
 
     this.fnSetTotalBalance(balance);
 
@@ -606,12 +637,34 @@ export default class RPC {
     const prevProgress = JSON.parse(RPC.getNative().litelib_execute("sendprogress", ""));
     const prevSendId = prevProgress.id;
 
+    // Calculate total spent and expected change before sending
+    const totalSent = sendJson.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const fee = RPC.getDefaultFee();
+    
+    // Get current balance to calculate change
+    const balanceStr = RPC.getNative().litelib_execute("balance", "");
+    const balanceJSON = JSON.parse(balanceStr);
+    const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+    
+    // Track this transaction as pending
+    const tempTxId = `pending-${Date.now()}`;
+    const totalSpent = totalSent + fee;
+    const changeAmount = totalBalance - totalSpent;
+    
+    this.pendingTransactions.set(tempTxId, {
+      sentTime: Date.now(),
+      totalSpent,
+      changeAmount: changeAmount > 0 ? changeAmount : 0
+    });
+
     try {
       console.log(`Sending ${JSON.stringify(sendJson)}`);
       RPC.getNative().litelib_execute("send", JSON.stringify(sendJson));
     } catch (err) {
       // TODO Show a modal with the error
       console.log(`Error sending Tx: ${err}`);
+      // Remove from pending if send failed
+      this.pendingTransactions.delete(tempTxId);
       throw err;
     }
 
@@ -665,6 +718,9 @@ export default class RPC {
         setSendProgress(undefined);
 
         if (progress.txid) {
+          // Remove from pending transactions once confirmed sent
+          this.pendingTransactions.delete(tempTxId);
+          
           // And refresh data (full refresh)
           this.refresh(true);
 
@@ -672,6 +728,8 @@ export default class RPC {
         }
 
         if (progress.error) {
+          // Remove from pending if error occurred
+          this.pendingTransactions.delete(tempTxId);
           reject(progress.error as string);
         }
       }, 2 * 1000); // Every 2 seconds

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { Info } from "./AppState";
+import { Info, WalletSettings } from "./AppState";
 import routes from "../constants/routes.json";
 import styles from "./TopMenuBar.module.css";
 import { SettingsModal } from "./SettingsModal";
@@ -10,9 +10,11 @@ type TopMenuBarProps = {
   info: Info;
   pageTitle?: string;
   onCurrencyChange?: (currency: string) => void;
+  walletSettings?: WalletSettings;
+  onWalletSettingsChange?: (settings: WalletSettings) => void;
 };
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange }) => {
   const history = useHistory();
   const [showSettings, setShowSettings] = useState(false);
   const [showPriceInHeader, setShowPriceInHeader] = useState(false);
@@ -103,11 +105,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
           </div>
         </div>
       </div>
-      {onCurrencyChange && (
+      {onCurrencyChange && walletSettings && onWalletSettingsChange && (
         <SettingsModal
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           onCurrencyChange={onCurrencyChange}
+          walletSettings={walletSettings}
+          onWalletSettingsChange={onWalletSettingsChange}
         />
       )}
     </>
