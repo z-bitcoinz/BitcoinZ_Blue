@@ -5,6 +5,7 @@ import routes from "../constants/routes.json";
 import styles from "./TopMenuBar.module.css";
 import { SettingsModal } from "./SettingsModal";
 import { currencyManager } from "../utils/currencyManager";
+import { useLock } from "../contexts/LockContext";
 
 type TopMenuBarProps = {
   info: Info;
@@ -16,6 +17,7 @@ type TopMenuBarProps = {
 
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange }) => {
   const history = useHistory();
+  const { hasPin, isLocked, lock } = useLock();
   const [showSettings, setShowSettings] = useState(false);
   const [showPriceInHeader, setShowPriceInHeader] = useState(false);
   const isConnected = info && info.latestBlock > 0;
@@ -51,6 +53,22 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
     history.push(routes.ZCASHD);
   };
 
+  const handleLockClick = () => {
+    if (isLocked) {
+      // Unlock will be handled by the lock screen
+      return;
+    } else {
+      lock();
+    }
+  };
+
+  const getLockTooltip = () => {
+    if (!hasPin) return '';
+    return isLocked
+      ? 'Wallet is locked - enter PIN to unlock'
+      : 'Click to lock wallet';
+  };
+
   const getConnectionTooltip = () => {
     return isConnected
       ? `Connected to lightwalletd server\nClick to view server details`
@@ -62,9 +80,8 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
       return null;
     }
 
-    const currency = currencyManager.getCurrentCurrency();
     const formattedPrice = currencyManager.formatCurrency(info.btczPrice);
-    
+
     return `BTCZ: ${formattedPrice}`;
   };
 
@@ -82,6 +99,15 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
               <div className={styles.priceDisplay}>
                 <i className={`fas fa-chart-line ${styles.priceIcon}`} />
                 <span className={styles.priceText}>{formatPrice()}</span>
+              </div>
+            )}
+            {hasPin && (
+              <div
+                className={`${styles.lockButton} ${isLocked ? styles.locked : styles.unlocked}`}
+                onClick={handleLockClick}
+                title={getLockTooltip()}
+              >
+                <i className={`fas ${isLocked ? 'fa-lock' : 'fa-unlock'} ${styles.lockIcon}`} />
               </div>
             )}
             <div

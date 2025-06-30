@@ -173,3 +173,51 @@
   letter-spacing: 0.3px;
   white-space: nowrap;
 }
+
+/* Lock Button Styles */
+.lockButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+}
+
+.lockButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.lockButton.locked {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.lockButton.locked:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.lockButton.unlocked {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.lockButton.unlocked:hover {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.lockIcon {
+  font-size: 10px;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.lockButton.locked .lockIcon {
+  color: #fca5a5;
+}
+
+.lockButton.unlocked .lockIcon {
+  color: #86efac;
+}

@@ -42,9 +42,30 @@ import ServerSelectModal from "./components/ServerSelectModal";
 import TopMenuBar from "./components/TopMenuBar";
 import BottomNavigation from "./components/BottomNavigation";
 import Help from "./components/Help";
+import { LockProvider, useLock } from "./contexts/LockContext";
+import LockScreen from "./components/LockScreen";
 
 
 type Props = {};
+
+// Lock Screen Wrapper Component
+const LockScreenWrapper: React.FC = () => {
+  const { isLocked, hasPin, verifyPin, lockError, attemptsRemaining, isInLockout, lockoutTimeRemaining, clearError } = useLock();
+
+  if (!hasPin || !isLocked) {
+    return null;
+  }
+
+  return (
+    <LockScreen
+      onUnlock={verifyPin}
+      error={lockError || undefined}
+      attemptsRemaining={attemptsRemaining}
+      isLocked={isInLockout}
+      lockoutTimeRemaining={lockoutTimeRemaining}
+    />
+  );
+};
 
 export default class RouteApp extends React.Component<Props, AppState> {
   rpc: RPC;
@@ -501,7 +522,8 @@ export default class RouteApp extends React.Component<Props, AppState> {
     const hasLatestBlock = info && info.latestBlock > 0 ? true : false;
 
     return (
-      <>
+      <LockProvider>
+        <LockScreenWrapper />
         <ErrorModal
           title={errorModalData.title}
           body={errorModalData.body}
@@ -661,7 +683,7 @@ export default class RouteApp extends React.Component<Props, AppState> {
           {/* Bottom Navigation - Always visible when wallet is loaded */}
           {hasLatestBlock && <BottomNavigation />}
         </div>
-      </>
+      </LockProvider>
     );
   }
 }
