@@ -203,6 +203,11 @@ jobs:
             echo "has_credentials=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Install snapcraft for store operations
+        if: steps.check_credentials.outputs.has_credentials == 'true'
+        run: |
+          sudo snap install snapcraft --classic
+
       - name: Login to Snapcraft
         if: steps.check_credentials.outputs.has_credentials == 'true'
         env:
