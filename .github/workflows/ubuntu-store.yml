@@ -142,7 +142,7 @@ jobs:
 
           # Create snap.yaml
           cat > meta/snap.yaml << 'SNAP_YAML'
-          name: bitcoinz-blue
+          name: simbav911-bitcoinz-blue
           version: '${{ steps.version.outputs.version }}'
           summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
           description: |
@@ -182,15 +182,15 @@ jobs:
           SNAP_YAML
 
           # Create the snap package manually
-          mksquashfs . ../bitcoinz-blue_${{ steps.version.outputs.version }}_amd64.snap -noappend -comp xz -no-xattrs -no-fragments
+          mksquashfs . ../simbav911-bitcoinz-blue_${{ steps.version.outputs.version }}_amd64.snap -noappend -comp xz -no-xattrs -no-fragments
 
           echo "✅ Snap package created manually"
-          ls -la ../bitcoinz-blue_*.snap
+          ls -la ../simbav911-bitcoinz-blue_*.snap
           
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bitcoinz-blue-snap
+          name: simbav911-bitcoinz-blue-snap
           path: "*.snap"
           retention-days: 30
           
@@ -218,9 +218,9 @@ jobs:
         run: |
           SNAP_FILE=$(ls *.snap | head -1)
           snapcraft upload "$SNAP_FILE"
-          REVISION=$(snapcraft list-revisions bitcoinz-blue | grep "$VERSION" | head -1 | awk '{print $1}')
+          REVISION=$(snapcraft list-revisions simbav911-bitcoinz-blue | grep "$VERSION" | head -1 | awk '{print $1}')
           if [ -n "$REVISION" ]; then
-            snapcraft release bitcoinz-blue "$REVISION" "$RELEASE_CHANNEL"
+            snapcraft release simbav911-bitcoinz-blue "$REVISION" "$RELEASE_CHANNEL"
           fi
           
       - name: Summary (with store upload)
@@ -231,8 +231,8 @@ jobs:
           echo "📦 Version: ${{ steps.version.outputs.version }}"
           echo "📺 Channel: ${{ github.event.inputs.release_channel }}"
           echo "✅ Uploaded to Ubuntu Store"
-          echo "🔗 https://snapcraft.io/bitcoinz-blue"
-          echo "📥 Install: sudo snap install bitcoinz-blue --${{ github.event.inputs.release_channel }}"
+          echo "🔗 https://snapcraft.io/simbav911-bitcoinz-blue"
+          echo "📥 Install: sudo snap install simbav911-bitcoinz-blue --${{ github.event.inputs.release_channel }}"
 
       - name: Summary (artifact only)
         if: steps.check_credentials.outputs.has_credentials == 'false'
