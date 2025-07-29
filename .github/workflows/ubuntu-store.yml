@@ -195,14 +195,23 @@ jobs:
           path: "*.snap"
           retention-days: 30
           
+      - name: Check for store credentials
+        id: check_credentials
+        run: |
+          if [ -n "${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}" ]; then
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_credentials=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Login to Snapcraft
-        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
+        if: steps.check_credentials.outputs.has_credentials == 'true'
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
 
       - name: Upload to Ubuntu Store
-        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
+        if: steps.check_credentials.outputs.has_credentials == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
           RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
@@ -216,7 +225,7 @@ jobs:
           fi
           
       - name: Summary (with store upload)
-        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
+        if: steps.check_credentials.outputs.has_credentials == 'true'
         run: |
           SNAP_FILE=$(ls *.snap | head -1)
           echo "🎉 Snap package created and uploaded: $SNAP_FILE"
@@ -227,7 +236,7 @@ jobs:
           echo "📥 Install: sudo snap install bitcoinz-blue --${{ github.event.inputs.release_channel }}"
 
       - name: Summary (artifact only)
-        if: "!secrets.SNAPCRAFT_STORE_CREDENTIALS"
+        if: steps.check_credentials.outputs.has_credentials == 'false'
         run: |
           SNAP_FILE=$(ls *.snap | head -1)
           echo "🎉 Snap package created: $SNAP_FILE"
