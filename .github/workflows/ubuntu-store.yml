@@ -117,26 +117,24 @@ jobs:
           summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
           description: |
             BitcoinZ Blue is a lightweight, secure wallet for the BitcoinZ cryptocurrency.
-            
+
             Features:
             - Shielded (private) and transparent transactions
             - Fast sync with light wallet technology
             - Modern, user-friendly interface
             - Cross-platform compatibility
             - Open source and community-driven
-          
+
           grade: stable
-          confinement: strict
-          
+          confinement: devmode
+
           architectures:
             - build-on: amd64
               build-for: amd64
-          
+
           apps:
             bitcoinz-blue:
               command: bin/bitcoinz-blue
-              desktop: usr/share/applications/bitcoinz-blue.desktop
-              extensions: [gnome]
               plugs:
                 - network
                 - network-bind
@@ -151,33 +149,13 @@ jobs:
                 - browser-support
                 - gsettings
                 - removable-media
-              environment:
-                DISABLE_WAYLAND: 1
-          
+
           parts:
             bitcoinz-blue:
               plugin: dump
               source: .
               organize:
                 '*': .
-              stage-packages:
-                - libgtk-3-0
-                - libnotify4
-                - libnss3
-                - libxss1
-                - libxtst6
-                - libatspi2.0-0
-                - libuuid1
-                - libsecret-1-0
-                - libgconf-2-4
-                - libdrm2
-                - libxcomposite1
-                - libxdamage1
-                - libxrandr2
-                - libgbm1
-                - libxkbcommon0
-                - libxkbfile1
-                - libasound2
           SNAPCRAFT_END
           
       - name: Install snapcraft and LXD
