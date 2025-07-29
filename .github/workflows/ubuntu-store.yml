@@ -108,11 +108,23 @@ jobs:
             cp resources/icon.png snap-build/usr/share/pixmaps/bitcoinz-blue.png
           fi
           
-      - name: Create snapcraft.yaml
+
+          
+      - name: Install snap tools
         run: |
-          cat > snap-build/snapcraft.yaml << 'SNAPCRAFT_END'
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools
+
+      - name: Create snap manually
+        run: |
+          cd snap-build
+
+          # Create meta directory
+          mkdir -p meta
+
+          # Create snap.yaml
+          cat > meta/snap.yaml << 'SNAP_YAML'
           name: bitcoinz-blue
-          base: core22
           version: '${{ steps.version.outputs.version }}'
           summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
           description: |
@@ -127,10 +139,10 @@ jobs:
 
           grade: stable
           confinement: devmode
+          base: core22
 
           architectures:
-            - build-on: amd64
-              build-for: amd64
+            - amd64
 
           apps:
             bitcoinz-blue:
@@ -149,30 +161,13 @@ jobs:
                 - browser-support
                 - gsettings
                 - removable-media
+          SNAP_YAML
 
-          parts:
-            bitcoinz-blue:
-              plugin: dump
-              source: .
-              organize:
-                '*': .
-          SNAPCRAFT_END
-          
-      - name: Install snapcraft and LXD
-        run: |
-          sudo snap install snapcraft --classic
-          sudo snap install lxd
-          sudo lxd init --auto
-          sudo usermod -a -G lxd $USER
+          # Create the snap package manually
+          mksquashfs . ../bitcoinz-blue_${{ steps.version.outputs.version }}_amd64.snap -noappend -comp xz -no-xattrs -no-fragments
 
-      - name: Build snap
-        working-directory: snap-build
-        run: |
-          # Use destructive mode to avoid LXD requirement
-          snapcraft --destructive-mode --verbose
-          SNAP_FILE=$(ls *.snap | head -1)
-          mv "$SNAP_FILE" ../
-          echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
+          echo "✅ Snap package created manually"
+          ls -la ../bitcoinz-blue_*.snap
           
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
