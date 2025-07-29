@@ -196,13 +196,13 @@ jobs:
           retention-days: 30
           
       - name: Login to Snapcraft
-        if: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
 
       - name: Upload to Ubuntu Store
-        if: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
         env:
           VERSION: ${{ steps.version.outputs.version }}
           RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
@@ -216,7 +216,7 @@ jobs:
           fi
           
       - name: Summary (with store upload)
-        if: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        if: secrets.SNAPCRAFT_STORE_CREDENTIALS
         run: |
           SNAP_FILE=$(ls *.snap | head -1)
           echo "🎉 Snap package created and uploaded: $SNAP_FILE"
@@ -227,7 +227,7 @@ jobs:
           echo "📥 Install: sudo snap install bitcoinz-blue --${{ github.event.inputs.release_channel }}"
 
       - name: Summary (artifact only)
-        if: ${{ !secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        if: "!secrets.SNAPCRAFT_STORE_CREDENTIALS"
         run: |
           SNAP_FILE=$(ls *.snap | head -1)
           echo "🎉 Snap package created: $SNAP_FILE"
