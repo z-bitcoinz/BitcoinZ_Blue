@@ -42,11 +42,10 @@ jobs:
           cache: 'yarn'
 
       - name: Setup Rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source ~/.cargo/env
-          rustup toolchain install 1.81
-          rustup default 1.81
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.81
+          cache: false
 
       - name: Install system dependencies
         run: |
@@ -56,7 +55,8 @@ jobs:
       - name: Build from source
         run: |
           yarn install --frozen-lockfile
-          source ~/.cargo/env
+          rustc --version
+          cargo --version
           yarn neon
           yarn dist:linux
           
