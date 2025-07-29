@@ -57,7 +57,25 @@ jobs:
 
       - name: Build from source
         run: |
-          yarn install --frozen-lockfile
+          # Remove package-lock.json to avoid conflicts
+          rm -f package-lock.json
+
+          # Retry yarn install with exponential backoff
+          for i in {1..3}; do
+            echo "Attempt $i: Installing dependencies..."
+            if yarn install --frozen-lockfile --network-timeout 300000; then
+              echo "✅ Dependencies installed successfully"
+              break
+            else
+              echo "❌ Attempt $i failed, waiting before retry..."
+              sleep $((i * 30))
+              if [ $i -eq 3 ]; then
+                echo "🔄 Trying with npm instead..."
+                npm install --frozen-lockfile
+              fi
+            fi
+          done
+
           rustc --version
           cargo --version
           yarn neon
