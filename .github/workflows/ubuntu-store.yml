@@ -180,13 +180,18 @@ jobs:
                 - libasound2
           SNAPCRAFT_END
           
-      - name: Install snapcraft
-        run: sudo snap install snapcraft --classic
-          
+      - name: Install snapcraft and LXD
+        run: |
+          sudo snap install snapcraft --classic
+          sudo snap install lxd
+          sudo lxd init --auto
+          sudo usermod -a -G lxd $USER
+
       - name: Build snap
         working-directory: snap-build
         run: |
-          snapcraft --verbose
+          # Use destructive mode to avoid LXD requirement
+          snapcraft --destructive-mode --verbose
           SNAP_FILE=$(ls *.snap | head -1)
           mv "$SNAP_FILE" ../
           echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
