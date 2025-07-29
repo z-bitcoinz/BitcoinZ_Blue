@@ -1,0 +1,144 @@
+name: bitcoinz-blue
+base: core22
+version: '1.1.0'
+summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
+description: |
+  BitcoinZ Blue is a lightweight, secure wallet for the BitcoinZ cryptocurrency.
+  
+  Features:
+  - Shielded (private) and transparent transactions
+  - Fast sync with light wallet technology
+  - Modern, user-friendly interface
+  - Cross-platform compatibility
+  - Open source and community-driven
+  
+  BitcoinZ is a decentralized cryptocurrency focused on privacy, security, and 
+  community governance. This wallet provides an easy way to store, send, and 
+  receive BTCZ while maintaining your privacy.
+  
+  Security Features:
+  - Private key encryption
+  - Secure transaction signing
+  - No personal data collection
+  - Open source code for transparency
+  
+  Note: This app requires network access to connect to BitcoinZ light wallet 
+  servers for blockchain synchronization.
+
+grade: stable
+confinement: strict
+
+icon: resources/icon.png
+
+architectures:
+  - build-on: amd64
+    build-for: amd64
+
+apps:
+  bitcoinz-blue:
+    command: bitcoinz-wallet-lite
+    desktop: usr/share/applications/bitcoinz-blue.desktop
+    extensions: [gnome]
+    plugs:
+      - network
+      - network-bind
+      - home
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - audio-playback
+      - unity7
+      - browser-support
+      - gsettings
+      - removable-media
+    environment:
+      DISABLE_WAYLAND: 1
+      TMPDIR: $XDG_RUNTIME_DIR
+
+parts:
+  bitcoinz-blue:
+    plugin: dump
+    source: dist/linux-unpacked/
+    stage-packages:
+      - libgtk-3-0
+      - libnotify4
+      - libnss3
+      - libxss1
+      - libxtst6
+      - libatspi2.0-0
+      - libuuid1
+      - libsecret-1-0
+      - libgconf-2-4
+      - libdrm2
+      - libxcomposite1
+      - libxdamage1
+      - libxrandr2
+      - libgbm1
+      - libxkbcommon0
+      - libxkbfile1
+      - libasound2
+    organize:
+      '*': usr/lib/bitcoinz-blue/
+    override-build: |
+      craftctl default
+      
+      # Create desktop file
+      mkdir -p $CRAFT_PART_INSTALL/usr/share/applications
+      cat > $CRAFT_PART_INSTALL/usr/share/applications/bitcoinz-blue.desktop << EOF
+      [Desktop Entry]
+      Name=BitcoinZ Blue
+      Comment=A modern light wallet for BitcoinZ
+      GenericName=Cryptocurrency Wallet
+      Exec=bitcoinz-blue
+      Icon=\${SNAP}/usr/share/pixmaps/bitcoinz-blue.png
+      Type=Application
+      StartupNotify=true
+      Categories=Office;Finance;
+      Keywords=bitcoin;cryptocurrency;wallet;btcz;bitcoinz;blockchain;
+      MimeType=x-scheme-handler/bitcoinz;
+      StartupWMClass=bitcoinz-wallet-lite
+      EOF
+      
+      # Create launcher script
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cat > $CRAFT_PART_INSTALL/bin/bitcoinz-wallet-lite << EOF
+      #!/bin/bash
+      export LD_LIBRARY_PATH="\$SNAP/usr/lib/bitcoinz-blue:\$LD_LIBRARY_PATH"
+      export PATH="\$SNAP/usr/lib/bitcoinz-blue:\$PATH"
+      cd "\$SNAP/usr/lib/bitcoinz-blue"
+      exec "\$SNAP/usr/lib/bitcoinz-blue/bitcoinz-wallet-lite" "\$@"
+      EOF
+      chmod +x $CRAFT_PART_INSTALL/bin/bitcoinz-wallet-lite
+      
+      # Copy icon
+      mkdir -p $CRAFT_PART_INSTALL/usr/share/pixmaps
+      if [ -f "$CRAFT_PART_SRC/../resources/icon.png" ]; then
+        cp "$CRAFT_PART_SRC/../resources/icon.png" $CRAFT_PART_INSTALL/usr/share/pixmaps/bitcoinz-blue.png
+      fi
+
+  desktop-integration:
+    plugin: nil
+    stage-packages:
+      - desktop-file-utils
+    override-build: |
+      craftctl default
+      # Update desktop database
+      update-desktop-database $CRAFT_PART_INSTALL/usr/share/applications || true
+
+layout:
+  /usr/lib/bitcoinz-blue:
+    bind: $SNAP/usr/lib/bitcoinz-blue
+  /usr/share/applications:
+    bind: $SNAP/usr/share/applications
+
+# Store metadata
+contact: https://github.com/z-bitcoinz/BitcoinZ_Blue/issues
+issues: https://github.com/z-bitcoinz/BitcoinZ_Blue/issues
+source-code: https://github.com/z-bitcoinz/BitcoinZ_Blue
+website: https://getbtcz.com
+license: MIT
+
+# Snap store specific
+adopt-info: bitcoinz-blue
