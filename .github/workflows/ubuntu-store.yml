@@ -29,71 +29,42 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Creating snap for version: $VERSION"
           
-      - name: Download DEB artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: BitcoinZ-Blue-Linux-DEB
-          path: ./deb-package/
-        continue-on-error: true
-          
-      - name: Check if DEB exists
+      - name: Check if we should build from source
         id: check_deb
         run: |
-          if ls deb-package/*.deb 1> /dev/null 2>&1; then
-            echo "deb_exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Found existing DEB package"
-          else
-            echo "deb_exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No DEB package found, will build from source"
-          fi
+          echo "deb_exists=false" >> $GITHUB_OUTPUT
+          echo "📦 Building snap from source (no DEB artifact dependency)"
           
-      - name: Setup Node.js (if building from source)
-        if: steps.check_deb.outputs.deb_exists == 'false'
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '16'
           cache: 'yarn'
-          
-      - name: Setup Rust (if building from source)
-        if: steps.check_deb.outputs.deb_exists == 'false'
+
+      - name: Setup Rust
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source ~/.cargo/env
           rustup toolchain install 1.81
           rustup default 1.81
-          
-      - name: Install system dependencies (if building from source)
-        if: steps.check_deb.outputs.deb_exists == 'false'
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libnotify-dev libnss3-dev libxss1 libxtst6 libatspi2.0-0 libuuid1 libsecret-1-dev build-essential libasound2-dev
-          
-      - name: Build from source (if no DEB)
-        if: steps.check_deb.outputs.deb_exists == 'false'
+
+      - name: Build from source
         run: |
           yarn install --frozen-lockfile
           source ~/.cargo/env
           yarn neon
           yarn dist:linux
           
-      - name: Extract DEB package
-        if: steps.check_deb.outputs.deb_exists == 'true'
-        run: |
-          cd deb-package
-          DEB_FILE=$(ls *.deb | head -1)
-          echo "Extracting: $DEB_FILE"
-          dpkg-deb -x "$DEB_FILE" ../extracted/
-          echo "✅ DEB extracted"
-          
       - name: Create snap structure
         run: |
           mkdir -p snap-build/usr/lib/bitcoinz-blue
-          
-          if [ "${{ steps.check_deb.outputs.deb_exists }}" == "true" ]; then
-            cp -r extracted/* snap-build/ 2>/dev/null || true
-          else
-            cp -r dist/linux-unpacked/* snap-build/usr/lib/bitcoinz-blue/
-          fi
+          cp -r dist/linux-unpacked/* snap-build/usr/lib/bitcoinz-blue/
+          echo "✅ Snap structure created from Linux build"
           
       - name: Create launcher script
         run: |
@@ -225,13 +196,13 @@ jobs:
           retention-days: 30
           
       - name: Login to Snapcraft
-        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: secrets.SNAPCRAFT_STORE_CREDENTIALS != ''
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
-          
+
       - name: Upload to Ubuntu Store
-        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: secrets.SNAPCRAFT_STORE_CREDENTIALS != ''
         env:
           VERSION: ${{ steps.version.outputs.version }}
           RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
