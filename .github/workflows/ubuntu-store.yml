@@ -1,0 +1,258 @@
+name: Ubuntu Store Submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: 'Release channel'
+        required: true
+        default: 'edge'
+        type: choice
+        options:
+          - edge
+          - beta
+          - candidate
+          - stable
+
+jobs:
+  create-snap:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Creating snap for version: $VERSION"
+          
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: BitcoinZ-Blue-Linux-DEB
+          path: ./deb-package/
+        continue-on-error: true
+          
+      - name: Check if DEB exists
+        id: check_deb
+        run: |
+          if ls deb-package/*.deb 1> /dev/null 2>&1; then
+            echo "deb_exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Found existing DEB package"
+          else
+            echo "deb_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No DEB package found, will build from source"
+          fi
+          
+      - name: Setup Node.js (if building from source)
+        if: steps.check_deb.outputs.deb_exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          
+      - name: Setup Rust (if building from source)
+        if: steps.check_deb.outputs.deb_exists == 'false'
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source ~/.cargo/env
+          rustup toolchain install 1.81
+          rustup default 1.81
+          
+      - name: Install system dependencies (if building from source)
+        if: steps.check_deb.outputs.deb_exists == 'false'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libnotify-dev libnss3-dev libxss1 libxtst6 libatspi2.0-0 libuuid1 libsecret-1-dev build-essential libasound2-dev
+          
+      - name: Build from source (if no DEB)
+        if: steps.check_deb.outputs.deb_exists == 'false'
+        run: |
+          yarn install --frozen-lockfile
+          source ~/.cargo/env
+          yarn neon
+          yarn dist:linux
+          
+      - name: Extract DEB package
+        if: steps.check_deb.outputs.deb_exists == 'true'
+        run: |
+          cd deb-package
+          DEB_FILE=$(ls *.deb | head -1)
+          echo "Extracting: $DEB_FILE"
+          dpkg-deb -x "$DEB_FILE" ../extracted/
+          echo "✅ DEB extracted"
+          
+      - name: Create snap structure
+        run: |
+          mkdir -p snap-build/usr/lib/bitcoinz-blue
+          
+          if [ "${{ steps.check_deb.outputs.deb_exists }}" == "true" ]; then
+            cp -r extracted/* snap-build/ 2>/dev/null || true
+          else
+            cp -r dist/linux-unpacked/* snap-build/usr/lib/bitcoinz-blue/
+          fi
+          
+      - name: Create launcher script
+        run: |
+          mkdir -p snap-build/bin
+          echo '#!/bin/bash' > snap-build/bin/bitcoinz-blue
+          echo 'MAIN_EXEC=$(find $SNAP -name "bitcoinz-wallet-lite" -type f | head -1)' >> snap-build/bin/bitcoinz-blue
+          echo 'if [ -z "$MAIN_EXEC" ]; then' >> snap-build/bin/bitcoinz-blue
+          echo '  MAIN_EXEC=$(find $SNAP -name "*bitcoinz*" -type f -executable | head -1)' >> snap-build/bin/bitcoinz-blue
+          echo 'fi' >> snap-build/bin/bitcoinz-blue
+          echo 'if [ -n "$MAIN_EXEC" ]; then' >> snap-build/bin/bitcoinz-blue
+          echo '  exec "$MAIN_EXEC" "$@"' >> snap-build/bin/bitcoinz-blue
+          echo 'else' >> snap-build/bin/bitcoinz-blue
+          echo '  echo "Error: Could not find BitcoinZ Blue executable"' >> snap-build/bin/bitcoinz-blue
+          echo '  exit 1' >> snap-build/bin/bitcoinz-blue
+          echo 'fi' >> snap-build/bin/bitcoinz-blue
+          chmod +x snap-build/bin/bitcoinz-blue
+          
+      - name: Create desktop file
+        run: |
+          mkdir -p snap-build/usr/share/applications
+          echo '[Desktop Entry]' > snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Name=BitcoinZ Blue' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Comment=A modern light wallet for BitcoinZ' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'GenericName=Cryptocurrency Wallet' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Exec=bitcoinz-blue' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Icon=${SNAP}/usr/share/pixmaps/bitcoinz-blue.png' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Type=Application' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'StartupNotify=true' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Categories=Office;Finance;' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'Keywords=bitcoin;cryptocurrency;wallet;btcz;bitcoinz;blockchain;' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'MimeType=x-scheme-handler/bitcoinz;' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          echo 'StartupWMClass=bitcoinz-wallet-lite' >> snap-build/usr/share/applications/bitcoinz-blue.desktop
+          
+      - name: Copy icon
+        run: |
+          mkdir -p snap-build/usr/share/pixmaps
+          if [ -f "resources/icon.png" ]; then
+            cp resources/icon.png snap-build/usr/share/pixmaps/bitcoinz-blue.png
+          fi
+          
+      - name: Create snapcraft.yaml
+        run: |
+          cat > snap-build/snapcraft.yaml << 'SNAPCRAFT_END'
+          name: bitcoinz-blue
+          base: core22
+          version: '${{ steps.version.outputs.version }}'
+          summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
+          description: |
+            BitcoinZ Blue is a lightweight, secure wallet for the BitcoinZ cryptocurrency.
+            
+            Features:
+            - Shielded (private) and transparent transactions
+            - Fast sync with light wallet technology
+            - Modern, user-friendly interface
+            - Cross-platform compatibility
+            - Open source and community-driven
+          
+          grade: stable
+          confinement: strict
+          
+          architectures:
+            - build-on: amd64
+              build-for: amd64
+          
+          apps:
+            bitcoinz-blue:
+              command: bin/bitcoinz-blue
+              desktop: usr/share/applications/bitcoinz-blue.desktop
+              extensions: [gnome]
+              plugs:
+                - network
+                - network-bind
+                - home
+                - desktop
+                - desktop-legacy
+                - wayland
+                - x11
+                - opengl
+                - audio-playback
+                - unity7
+                - browser-support
+                - gsettings
+                - removable-media
+              environment:
+                DISABLE_WAYLAND: 1
+          
+          parts:
+            bitcoinz-blue:
+              plugin: dump
+              source: .
+              organize:
+                '*': .
+              stage-packages:
+                - libgtk-3-0
+                - libnotify4
+                - libnss3
+                - libxss1
+                - libxtst6
+                - libatspi2.0-0
+                - libuuid1
+                - libsecret-1-0
+                - libgconf-2-4
+                - libdrm2
+                - libxcomposite1
+                - libxdamage1
+                - libxrandr2
+                - libgbm1
+                - libxkbcommon0
+                - libxkbfile1
+                - libasound2
+          SNAPCRAFT_END
+          
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
+          
+      - name: Build snap
+        working-directory: snap-build
+        run: |
+          snapcraft --verbose
+          SNAP_FILE=$(ls *.snap | head -1)
+          mv "$SNAP_FILE" ../
+          echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
+          
+      - name: Upload snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitcoinz-blue-snap
+          path: "*.snap"
+          retention-days: 30
+          
+      - name: Login to Snapcraft
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
+          
+      - name: Upload to Ubuntu Store
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          SNAP_FILE=$(ls *.snap | head -1)
+          snapcraft upload "$SNAP_FILE"
+          REVISION=$(snapcraft list-revisions bitcoinz-blue | grep "$VERSION" | head -1 | awk '{print $1}')
+          if [ -n "$REVISION" ]; then
+            snapcraft release bitcoinz-blue "$REVISION" "$RELEASE_CHANNEL"
+          fi
+          
+      - name: Summary
+        run: |
+          SNAP_FILE=$(ls *.snap | head -1)
+          echo "🎉 Snap package created: $SNAP_FILE"
+          echo "📦 Version: ${{ steps.version.outputs.version }}"
+          echo "📺 Channel: ${{ github.event.inputs.release_channel }}"
+          if [ -n "${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}" ]; then
+            echo "✅ Uploaded to Ubuntu Store"
+            echo "🔗 https://snapcraft.io/bitcoinz-blue"
+          else
+            echo "⚠️ No credentials - download artifact to test"
+          fi
