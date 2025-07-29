@@ -1,0 +1,168 @@
+name: Test Build for Ubuntu Store
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master, main ]
+
+env:
+  RUSTFLAGS: "-A warnings"
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION"
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          
+      - name: Setup Rust (without cache)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source ~/.cargo/env
+          rustup toolchain install 1.81
+          rustup default 1.81
+          rustc --version
+          cargo --version
+          
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libnotify-dev \
+            libnss3-dev \
+            libxss1 \
+            libxtst6 \
+            libatspi2.0-0 \
+            libuuid1 \
+            libsecret-1-dev \
+            build-essential \
+            libasound2-dev
+            
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Build native modules
+        run: |
+          source ~/.cargo/env
+          yarn neon
+        
+      - name: Build Electron app
+        run: yarn dist:linux
+        
+      - name: Verify Linux build
+        run: |
+          if [ ! -d "dist/linux-unpacked" ]; then
+            echo "❌ Linux build failed - dist/linux-unpacked not found"
+            exit 1
+          fi
+          echo "✅ Linux build successful"
+          ls -la dist/
+          du -sh dist/linux-unpacked/
+          
+      - name: Test app executable
+        run: |
+          cd dist/linux-unpacked
+          file bitcoinz-wallet-lite
+          ldd bitcoinz-wallet-lite || true
+          
+      - name: Create basic snap structure
+        run: |
+          echo "📦 Creating basic snap structure..."
+          mkdir -p snap-package/usr/lib/bitcoinz-blue
+          cp -r dist/linux-unpacked/* snap-package/usr/lib/bitcoinz-blue/
+          
+          # Create simple launcher
+          mkdir -p snap-package/bin
+          cat > snap-package/bin/bitcoinz-blue << 'EOF'
+#!/bin/bash
+cd "$SNAP/usr/lib/bitcoinz-blue"
+exec "$SNAP/usr/lib/bitcoinz-blue/bitcoinz-wallet-lite" "$@"
+EOF
+          chmod +x snap-package/bin/bitcoinz-blue
+          
+          echo "✅ Snap structure created"
+          find snap-package -type f | head -20
+          
+      - name: Create minimal snapcraft.yaml
+        run: |
+          cat > snap-package/snapcraft.yaml << EOF
+name: bitcoinz-blue
+base: core22
+version: '${{ steps.version.outputs.version }}'
+summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
+description: A lightweight, secure wallet for the BitcoinZ cryptocurrency.
+
+grade: stable
+confinement: strict
+
+apps:
+  bitcoinz-blue:
+    command: bin/bitcoinz-blue
+    plugs: [network, home, desktop, x11]
+
+parts:
+  bitcoinz-blue:
+    plugin: dump
+    source: .
+    organize:
+      '*': .
+EOF
+          
+      - name: Install snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+          
+      - name: Build snap (basic)
+        working-directory: snap-package
+        run: |
+          echo "🔨 Building snap package..."
+          snapcraft --verbose
+          
+          # Check if snap was created
+          if ls *.snap 1> /dev/null 2>&1; then
+            SNAP_FILE=$(ls *.snap | head -1)
+            echo "✅ Snap created: $SNAP_FILE"
+            snap info "$SNAP_FILE"
+            
+            # Move to parent directory
+            mv "$SNAP_FILE" ../
+            echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No snap file created"
+            exit 1
+          fi
+          
+      - name: Upload snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitcoinz-blue-test-snap
+          path: "*.snap"
+          retention-days: 7
+          
+      - name: Build summary
+        run: |
+          echo "🎉 Test Build Complete!"
+          echo "======================"
+          echo "📦 Version: ${{ steps.version.outputs.version }}"
+          echo "📁 Linux build: ✅ Success"
+          echo "📦 Snap package: ✅ Created"
+          echo ""
+          echo "📥 Download the snap artifact to test locally:"
+          echo "   sudo snap install bitcoinz-blue_*.snap --dangerous --devmode"
+          echo ""
+          echo "🔗 Artifacts available in GitHub Actions"
