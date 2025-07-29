@@ -54,7 +54,8 @@ jobs:
         with:
           toolchain: 1.81
           override: true
-          
+          components: rustfmt, clippy
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -68,14 +69,16 @@ jobs:
             libuuid1 \
             libsecret-1-dev \
             build-essential \
-            libasound2-dev
-            
+            libasound2-dev \
+            snapd
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        
+
       - name: Build native modules
+        working-directory: ./
         run: yarn neon
-        
+
       - name: Build Electron app
         run: yarn dist:linux
         
@@ -91,23 +94,28 @@ jobs:
       - name: Install Snapcraft
         run: |
           sudo snap install snapcraft --classic
-          
+          sudo snap install lxd --channel=latest/stable
+          sudo lxd init --auto
+          sudo usermod -a -G lxd $USER
+
       - name: Build Snap package
         id: build
         run: |
           echo "🔨 Building Snap package..."
-          snapcraft --verbose
-          
+
+          # Use snapcraft with --use-lxd flag for GitHub Actions
+          sg lxd -c 'snapcraft --use-lxd --verbose'
+
           # Find the generated snap file
           SNAP_FILE=$(ls *.snap | head -1)
           if [ -z "$SNAP_FILE" ]; then
             echo "❌ No snap file found"
             exit 1
           fi
-          
+
           echo "✅ Snap built: $SNAP_FILE"
           echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
-          
+
           # Verify snap info
           snap info "$SNAP_FILE" || true
           

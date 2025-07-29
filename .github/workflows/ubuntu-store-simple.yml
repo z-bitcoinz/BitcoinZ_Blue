@@ -1,0 +1,275 @@
+name: Ubuntu Store Submission (Simple)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: 'Release channel'
+        required: true
+        default: 'edge'
+        type: choice
+        options:
+          - edge
+          - beta
+          - candidate
+          - stable
+
+env:
+  RUSTFLAGS: "-A warnings"
+
+jobs:
+  build-and-submit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION"
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.81
+          override: true
+          
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libnotify-dev \
+            libnss3-dev \
+            libxss1 \
+            libxtst6 \
+            libatspi2.0-0 \
+            libuuid1 \
+            libsecret-1-dev \
+            build-essential \
+            libasound2-dev
+            
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Build native modules
+        run: yarn neon
+        
+      - name: Build Electron app
+        run: yarn dist:linux
+        
+      - name: Verify Linux build
+        run: |
+          if [ ! -d "dist/linux-unpacked" ]; then
+            echo "❌ Linux build failed - dist/linux-unpacked not found"
+            exit 1
+          fi
+          echo "✅ Linux build successful"
+          ls -la dist/
+          
+      - name: Install Snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+          
+      - name: Create simple snap structure
+        run: |
+          echo "📦 Creating snap structure..."
+          mkdir -p snap-build/usr/lib/bitcoinz-blue
+          cp -r dist/linux-unpacked/* snap-build/usr/lib/bitcoinz-blue/
+          
+          # Create launcher script
+          mkdir -p snap-build/bin
+          cat > snap-build/bin/bitcoinz-blue << 'EOF'
+          #!/bin/bash
+          export LD_LIBRARY_PATH="$SNAP/usr/lib/bitcoinz-blue:$LD_LIBRARY_PATH"
+          cd "$SNAP/usr/lib/bitcoinz-blue"
+          exec "$SNAP/usr/lib/bitcoinz-blue/bitcoinz-wallet-lite" "$@"
+          EOF
+          chmod +x snap-build/bin/bitcoinz-blue
+          
+          # Create desktop file
+          mkdir -p snap-build/usr/share/applications
+          cat > snap-build/usr/share/applications/bitcoinz-blue.desktop << 'EOF'
+          [Desktop Entry]
+          Name=BitcoinZ Blue
+          Comment=A modern light wallet for BitcoinZ
+          GenericName=Cryptocurrency Wallet
+          Exec=bitcoinz-blue
+          Icon=${SNAP}/usr/share/pixmaps/bitcoinz-blue.png
+          Type=Application
+          StartupNotify=true
+          Categories=Office;Finance;
+          Keywords=bitcoin;cryptocurrency;wallet;btcz;bitcoinz;blockchain;
+          MimeType=x-scheme-handler/bitcoinz;
+          StartupWMClass=bitcoinz-wallet-lite
+          EOF
+          
+          # Copy icon if available
+          mkdir -p snap-build/usr/share/pixmaps
+          if [ -f "resources/icon.png" ]; then
+            cp resources/icon.png snap-build/usr/share/pixmaps/bitcoinz-blue.png
+          fi
+          
+      - name: Create simplified snapcraft.yaml
+        run: |
+          cat > snapcraft-simple.yaml << 'EOF'
+          name: bitcoinz-blue
+          base: core22
+          version: '${{ steps.version.outputs.version }}'
+          summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
+          description: |
+            BitcoinZ Blue is a lightweight, secure wallet for the BitcoinZ cryptocurrency.
+            
+            Features:
+            - Shielded (private) and transparent transactions
+            - Fast sync with light wallet technology
+            - Modern, user-friendly interface
+            - Cross-platform compatibility
+            - Open source and community-driven
+          
+          grade: stable
+          confinement: strict
+          
+          architectures:
+            - build-on: amd64
+              build-for: amd64
+          
+          apps:
+            bitcoinz-blue:
+              command: bin/bitcoinz-blue
+              desktop: usr/share/applications/bitcoinz-blue.desktop
+              extensions: [gnome]
+              plugs:
+                - network
+                - network-bind
+                - home
+                - desktop
+                - desktop-legacy
+                - wayland
+                - x11
+                - opengl
+                - audio-playback
+                - unity7
+                - browser-support
+                - gsettings
+                - removable-media
+              environment:
+                DISABLE_WAYLAND: 1
+                TMPDIR: $XDG_RUNTIME_DIR
+          
+          parts:
+            bitcoinz-blue:
+              plugin: dump
+              source: snap-build/
+              stage-packages:
+                - libgtk-3-0
+                - libnotify4
+                - libnss3
+                - libxss1
+                - libxtst6
+                - libatspi2.0-0
+                - libuuid1
+                - libsecret-1-0
+                - libgconf-2-4
+                - libdrm2
+                - libxcomposite1
+                - libxdamage1
+                - libxrandr2
+                - libgbm1
+                - libxkbcommon0
+                - libxkbfile1
+                - libasound2
+          EOF
+          
+      - name: Build Snap package
+        id: build
+        run: |
+          echo "🔨 Building Snap package with simplified approach..."
+          
+          # Use the simplified snapcraft.yaml
+          snapcraft --project-dir . --snapcraft-yaml snapcraft-simple.yaml
+          
+          # Find the generated snap file
+          SNAP_FILE=$(ls *.snap | head -1)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "❌ No snap file found"
+            exit 1
+          fi
+          
+          echo "✅ Snap built: $SNAP_FILE"
+          echo "snap-file=$SNAP_FILE" >> $GITHUB_OUTPUT
+          
+          # Verify snap info
+          snap info "$SNAP_FILE" || true
+          
+      - name: Upload Snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitcoinz-blue-snap-simple
+          path: ${{ steps.build.outputs.snap-file }}
+          retention-days: 30
+          
+      - name: Login to Snapcraft (if credentials available)
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
+          echo "✅ Logged in to Snapcraft"
+          
+      - name: Upload to Ubuntu Store (if credentials available)
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        env:
+          SNAP_FILE: ${{ steps.build.outputs.snap-file }}
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_CHANNEL: ${{ github.event.inputs.release_channel || 'edge' }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          echo "📤 Uploading $SNAP_FILE to $RELEASE_CHANNEL channel..."
+          
+          # Upload the snap
+          snapcraft upload "$SNAP_FILE"
+          
+          echo "✅ Upload completed"
+          
+          # Get the revision number and release
+          REVISION=$(snapcraft list-revisions bitcoinz-blue | grep "$VERSION" | head -1 | awk '{print $1}')
+          
+          if [ -n "$REVISION" ]; then
+            echo "🚀 Releasing revision $REVISION to $RELEASE_CHANNEL channel..."
+            snapcraft release bitcoinz-blue "$REVISION" "$RELEASE_CHANNEL"
+            echo "✅ Released to $RELEASE_CHANNEL channel"
+          fi
+          
+      - name: Build summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_CHANNEL: ${{ github.event.inputs.release_channel || 'edge' }}
+          SNAP_FILE: ${{ steps.build.outputs.snap-file }}
+          HAS_CREDENTIALS: ${{ env.SNAPCRAFT_STORE_CREDENTIALS != '' }}
+        run: |
+          echo "🎉 Build Complete!"
+          echo "=================="
+          echo "📦 Package: $SNAP_FILE"
+          echo "🏷️  Version: $VERSION"
+          echo "📺 Channel: $RELEASE_CHANNEL"
+          echo "🔐 Credentials: $HAS_CREDENTIALS"
+          echo ""
+          if [ "$HAS_CREDENTIALS" = "true" ]; then
+            echo "✅ Uploaded to Ubuntu Store"
+            echo "🔗 Store URL: https://snapcraft.io/bitcoinz-blue"
+            echo "📥 Install: sudo snap install bitcoinz-blue --$RELEASE_CHANNEL"
+          else
+            echo "⚠️  No credentials - snap built but not uploaded"
+            echo "💡 Add SNAPCRAFT_STORE_CREDENTIALS secret to enable upload"
+          fi

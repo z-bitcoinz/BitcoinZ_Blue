@@ -83,39 +83,41 @@ parts:
       '*': usr/lib/bitcoinz-blue/
     override-build: |
       craftctl default
-      
+
       # Create desktop file
       mkdir -p $CRAFT_PART_INSTALL/usr/share/applications
-      cat > $CRAFT_PART_INSTALL/usr/share/applications/bitcoinz-blue.desktop << EOF
-      [Desktop Entry]
-      Name=BitcoinZ Blue
-      Comment=A modern light wallet for BitcoinZ
-      GenericName=Cryptocurrency Wallet
-      Exec=bitcoinz-blue
-      Icon=\${SNAP}/usr/share/pixmaps/bitcoinz-blue.png
-      Type=Application
-      StartupNotify=true
-      Categories=Office;Finance;
-      Keywords=bitcoin;cryptocurrency;wallet;btcz;bitcoinz;blockchain;
-      MimeType=x-scheme-handler/bitcoinz;
-      StartupWMClass=bitcoinz-wallet-lite
-      EOF
-      
+      cat > $CRAFT_PART_INSTALL/usr/share/applications/bitcoinz-blue.desktop << 'EOF'
+[Desktop Entry]
+Name=BitcoinZ Blue
+Comment=A modern light wallet for BitcoinZ
+GenericName=Cryptocurrency Wallet
+Exec=bitcoinz-blue
+Icon=${SNAP}/usr/share/pixmaps/bitcoinz-blue.png
+Type=Application
+StartupNotify=true
+Categories=Office;Finance;
+Keywords=bitcoin;cryptocurrency;wallet;btcz;bitcoinz;blockchain;
+MimeType=x-scheme-handler/bitcoinz;
+StartupWMClass=bitcoinz-wallet-lite
+EOF
+
       # Create launcher script
       mkdir -p $CRAFT_PART_INSTALL/bin
-      cat > $CRAFT_PART_INSTALL/bin/bitcoinz-wallet-lite << EOF
-      #!/bin/bash
-      export LD_LIBRARY_PATH="\$SNAP/usr/lib/bitcoinz-blue:\$LD_LIBRARY_PATH"
-      export PATH="\$SNAP/usr/lib/bitcoinz-blue:\$PATH"
-      cd "\$SNAP/usr/lib/bitcoinz-blue"
-      exec "\$SNAP/usr/lib/bitcoinz-blue/bitcoinz-wallet-lite" "\$@"
-      EOF
+      cat > $CRAFT_PART_INSTALL/bin/bitcoinz-wallet-lite << 'EOF'
+#!/bin/bash
+export LD_LIBRARY_PATH="$SNAP/usr/lib/bitcoinz-blue:$LD_LIBRARY_PATH"
+export PATH="$SNAP/usr/lib/bitcoinz-blue:$PATH"
+cd "$SNAP/usr/lib/bitcoinz-blue"
+exec "$SNAP/usr/lib/bitcoinz-blue/bitcoinz-wallet-lite" "$@"
+EOF
       chmod +x $CRAFT_PART_INSTALL/bin/bitcoinz-wallet-lite
-      
+
       # Copy icon
       mkdir -p $CRAFT_PART_INSTALL/usr/share/pixmaps
-      if [ -f "$CRAFT_PART_SRC/../resources/icon.png" ]; then
-        cp "$CRAFT_PART_SRC/../resources/icon.png" $CRAFT_PART_INSTALL/usr/share/pixmaps/bitcoinz-blue.png
+      if [ -f "resources/icon.png" ]; then
+        cp "resources/icon.png" $CRAFT_PART_INSTALL/usr/share/pixmaps/bitcoinz-blue.png
+      elif [ -f "../resources/icon.png" ]; then
+        cp "../resources/icon.png" $CRAFT_PART_INSTALL/usr/share/pixmaps/bitcoinz-blue.png
       fi
 
   desktop-integration:
