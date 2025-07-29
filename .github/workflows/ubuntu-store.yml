@@ -14,6 +14,9 @@ on:
           - candidate
           - stable
 
+env:
+  RUSTFLAGS: "-A warnings -A unused-imports -A unused-mut -A unused-variables -A dead-code"
+
 jobs:
   create-snap:
     runs-on: ubuntu-latest
