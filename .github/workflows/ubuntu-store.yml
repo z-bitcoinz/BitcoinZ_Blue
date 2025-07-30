@@ -128,14 +128,16 @@ jobs:
           
 
           
-      - name: Install snap tools
+      - name: Install snapcraft for packaging
         run: |
-          sudo apt-get update
-          sudo apt-get install -y squashfs-tools
+          sudo snap install snapcraft --classic
 
-      - name: Create snap manually
+      - name: Create snap using snapcraft pack
         run: |
           cd snap-build
+
+          # Fix file ownership to root:root
+          sudo chown -R root:root .
 
           # Create meta directory
           mkdir -p meta
@@ -181,11 +183,12 @@ jobs:
                 - removable-media
           SNAP_YAML
 
-          # Create the snap package manually
-          mksquashfs . ../simbav911-bitcoinz-blue_${{ steps.version.outputs.version }}_amd64.snap -noappend -comp xz -no-xattrs -no-fragments
+          # Use snapcraft pack for proper snap creation
+          cd ..
+          snapcraft pack snap-build
 
-          echo "✅ Snap package created manually"
-          ls -la ../simbav911-bitcoinz-blue_*.snap
+          echo "✅ Snap package created with snapcraft pack"
+          ls -la simbav911-bitcoinz-blue_*.snap
           
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
@@ -203,10 +206,7 @@ jobs:
             echo "has_credentials=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install snapcraft for store operations
-        if: steps.check_credentials.outputs.has_credentials == 'true'
-        run: |
-          sudo snap install snapcraft --classic
+
 
       - name: Verify Snapcraft credentials
         if: steps.check_credentials.outputs.has_credentials == 'true'
