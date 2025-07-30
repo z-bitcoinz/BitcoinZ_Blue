@@ -213,7 +213,7 @@ jobs:
         working-directory: /tmp
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: echo "$SNAPCRAFT_STORE_CREDENTIALS" | snapcraft login --with -
+        run: snapcraft login
 
       - name: Upload to Ubuntu Store
         if: steps.check_credentials.outputs.has_credentials == 'true'
