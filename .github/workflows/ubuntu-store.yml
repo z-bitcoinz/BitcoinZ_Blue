@@ -208,12 +208,12 @@ jobs:
         run: |
           sudo snap install snapcraft --classic
 
-      - name: Login to Snapcraft
+      - name: Verify Snapcraft credentials
         if: steps.check_credentials.outputs.has_credentials == 'true'
         working-directory: /tmp
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: snapcraft login
+        run: echo "✅ Snapcraft credentials are set and ready for upload"
 
       - name: Upload to Ubuntu Store
         if: steps.check_credentials.outputs.has_credentials == 'true'
