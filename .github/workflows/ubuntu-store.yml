@@ -136,10 +136,7 @@ jobs:
         run: |
           cd snap-build
 
-          # Fix file ownership to root:root
-          sudo chown -R root:root .
-
-          # Create meta directory
+          # Create meta directory first
           mkdir -p meta
 
           # Create snap.yaml
@@ -182,6 +179,9 @@ jobs:
                 - gsettings
                 - removable-media
           SNAP_YAML
+
+          # Fix file ownership to root:root before packing
+          sudo chown -R root:root .
 
           # Use snapcraft pack for proper snap creation
           cd ..
