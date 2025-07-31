@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -143,7 +143,7 @@ jobs:
           node --version
           
           # First build without packaging
-          NODE_OPTIONS="--openssl-legacy-provider" yarn build
+          yarn build
           
           # Copy native module to the right place for electron-builder
           cp src/native.node build/
@@ -194,19 +194,41 @@ jobs:
           # Run the custom DMG creation script
           ./scripts/create-dmg.sh
           
+          # Debug certificate availability
+          echo "🔍 Debug certificate info:"
+          echo "APPLE_CERTIFICATE_BASE64 length: ${#APPLE_CERTIFICATE_BASE64}"
+          echo "APPLE_SIGNING_IDENTITY: '$APPLE_SIGNING_IDENTITY'"
+
+          # List available signing identities
+          echo "📋 Available signing identities:"
+          security find-identity -v -p codesigning || echo "No codesigning identities found"
+
           # Sign DMG files if certificate is available
           if [ -n "$APPLE_CERTIFICATE_BASE64" ] && [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-            echo "🔐 Signing DMG files..."
+            echo "🔐 Signing DMG files with identity: $APPLE_SIGNING_IDENTITY"
             for dmg in dist/*.dmg; do
               if [ -f "$dmg" ]; then
                 echo "Signing: $dmg"
-                codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
+                codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$dmg" || {
+                  echo "❌ Signing failed, trying with auto-discovery..."
+                  # Try to find the identity automatically
+                  IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d'"' -f2)
+                  if [ -n "$IDENTITY" ]; then
+                    echo "🔄 Found identity: $IDENTITY"
+                    codesign --force --sign "$IDENTITY" "$dmg"
+                  else
+                    echo "❌ No Developer ID Application identity found"
+                  fi
+                }
                 echo "Verifying: $dmg"
-                codesign -dv --verbose=4 "$dmg"
+                codesign -dv --verbose=4 "$dmg" || echo "Verification failed"
               fi
             done
           else
-            echo "⚠️  No certificate available, DMGs will not be signed"
+            echo "⚠️  Certificate check failed:"
+            echo "   APPLE_CERTIFICATE_BASE64 present: $([ -n "$APPLE_CERTIFICATE_BASE64" ] && echo 'YES' || echo 'NO')"
+            echo "   APPLE_SIGNING_IDENTITY present: $([ -n "$APPLE_SIGNING_IDENTITY" ] && echo 'YES' || echo 'NO')"
+            echo "   DMGs will not be signed"
           fi
           
           echo "✅ DMG creation complete"
@@ -302,7 +324,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -446,7 +468,6 @@ jobs:
           # Build the app (skip native build as we already did it)
           echo "Building application..."
           $env:SKIP_NATIVE_BUILD = "true"
-          $env:NODE_OPTIONS = "--openssl-legacy-provider"
           npm run build
           
           # Create build directory if it doesn't exist
@@ -779,7 +800,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Clean build artifacts
@@ -794,7 +815,7 @@ jobs:
           yarn --version
           node --version
           yarn install
-          NODE_OPTIONS="--openssl-legacy-provider" yarn dist:linux
+          yarn dist:linux
 
       - name: Upload Linux AppImage (Universal)
         uses: actions/upload-artifact@v4
