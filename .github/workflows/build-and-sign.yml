@@ -128,13 +128,16 @@ jobs:
           
       - name: Build macOS app with proper signing
         env:
-          # Use certificate if available, otherwise ad-hoc
+          # Apple Developer Certificate
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           CSC_IDENTITY_AUTO_DISCOVERY: true
-          # Skip rebuilding native deps since we already built them
+          # Apple Notarization
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Build settings
           ELECTRON_BUILDER_SKIP_REBUILD: true
-          # Hardened runtime for notarization
           HARDENED_RUNTIME: true
         timeout-minutes: 30  # Add timeout to prevent hanging
         run: |
@@ -154,10 +157,10 @@ jobs:
           # Determine signing approach
           if [ -z "$CSC_LINK" ]; then
             echo "🔐 Building with ad-hoc signing..."
-            SIGN_OPTS="--config.mac.identity=null"
+            SIGN_OPTS="--config.mac.identity=null --config.mac.hardenedRuntime=false"
           else
-            echo "🔐 Building with Developer ID certificate..."
-            SIGN_OPTS="--config.mac.hardenedRuntime=true"
+            echo "🔐 Building with Apple Developer certificate..."
+            SIGN_OPTS="--config.mac.hardenedRuntime=true --config.mac.gatekeeperAssess=false"
           fi
           
           # Build apps without DMG (to avoid Python issue)

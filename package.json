@@ -198,7 +198,7 @@
       "afterRemove": "./scripts/deb-postremove.sh"
     },
     "mac": {
-      "category": "public.app-category.productivity",
+      "category": "public.app-category.finance",
       "type": "distribution",
       "target": [
         {
@@ -214,7 +214,11 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.plist",
-      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist"
+      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist",
+      "notarize": {
+        "teamId": "${APPLE_TEAM_ID}"
+      },
+      "afterSign": "./afterSignHook.js"
     },
     "dmg": {
       "sign": false,

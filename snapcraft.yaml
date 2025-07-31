@@ -3,27 +3,36 @@ base: core22
 version: '1.1.0'
 summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
 description: |
-  BitcoinZ Blue is a lightweight, secure wallet for the BitcoinZ cryptocurrency.
-  
-  Features:
+  BitcoinZ Blue is a legitimate, open-source light wallet for the BitcoinZ
+  cryptocurrency (BTCZ). This is a non-custodial wallet that gives users full
+  control over their private keys and funds.
+
+  SECURITY & LEGITIMACY:
+  - Open source code available at: https://github.com/z-bitcoinz/BitcoinZ_Blue
+  - MIT License - fully transparent development
+  - Community-driven project with public development
+  - No data collection or tracking
+  - Private keys never leave user's device
+  - Strict confinement with minimal required permissions
+
+  FEATURES:
   - Shielded (private) and transparent transactions
   - Fast sync with light wallet technology
   - Modern, user-friendly interface
   - Cross-platform compatibility
-  - Open source and community-driven
-  
-  BitcoinZ is a decentralized cryptocurrency focused on privacy, security, and 
-  community governance. This wallet provides an easy way to store, send, and 
-  receive BTCZ while maintaining your privacy.
-  
-  Security Features:
-  - Private key encryption
-  - Secure transaction signing
-  - No personal data collection
-  - Open source code for transparency
-  
-  Note: This app requires network access to connect to BitcoinZ light wallet 
-  servers for blockchain synchronization.
+  - Secure local key storage
+
+  NETWORK USAGE:
+  - Connects only to legitimate BitcoinZ light wallet servers
+  - Uses standard Zcash protocol (BitcoinZ is Zcash fork)
+  - No mining, no suspicious network activity
+  - Read-only blockchain synchronization
+
+  BitcoinZ is an established cryptocurrency (launched 2017) focused on privacy,
+  security, and community governance. This wallet provides a secure way to
+  store, send, and receive BTCZ while maintaining user privacy and security.
+
+  For support: https://github.com/z-bitcoinz/BitcoinZ_Blue/issues
 
 grade: stable
 confinement: strict

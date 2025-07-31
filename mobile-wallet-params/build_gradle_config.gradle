@@ -1,0 +1,50 @@
+// BitcoinZ Mobile Wallet - build.gradle.kts configuration
+// Extracted from working BitcoinZ Blue desktop wallet
+
+android {
+    namespace = "com.bitcoinz.blue.mobile"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.bitcoinz.blue.mobile"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+        
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // BitcoinZ specific configuration
+        buildConfigField("String", "BITCOINZ_NETWORK", "\"mainnet\"")
+        buildConfigField("String", "DEFAULT_SERVER", "\"https://lightd.btcz.rocks:9067\"")
+        buildConfigField("int", "COIN_TYPE", "177")
+        buildConfigField("long", "SAPLING_ACTIVATION", "328500L")
+        
+        // App branding
+        resValue("string", "app_name", "BitcoinZ Blue")
+        resValue("color", "bitcoinz_blue", "#1e3c72")
+    }
+    
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            
+            // BitcoinZ production configuration
+            buildConfigField("String", "BUILD_TYPE", "\"release\"")
+            buildConfigField("boolean", "DEBUG_MODE", "false")
+        }
+        
+        debug {
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+            
+            // BitcoinZ debug configuration
+            buildConfigField("String", "BUILD_TYPE", "\"debug\"")
+            buildConfigField("boolean", "DEBUG_MODE", "true")
+        }
+    }
+}
