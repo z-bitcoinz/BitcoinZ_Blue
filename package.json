@@ -217,7 +217,10 @@
       "entitlements": "./configs/entitlements.mac.plist",
       "entitlementsInherit": "./configs/entitlements.mac.inherit.plist",
       "notarize": {
-        "teamId": "${APPLE_TEAM_ID}"
+        "tool": "notarytool",
+        "teamId": "${APPLE_TEAM_ID}",
+        "appleId": "${APPLE_ID}",
+        "appleIdPassword": "${APPLE_ID_PASSWORD}"
       },
       "afterSign": "./afterSignHook.js"
     },
