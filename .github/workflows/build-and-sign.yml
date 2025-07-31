@@ -15,7 +15,6 @@ jobs:
     runs-on: macos-latest
     env:
       RUSTFLAGS: "-A warnings"
-      NODE_OPTIONS: "--openssl-legacy-provider"
     steps:
       - uses: actions/checkout@v3
       
@@ -70,7 +69,9 @@ jobs:
           /usr/local/bin/python --version
           
       - name: Install dependencies
-        run: yarn install
+        run: |
+          unset NODE_OPTIONS
+          yarn install
 
       - name: Build native module
         run: |
@@ -291,7 +292,6 @@ jobs:
     runs-on: windows-latest
     env:
       RUSTFLAGS: "-A warnings"
-      NODE_OPTIONS: "--openssl-legacy-provider"
     steps:
       - uses: actions/checkout@v3
 
@@ -440,6 +440,7 @@ jobs:
           
           # Install dependencies using npm (more stable on Windows)
           echo "Installing dependencies with npm..."
+          $env:NODE_OPTIONS = ""
           npm install --no-audit --no-fund
           
           # Install cross-env globally if missing
@@ -768,7 +769,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-A warnings"
-      NODE_OPTIONS: "--openssl-legacy-provider"
     steps:
       - uses: actions/checkout@v3
 
@@ -795,6 +795,7 @@ jobs:
           echo "Starting Linux build..."
           yarn --version
           node --version
+          unset NODE_OPTIONS
           yarn install
           yarn dist:linux
 
