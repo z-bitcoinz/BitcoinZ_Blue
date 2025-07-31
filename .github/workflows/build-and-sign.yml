@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -128,16 +128,13 @@ jobs:
           
       - name: Build macOS app with proper signing
         env:
-          # Apple Developer Certificate
+          # Use certificate if available, otherwise ad-hoc
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           CSC_IDENTITY_AUTO_DISCOVERY: true
-          # Apple Notarization
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Build settings
+          # Skip rebuilding native deps since we already built them
           ELECTRON_BUILDER_SKIP_REBUILD: true
+          # Hardened runtime for notarization
           HARDENED_RUNTIME: true
         timeout-minutes: 30  # Add timeout to prevent hanging
         run: |
@@ -157,10 +154,10 @@ jobs:
           # Determine signing approach
           if [ -z "$CSC_LINK" ]; then
             echo "🔐 Building with ad-hoc signing..."
-            SIGN_OPTS="--config.mac.identity=null --config.mac.hardenedRuntime=false"
+            SIGN_OPTS="--config.mac.identity=null"
           else
-            echo "🔐 Building with Apple Developer certificate..."
-            SIGN_OPTS="--config.mac.hardenedRuntime=true --config.mac.gatekeeperAssess=false"
+            echo "🔐 Building with Developer ID certificate..."
+            SIGN_OPTS="--config.mac.hardenedRuntime=true"
           fi
           
           # Build apps without DMG (to avoid Python issue)
@@ -305,7 +302,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -781,7 +778,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Clean build artifacts
