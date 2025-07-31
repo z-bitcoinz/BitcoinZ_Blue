@@ -216,12 +216,7 @@
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.plist",
       "entitlementsInherit": "./configs/entitlements.mac.inherit.plist",
-      "notarize": {
-        "tool": "notarytool",
-        "teamId": "${APPLE_TEAM_ID}",
-        "appleId": "${APPLE_ID}",
-        "appleIdPassword": "${APPLE_ID_PASSWORD}"
-      },
+      "notarize": false,
       "afterSign": "./afterSignHook.js"
     },
     "dmg": {
