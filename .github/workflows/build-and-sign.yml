@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Setup Rust 1.81
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -143,7 +143,7 @@ jobs:
           node --version
           
           # First build without packaging
-          NODE_OPTIONS="--openssl-legacy-provider" yarn build
+          yarn build
           
           # Copy native module to the right place for electron-builder
           cp src/native.node build/
@@ -302,7 +302,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
 
       - name: Clean build artifacts
@@ -778,7 +778,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
       - name: Clean build artifacts
