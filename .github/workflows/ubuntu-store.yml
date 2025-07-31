@@ -134,6 +134,9 @@ jobs:
 
       - name: Create snap using snapcraft pack
         run: |
+          # Remove any existing snapcraft.yaml that might interfere
+          rm -f snapcraft.yaml
+
           cd snap-build
 
           # Create meta directory first
