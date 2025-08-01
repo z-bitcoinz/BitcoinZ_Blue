@@ -217,9 +217,7 @@
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.minimal.plist",
       "entitlementsInherit": "./configs/entitlements.mac.minimal.plist",
-      "notarize": false,
-      "signIgnore": [],
-      "strictVerify": true
+      "notarize": false
     },
     "dmg": {
       "sign": false,
