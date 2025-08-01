@@ -145,9 +145,9 @@ jobs:
           
       - name: Build macOS app with proper signing
         env:
-          # Use certificate if available, otherwise ad-hoc
-          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # Don't use CSC_LINK when we have a keychain - it conflicts
+          # CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          # CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
           # Skip rebuilding native deps since we already built them
           ELECTRON_BUILDER_SKIP_REBUILD: true
@@ -180,7 +180,7 @@ jobs:
           cp public/electron.js build/
           
           # Determine signing approach based on certificate availability
-          if [ -z "$CSC_LINK" ] || [ -z "$SIGNING_IDENTITY" ]; then
+          if [ -z "$SIGNING_IDENTITY" ]; then
             echo "🔐 Building with ad-hoc signing..."
             # Build with ad-hoc signing
             npx electron-builder -m \
@@ -210,7 +210,17 @@ jobs:
               --options runtime \
               build/native.node || echo "Warning: Failed to pre-sign native module"
             
+            # Debug: Show current environment
+            echo "🔍 Debug: Signing environment:"
+            echo "SIGNING_IDENTITY: $SIGNING_IDENTITY"
+            echo "SIGNING_NAME: $SIGNING_NAME"
+            echo "CSC_NAME: $CSC_NAME"
+            echo "CSC_KEYCHAIN: $CSC_KEYCHAIN"
+            echo "Available identities:"
+            security find-identity -v -p codesigning
+            
             # Build with Developer ID certificate
+            # Force electron-builder to use our certificate
             npx electron-builder -m \
               --config.extraMetadata.main=build/electron.js \
               --config.mac.type=distribution \
@@ -218,6 +228,7 @@ jobs:
               --config.npmRebuild=false \
               --config.buildDependenciesFromSource=false \
               --config.mac.hardenedRuntime=true \
+              --config.mac.forceCodeSigning=true \
               --publish never
           fi
           
