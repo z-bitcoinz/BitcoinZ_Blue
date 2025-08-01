@@ -106,38 +106,31 @@ jobs:
           
           # Create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          KEYCHAIN_PATH=build.keychain
+          KEYCHAIN_PASSWORD=mysecretpassword
           
           # Import certificate from secrets
           echo $APPLE_CERTIFICATE_BASE64 | base64 --decode > $CERTIFICATE_PATH
           
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           
           # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
           
           # Set key partition list (allows codesign to access the certificate)
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           
-          # Make keychain available for electron-builder
-          echo "SIGNING_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
-          echo "SIGNING_KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
+          # Add to search list
+          security list-keychain -d user -s $KEYCHAIN_PATH login.keychain
           
           # Find and export the signing identity
-          FULL_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          FULL_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
           if [ -n "$FULL_IDENTITY" ]; then
-            # Extract just the name part without "Developer ID Application:" prefix
-            SIGNING_NAME=$(echo "$FULL_IDENTITY" | sed 's/Developer ID Application: //')
-            echo "SIGNING_IDENTITY=$FULL_IDENTITY" >> $GITHUB_ENV
-            echo "SIGNING_NAME=$SIGNING_NAME" >> $GITHUB_ENV
-            echo "✅ Certificate imported successfully"
-            echo "   Full identity: $FULL_IDENTITY"
-            echo "   Signing name: $SIGNING_NAME"
+            echo "✅ Certificate imported successfully: $FULL_IDENTITY"
           else
             echo "❌ Failed to find Developer ID Application certificate"
             exit 1
@@ -159,16 +152,14 @@ jobs:
           yarn --version
           node --version
           
-          # Ensure keychain is available if certificate was imported
-          if [ -n "$SIGNING_KEYCHAIN_PATH" ]; then
-            echo "🔐 Unlocking signing keychain..."
-            security unlock-keychain -p "$SIGNING_KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN_PATH"
-            security set-keychain-settings -lut 21600 "$SIGNING_KEYCHAIN_PATH"
-            
-            # List available identities for debugging
-            echo "📋 Available signing identities in keychain:"
-            security find-identity -v -p codesigning "$SIGNING_KEYCHAIN_PATH"
-          fi
+          # Ensure keychain is available
+          echo "🔐 Ensuring keychain is unlocked..."
+          security unlock-keychain -p "mysecretpassword" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          
+          # List available identities for debugging
+          echo "📋 Available signing identities:"
+          security find-identity -v -p codesigning
           
           # First build without packaging (with OpenSSL legacy provider for Node.js 18 + Webpack 4)
           NODE_OPTIONS="--openssl-legacy-provider" yarn build
@@ -179,8 +170,10 @@ jobs:
           # Copy electron.js to build directory
           cp public/electron.js build/
           
-          # Determine signing approach based on certificate availability
-          if [ -z "$SIGNING_IDENTITY" ]; then
+          # Check if we have a certificate
+          IDENTITY_CHECK=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1)
+          
+          if [ -z "$IDENTITY_CHECK" ]; then
             echo "🔐 Building with ad-hoc signing..."
             # Build with ad-hoc signing
             npx electron-builder -m \
@@ -193,31 +186,22 @@ jobs:
               --publish never
           else
             echo "🔐 Building with Developer ID certificate"
-            echo "   Full identity: $SIGNING_IDENTITY"
-            echo "   Signing name: $SIGNING_NAME"
             
-            # Export identity as environment variable for electron-builder (just the name part)
-            export CSC_NAME="$SIGNING_NAME"
+            # Export the certificate data back for electron-builder
+            export CSC_LINK="${{ secrets.APPLE_CERTIFICATE_BASE64 }}"
+            export CSC_KEY_PASSWORD="${{ secrets.APPLE_CERTIFICATE_PASSWORD }}"
             
-            # Also ensure the keychain is set
-            if [ -n "$SIGNING_KEYCHAIN_PATH" ]; then
-              export CSC_KEYCHAIN="$SIGNING_KEYCHAIN_PATH"
-            fi
-            
-            # Sign the native module with timestamp before packaging (use full identity)
+            # Sign the native module with timestamp before packaging
+            IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
             echo "🔐 Pre-signing native module with timestamp..."
-            codesign --force --timestamp --sign "$SIGNING_IDENTITY" \
+            codesign --force --timestamp --sign "$IDENTITY" \
               --options runtime \
               build/native.node || echo "Warning: Failed to pre-sign native module"
             
             # Debug: Show current environment
             echo "🔍 Debug: Signing environment:"
-            echo "SIGNING_IDENTITY: $SIGNING_IDENTITY"
-            echo "SIGNING_NAME: $SIGNING_NAME"
-            echo "CSC_NAME: $CSC_NAME"
-            echo "CSC_KEYCHAIN: $CSC_KEYCHAIN"
-            echo "Available identities:"
-            security find-identity -v -p codesigning
+            echo "Certificate available: Yes"
+            echo "Keychain: build.keychain (default)"
             
             # Build with Developer ID certificate
             # Force electron-builder to use our certificate
