@@ -91,7 +91,7 @@ jobs:
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Import Apple Developer Certificate
-        if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -252,7 +252,7 @@ jobs:
           ls -la dist/*.dmg || true
       
       - name: Notarize macOS Apps
-        if: ${{ secrets.APPLE_ID != '' && secrets.APPLE_ID_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
