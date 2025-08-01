@@ -177,22 +177,30 @@ jobs:
           # Determine signing approach based on certificate availability
           if [ -z "$CSC_LINK" ] || [ -z "$SIGNING_IDENTITY" ]; then
             echo "🔐 Building with ad-hoc signing..."
-            SIGN_OPTS="--config.mac.identity=null"
+            # Build with ad-hoc signing
+            npx electron-builder -m \
+              --config.extraMetadata.main=build/electron.js \
+              --config.mac.type=distribution \
+              --config.mac.target=dir \
+              --config.npmRebuild=false \
+              --config.buildDependenciesFromSource=false \
+              --config.mac.identity=null \
+              --publish never
           else
             echo "🔐 Building with Developer ID certificate: $SIGNING_IDENTITY"
-            # Use the discovered identity explicitly
-            SIGN_OPTS="--config.mac.identity=\"$SIGNING_IDENTITY\" --config.mac.hardenedRuntime=true"
+            # Export identity as environment variable for electron-builder
+            export MAC_IDENTITY="$SIGNING_IDENTITY"
+            
+            # Build with Developer ID certificate
+            npx electron-builder -m \
+              --config.extraMetadata.main=build/electron.js \
+              --config.mac.type=distribution \
+              --config.mac.target=dir \
+              --config.npmRebuild=false \
+              --config.buildDependenciesFromSource=false \
+              --config.mac.hardenedRuntime=true \
+              --publish never
           fi
-          
-          # Build apps without DMG (to avoid Python issue)
-          npx electron-builder -m \
-            --config.extraMetadata.main=build/electron.js \
-            --config.mac.type=distribution \
-            --config.mac.target=dir \
-            --config.npmRebuild=false \
-            --config.buildDependenciesFromSource=false \
-            $SIGN_OPTS \
-            --publish never
           
           # Verify the apps are signed
           echo "📋 Verifying signatures..."
