@@ -25,7 +25,7 @@ Download compiled binaries from our [release page](https://github.com/z-bitcoinz
 
 ### 🍎 macOS Installation Instructions
 
-**Note:** Currently using ad-hoc signing. You'll see an "unidentified developer" warning on first launch, but the app is safe to use. Simply right-click and select "Open" to bypass this warning.
+**✅ Fully signed and notarized!** BitcoinZ Blue is now properly signed with a Developer ID certificate and notarized by Apple. You should be able to open the app normally without any security warnings.
 
 #### **Method 1: Right-click to Open (Recommended)**
 1. Download the appropriate ZIP file for your Mac:
