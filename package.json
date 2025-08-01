@@ -218,7 +218,6 @@
       "entitlements": "./configs/entitlements.mac.minimal.plist",
       "entitlementsInherit": "./configs/entitlements.mac.minimal.plist",
       "notarize": false,
-      "timestamp": true,
       "signIgnore": [],
       "strictVerify": true
     },

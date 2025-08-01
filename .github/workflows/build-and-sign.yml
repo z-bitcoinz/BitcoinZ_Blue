@@ -218,7 +218,6 @@ jobs:
               --config.npmRebuild=false \
               --config.buildDependenciesFromSource=false \
               --config.mac.hardenedRuntime=true \
-              --config.mac.timestamp=true \
               --publish never
           fi
           
