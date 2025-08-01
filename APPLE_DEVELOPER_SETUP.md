@@ -93,3 +93,16 @@ After setup, your apps will:
 - ✅ **Pass Gatekeeper checks**
 - ✅ **Show as "verified developer"**
 - ✅ **Install without security warnings**
+
+## 🧪 Testing Your Setup
+
+Run the verification script to check your local setup:
+```bash
+./scripts/verify-apple-setup.sh
+```
+
+This script will:
+- Check for Developer ID certificates
+- Guide you through the export process
+- Verify your signing works locally
+- Show you exactly which GitHub secrets to add
