@@ -189,7 +189,18 @@ jobs:
           else
             echo "🔐 Building with Developer ID certificate: $SIGNING_IDENTITY"
             # Export identity as environment variable for electron-builder
-            export MAC_IDENTITY="$SIGNING_IDENTITY"
+            export CSC_NAME="$SIGNING_IDENTITY"
+            
+            # Also ensure the keychain is set
+            if [ -n "$SIGNING_KEYCHAIN_PATH" ]; then
+              export CSC_KEYCHAIN="$SIGNING_KEYCHAIN_PATH"
+            fi
+            
+            # Sign the native module with timestamp before packaging
+            echo "🔐 Pre-signing native module with timestamp..."
+            codesign --force --timestamp --sign "$SIGNING_IDENTITY" \
+              --options runtime \
+              build/native.node || echo "Warning: Failed to pre-sign native module"
             
             # Build with Developer ID certificate
             npx electron-builder -m \
@@ -199,6 +210,7 @@ jobs:
               --config.npmRebuild=false \
               --config.buildDependenciesFromSource=false \
               --config.mac.hardenedRuntime=true \
+              --config.mac.timestamp=true \
               --publish never
           fi
           

@@ -215,9 +215,12 @@
       "icon": "./resources/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "entitlements": "./configs/entitlements.mac.plist",
-      "entitlementsInherit": "./configs/entitlements.mac.inherit.plist",
-      "notarize": false
+      "entitlements": "./configs/entitlements.mac.minimal.plist",
+      "entitlementsInherit": "./configs/entitlements.mac.minimal.plist",
+      "notarize": false,
+      "timestamp": true,
+      "signIgnore": [],
+      "strictVerify": true
     },
     "dmg": {
       "sign": false,
