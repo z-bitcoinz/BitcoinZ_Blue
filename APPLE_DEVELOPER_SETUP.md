@@ -50,7 +50,7 @@ Add these to your repository: **Settings** → **Secrets and variables** → **A
 | `APPLE_ID` | Your Apple ID email | Apple Developer account email |
 | `APPLE_ID_PASSWORD` | App-specific password | Generated app password |
 | `APPLE_TEAM_ID` | Your 10-character Team ID | From developer.apple.com |
-| `APPLE_SIGNING_IDENTITY` | Certificate hash OR full name | e.g., "02F6A77001793A193A90D3DDA7597FE71B6D3AFC" or "Developer ID Application: Your Name (TEAMID)" (OPTIONAL - will auto-discover) |
+| `APPLE_SIGNING_IDENTITY` | Certificate hash (recommended) | e.g., "02F6A77001793A193A90D3DDA7597FE71B6D3AFC" (OPTIONAL - will auto-discover) |
 
 ## 📋 How to Find Your Signing Identity
 
@@ -66,7 +66,11 @@ security find-identity -v -p codesigning
 # - The full name: "Developer ID Application: Your Name (ABC123DEFG)"
 ```
 
-**Note**: The `APPLE_SIGNING_IDENTITY` secret is now **optional**. The build system will automatically discover your Developer ID Application certificate if you don't provide this secret. If provided, using the certificate hash (40-character hex string) is recommended to avoid issues with special characters or GitHub Actions masking.
+**Important Notes**:
+- The `APPLE_SIGNING_IDENTITY` secret is **optional** - the build will auto-discover it
+- If you do set it, **use only the 40-character hash**, not the full name
+- The build system will always use the discovered hash to avoid GitHub Actions masking issues
+- Full certificate names often get masked by GitHub, causing signing failures
 
 ## 🚀 Next Steps
 

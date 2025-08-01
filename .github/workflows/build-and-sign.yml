@@ -193,19 +193,27 @@ jobs:
           echo "🔍 Available signing identities:"
           security find-identity -v -p codesigning || echo "No codesigning identities found"
           
-          # Auto-discover signing identity if not provided
-          if [ -z "$APPLE_SIGNING_IDENTITY" ] && [ -n "$APPLE_CERTIFICATE_BASE64" ]; then
-            echo "🔍 Auto-discovering signing identity..."
-            # Extract the hash and identity separately to avoid masking
+          # Always discover certificate hash to avoid masking issues
+          if [ -n "$APPLE_CERTIFICATE_BASE64" ]; then
+            echo "🔍 Discovering certificate hash..."
+            # Extract the hash to avoid GitHub masking
             CERT_HASH=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk '{print $2}')
             if [ -n "$CERT_HASH" ]; then
               echo "✅ Found certificate hash: $CERT_HASH"
+              
+              # Always use the hash, even if identity was provided
+              if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+                echo "⚠️  Overriding provided identity with discovered hash to avoid masking"
+              fi
               export APPLE_SIGNING_IDENTITY="$CERT_HASH"
             else
-              echo "⚠️  No Developer ID Application identity found"
+              echo "❌ No Developer ID Application certificate found in keychain"
+              echo "Available certificates:"
+              security find-identity -v -p codesigning | head -10
+              exit 1
             fi
-          elif [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-            echo "Using provided signing identity"
+          else
+            echo "⚠️  No certificate provided, will use ad-hoc signing"
           fi
           
           # Make the script executable
