@@ -208,6 +208,13 @@ jobs:
             echo "Checking: $app"
             codesign -dv --verbose=4 "$app" 2>&1
             
+            # Check all embedded frameworks and helpers
+            echo "Checking embedded components in $app..."
+            find "$app" -name "*.app" -o -name "*.framework" | while read -r component; do
+              echo "  Component: $component"
+              codesign -dv "$component" 2>&1 | grep -E "Signature=|TeamIdentifier=|Authority=" || true
+            done
+            
             # Remove extended attributes
             xattr -cr "$app"
           done
@@ -279,13 +286,36 @@ jobs:
             if [ -f "$dmg" ]; then
               echo "📤 Submitting for notarization: $dmg"
               
-              # Submit for notarization
-              xcrun notarytool submit "$dmg" \
+              # Submit for notarization and capture the output
+              NOTARIZE_OUTPUT=$(xcrun notarytool submit "$dmg" \
                 --apple-id "$APPLE_ID" \
                 --password "$APPLE_ID_PASSWORD" \
                 --team-id "$APPLE_TEAM_ID" \
                 --wait \
-                --timeout 30m
+                --timeout 30m 2>&1)
+              
+              echo "$NOTARIZE_OUTPUT"
+              
+              # Extract submission ID for logging
+              SUBMISSION_ID=$(echo "$NOTARIZE_OUTPUT" | grep -E "id: [a-f0-9-]+" | head -1 | awk '{print $2}')
+              
+              # Check if notarization failed
+              if echo "$NOTARIZE_OUTPUT" | grep -q "status: Invalid"; then
+                echo "❌ Notarization failed! Fetching detailed log..."
+                
+                # Get the detailed error log
+                xcrun notarytool log "$SUBMISSION_ID" \
+                  --apple-id "$APPLE_ID" \
+                  --password "$APPLE_ID_PASSWORD" \
+                  --team-id "$APPLE_TEAM_ID" || true
+                
+                echo "❌ Notarization was marked as Invalid by Apple"
+                echo "Common issues:"
+                echo "- Components signed with ad-hoc instead of Developer ID"
+                echo "- Missing hardened runtime"
+                echo "- Unsigned frameworks or helpers"
+                exit 1
+              fi
               
               # Staple the ticket
               echo "📌 Stapling notarization ticket to: $dmg"
