@@ -91,7 +91,7 @@ jobs:
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Import Apple Developer Certificate
-        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -124,14 +124,26 @@ jobs:
           # Set key partition list (allows codesign to access the certificate)
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           
-          echo "✅ Certificate imported successfully"
+          # Make keychain available for electron-builder
+          echo "SIGNING_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+          echo "SIGNING_KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
+          
+          # Find and export the signing identity
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          if [ -n "$SIGNING_IDENTITY" ]; then
+            echo "SIGNING_IDENTITY=$SIGNING_IDENTITY" >> $GITHUB_ENV
+            echo "✅ Certificate imported successfully: $SIGNING_IDENTITY"
+          else
+            echo "❌ Failed to find Developer ID Application certificate"
+            exit 1
+          fi
           
       - name: Build macOS app with proper signing
         env:
           # Use certificate if available, otherwise ad-hoc
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          CSC_IDENTITY_AUTO_DISCOVERY: true
+          CSC_IDENTITY_AUTO_DISCOVERY: false
           # Skip rebuilding native deps since we already built them
           ELECTRON_BUILDER_SKIP_REBUILD: true
           # Hardened runtime for notarization
@@ -142,6 +154,17 @@ jobs:
           yarn --version
           node --version
           
+          # Ensure keychain is available if certificate was imported
+          if [ -n "$SIGNING_KEYCHAIN_PATH" ]; then
+            echo "🔐 Unlocking signing keychain..."
+            security unlock-keychain -p "$SIGNING_KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$SIGNING_KEYCHAIN_PATH"
+            
+            # List available identities for debugging
+            echo "📋 Available signing identities in keychain:"
+            security find-identity -v -p codesigning "$SIGNING_KEYCHAIN_PATH"
+          fi
+          
           # First build without packaging (with OpenSSL legacy provider for Node.js 18 + Webpack 4)
           NODE_OPTIONS="--openssl-legacy-provider" yarn build
           
@@ -151,13 +174,14 @@ jobs:
           # Copy electron.js to build directory
           cp public/electron.js build/
           
-          # Determine signing approach
-          if [ -z "$CSC_LINK" ]; then
+          # Determine signing approach based on certificate availability
+          if [ -z "$CSC_LINK" ] || [ -z "$SIGNING_IDENTITY" ]; then
             echo "🔐 Building with ad-hoc signing..."
             SIGN_OPTS="--config.mac.identity=null"
           else
-            echo "🔐 Building with Developer ID certificate..."
-            SIGN_OPTS="--config.mac.hardenedRuntime=true"
+            echo "🔐 Building with Developer ID certificate: $SIGNING_IDENTITY"
+            # Use the discovered identity explicitly
+            SIGN_OPTS="--config.mac.identity=\"$SIGNING_IDENTITY\" --config.mac.hardenedRuntime=true"
           fi
           
           # Build apps without DMG (to avoid Python issue)
@@ -228,7 +252,7 @@ jobs:
           ls -la dist/*.dmg || true
       
       - name: Notarize macOS Apps
-        if: env.APPLE_ID != ''
+        if: ${{ secrets.APPLE_ID != '' && secrets.APPLE_ID_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
