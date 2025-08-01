@@ -129,10 +129,15 @@ jobs:
           echo "SIGNING_KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
           
           # Find and export the signing identity
-          SIGNING_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
-          if [ -n "$SIGNING_IDENTITY" ]; then
-            echo "SIGNING_IDENTITY=$SIGNING_IDENTITY" >> $GITHUB_ENV
-            echo "✅ Certificate imported successfully: $SIGNING_IDENTITY"
+          FULL_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          if [ -n "$FULL_IDENTITY" ]; then
+            # Extract just the name part without "Developer ID Application:" prefix
+            SIGNING_NAME=$(echo "$FULL_IDENTITY" | sed 's/Developer ID Application: //')
+            echo "SIGNING_IDENTITY=$FULL_IDENTITY" >> $GITHUB_ENV
+            echo "SIGNING_NAME=$SIGNING_NAME" >> $GITHUB_ENV
+            echo "✅ Certificate imported successfully"
+            echo "   Full identity: $FULL_IDENTITY"
+            echo "   Signing name: $SIGNING_NAME"
           else
             echo "❌ Failed to find Developer ID Application certificate"
             exit 1
@@ -187,16 +192,19 @@ jobs:
               --config.mac.identity=null \
               --publish never
           else
-            echo "🔐 Building with Developer ID certificate: $SIGNING_IDENTITY"
-            # Export identity as environment variable for electron-builder
-            export CSC_NAME="$SIGNING_IDENTITY"
+            echo "🔐 Building with Developer ID certificate"
+            echo "   Full identity: $SIGNING_IDENTITY"
+            echo "   Signing name: $SIGNING_NAME"
+            
+            # Export identity as environment variable for electron-builder (just the name part)
+            export CSC_NAME="$SIGNING_NAME"
             
             # Also ensure the keychain is set
             if [ -n "$SIGNING_KEYCHAIN_PATH" ]; then
               export CSC_KEYCHAIN="$SIGNING_KEYCHAIN_PATH"
             fi
             
-            # Sign the native module with timestamp before packaging
+            # Sign the native module with timestamp before packaging (use full identity)
             echo "🔐 Pre-signing native module with timestamp..."
             codesign --force --timestamp --sign "$SIGNING_IDENTITY" \
               --options runtime \
