@@ -186,8 +186,21 @@ jobs:
           else
             echo "🔐 Building with Developer ID certificate"
             
-            # Sign the native module with timestamp before packaging
+            # Get the certificate identity hash
+            CERT_HASH=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk '{print $2}')
             IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+            
+            if [ -n "$CERT_HASH" ]; then
+              echo "✅ Found certificate hash: $CERT_HASH"
+              echo "✅ Found certificate identity: $IDENTITY"
+              # Export for afterSignHook.js
+              export APPLE_SIGNING_IDENTITY="$CERT_HASH"
+            else
+              echo "❌ Failed to find Developer ID certificate"
+              exit 1
+            fi
+            
+            # Sign the native module with timestamp before packaging
             echo "🔐 Pre-signing native module with timestamp..."
             codesign --force --timestamp --sign "$IDENTITY" \
               --options runtime \
@@ -198,12 +211,16 @@ jobs:
             echo "Certificate available: Yes"
             echo "CSC_LINK is set: $( [ -n "$CSC_LINK" ] && echo "Yes" || echo "No" )"
             echo "CSC_KEY_PASSWORD is set: $( [ -n "$CSC_KEY_PASSWORD" ] && echo "Yes" || echo "No" )"
+            echo "APPLE_SIGNING_IDENTITY is set: $( [ -n "$APPLE_SIGNING_IDENTITY" ] && echo "Yes" || echo "No" )"
             
             # Build with Developer ID certificate
-            # Let electron-builder handle signing automatically
+            # Force electron-builder to use our certificate with explicit configuration
             npx electron-builder -m \
               --config.extraMetadata.main=build/electron.js \
               --config.npmRebuild=false \
+              --config.mac.forceCodeSigning=true \
+              --config.mac.hardenedRuntime=true \
+              --config.mac.gatekeeperAssess=false \
               --publish never
           fi
           

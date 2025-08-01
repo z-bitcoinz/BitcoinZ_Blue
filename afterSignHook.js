@@ -102,13 +102,13 @@ async function signAppBundle(appBundle) {
     if (process.env.APPLE_SIGNING_IDENTITY && !isProperlySignedWithDeveloperID) {
       console.log(`🔐 Signing with Developer ID: ${appBundle}`);
       
-      const entitlementsPath = path.join(__dirname, 'configs', 'entitlements.mac.plist');
+      const entitlementsPath = path.join(__dirname, 'configs', 'entitlements.mac.minimal.plist');
       if (fs.existsSync(entitlementsPath)) {
-        execSync(`codesign --force --deep --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime --entitlements "${entitlementsPath}" "${appBundle}"`, { stdio: 'inherit' });
-        console.log('✅ Developer ID signature applied');
+        execSync(`codesign --force --deep --timestamp --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime --entitlements "${entitlementsPath}" "${appBundle}"`, { stdio: 'inherit' });
+        console.log('✅ Developer ID signature applied with timestamp');
       } else {
-        execSync(`codesign --force --deep --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime "${appBundle}"`, { stdio: 'inherit' });
-        console.log('✅ Developer ID signature applied (no entitlements file)');
+        execSync(`codesign --force --deep --timestamp --sign "${process.env.APPLE_SIGNING_IDENTITY}" --options runtime "${appBundle}"`, { stdio: 'inherit' });
+        console.log('✅ Developer ID signature applied with timestamp (no entitlements file)');
       }
     } else if (!signCheck.includes('adhoc') && !signCheck.includes('Authority')) {
       console.log(`🔐 Applying ad-hoc signature: ${appBundle}`);
