@@ -75,7 +75,7 @@ security find-identity -v -p codesigning
 ## 🚀 Next Steps
 
 1. **Gather all information above**
-2. **Add GitHub secrets**
+2. **Add GitHub secrets** (all 5 required for notarization)
 3. **Update package.json configuration**
 4. **Test the signing process**
 
