@@ -56,12 +56,32 @@ create_dmg() {
     # Sign the DMG with proper identity
     echo "🔐 Signing DMG..."
     if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-        echo "Using Developer ID certificate: $APPLE_SIGNING_IDENTITY"
-        codesign --force --sign "$APPLE_SIGNING_IDENTITY" "${DIST_DIR}/${DMG_NAME}"
+        # Check if it's a hash or full identity string
+        if [[ "$APPLE_SIGNING_IDENTITY" =~ ^[A-F0-9]{40}$ ]]; then
+            echo "Using certificate hash: $APPLE_SIGNING_IDENTITY"
+        else
+            echo "Using certificate identity: [hidden for security]"
+        fi
         
-        # Verify the signature
-        echo "Verifying DMG signature..."
-        codesign -dv --verbose=4 "${DIST_DIR}/${DMG_NAME}" 2>&1
+        codesign --force --sign "$APPLE_SIGNING_IDENTITY" "${DIST_DIR}/${DMG_NAME}"
+        SIGN_RESULT=$?
+        
+        if [ $SIGN_RESULT -eq 0 ]; then
+            # Verify the signature
+            echo "✅ Signing successful, verifying..."
+            codesign -dv "${DIST_DIR}/${DMG_NAME}" 2>&1 | grep -E "Identifier=|Authority="
+        else
+            echo "❌ Signing failed with exit code: $SIGN_RESULT"
+            # Try with hash if full identity failed
+            if [[ ! "$APPLE_SIGNING_IDENTITY" =~ ^[A-F0-9]{40}$ ]]; then
+                echo "Retrying with certificate hash..."
+                CERT_HASH=$(security find-identity -v -p codesigning | grep "$APPLE_SIGNING_IDENTITY" | awk '{print $2}' | head -1)
+                if [ -n "$CERT_HASH" ]; then
+                    echo "Using hash: $CERT_HASH"
+                    codesign --force --sign "$CERT_HASH" "${DIST_DIR}/${DMG_NAME}"
+                fi
+            fi
+        fi
     else
         echo "Using ad-hoc signing (no certificate provided)"
         codesign --force --sign - "${DIST_DIR}/${DMG_NAME}"

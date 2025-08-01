@@ -196,13 +196,16 @@ jobs:
           # Auto-discover signing identity if not provided
           if [ -z "$APPLE_SIGNING_IDENTITY" ] && [ -n "$APPLE_CERTIFICATE_BASE64" ]; then
             echo "🔍 Auto-discovering signing identity..."
-            APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
-            if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-              echo "✅ Found signing identity: $APPLE_SIGNING_IDENTITY"
-              export APPLE_SIGNING_IDENTITY
+            # Extract the hash and identity separately to avoid masking
+            CERT_HASH=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk '{print $2}')
+            if [ -n "$CERT_HASH" ]; then
+              echo "✅ Found certificate hash: $CERT_HASH"
+              export APPLE_SIGNING_IDENTITY="$CERT_HASH"
             else
               echo "⚠️  No Developer ID Application identity found"
             fi
+          elif [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+            echo "Using provided signing identity"
           fi
           
           # Make the script executable
