@@ -138,10 +138,9 @@ jobs:
           
       - name: Build macOS app with proper signing
         env:
-          # Don't use CSC_LINK when we have a keychain - it conflicts
-          # CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          # CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Provide certificate for electron-builder
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           # Skip rebuilding native deps since we already built them
           ELECTRON_BUILDER_SKIP_REBUILD: true
           # Hardened runtime for notarization
@@ -187,10 +186,6 @@ jobs:
           else
             echo "🔐 Building with Developer ID certificate"
             
-            # Export the certificate data back for electron-builder
-            export CSC_LINK="${{ secrets.APPLE_CERTIFICATE_BASE64 }}"
-            export CSC_KEY_PASSWORD="${{ secrets.APPLE_CERTIFICATE_PASSWORD }}"
-            
             # Sign the native module with timestamp before packaging
             IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
             echo "🔐 Pre-signing native module with timestamp..."
@@ -201,18 +196,14 @@ jobs:
             # Debug: Show current environment
             echo "🔍 Debug: Signing environment:"
             echo "Certificate available: Yes"
-            echo "Keychain: build.keychain (default)"
+            echo "CSC_LINK is set: $( [ -n "$CSC_LINK" ] && echo "Yes" || echo "No" )"
+            echo "CSC_KEY_PASSWORD is set: $( [ -n "$CSC_KEY_PASSWORD" ] && echo "Yes" || echo "No" )"
             
             # Build with Developer ID certificate
-            # Force electron-builder to use our certificate
+            # Let electron-builder handle signing automatically
             npx electron-builder -m \
               --config.extraMetadata.main=build/electron.js \
-              --config.mac.type=distribution \
-              --config.mac.target=dir \
               --config.npmRebuild=false \
-              --config.buildDependenciesFromSource=false \
-              --config.mac.hardenedRuntime=true \
-              --config.mac.forceCodeSigning=true \
               --publish never
           fi
           
