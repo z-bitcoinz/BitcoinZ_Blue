@@ -188,26 +188,28 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
           echo "📦 Creating DMG files..."
+          
+          # List available signing identities for debugging
+          echo "🔍 Available signing identities:"
+          security find-identity -v -p codesigning || echo "No codesigning identities found"
+          
+          # Auto-discover signing identity if not provided
+          if [ -z "$APPLE_SIGNING_IDENTITY" ] && [ -n "$APPLE_CERTIFICATE_BASE64" ]; then
+            echo "🔍 Auto-discovering signing identity..."
+            APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+            if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+              echo "✅ Found signing identity: $APPLE_SIGNING_IDENTITY"
+              export APPLE_SIGNING_IDENTITY
+            else
+              echo "⚠️  No Developer ID Application identity found"
+            fi
+          fi
+          
           # Make the script executable
           chmod +x scripts/create-dmg.sh
           
-          # Run the custom DMG creation script
+          # Run the custom DMG creation script with environment variables
           ./scripts/create-dmg.sh
-          
-          # Sign DMG files if certificate is available
-          if [ -n "$APPLE_CERTIFICATE_BASE64" ] && [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-            echo "🔐 Signing DMG files..."
-            for dmg in dist/*.dmg; do
-              if [ -f "$dmg" ]; then
-                echo "Signing: $dmg"
-                codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
-                echo "Verifying: $dmg"
-                codesign -dv --verbose=4 "$dmg"
-              fi
-            done
-          else
-            echo "⚠️  No certificate available, DMGs will not be signed"
-          fi
           
           echo "✅ DMG creation complete"
           

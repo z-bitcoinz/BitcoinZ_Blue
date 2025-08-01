@@ -53,9 +53,19 @@ create_dmg() {
         -imagekey zlib-level=9 \
         "${DIST_DIR}/${DMG_NAME}"
     
-    # Sign the DMG
+    # Sign the DMG with proper identity
     echo "🔐 Signing DMG..."
-    codesign --force --sign - "${DIST_DIR}/${DMG_NAME}"
+    if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+        echo "Using Developer ID certificate: $APPLE_SIGNING_IDENTITY"
+        codesign --force --sign "$APPLE_SIGNING_IDENTITY" "${DIST_DIR}/${DMG_NAME}"
+        
+        # Verify the signature
+        echo "Verifying DMG signature..."
+        codesign -dv --verbose=4 "${DIST_DIR}/${DMG_NAME}" 2>&1
+    else
+        echo "Using ad-hoc signing (no certificate provided)"
+        codesign --force --sign - "${DIST_DIR}/${DMG_NAME}"
+    fi
     
     # Verify
     echo "✅ Created: ${DIST_DIR}/${DMG_NAME}"

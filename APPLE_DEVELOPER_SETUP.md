@@ -50,7 +50,7 @@ Add these to your repository: **Settings** → **Secrets and variables** → **A
 | `APPLE_ID` | Your Apple ID email | Apple Developer account email |
 | `APPLE_ID_PASSWORD` | App-specific password | Generated app password |
 | `APPLE_TEAM_ID` | Your 10-character Team ID | From developer.apple.com |
-| `APPLE_SIGNING_IDENTITY` | Full certificate name | e.g., "Developer ID Application: Your Name (TEAMID)" |
+| `APPLE_SIGNING_IDENTITY` | Full certificate name | e.g., "Developer ID Application: Your Name (TEAMID)" (OPTIONAL - will auto-discover) |
 
 ## 📋 How to Find Your Signing Identity Name
 
@@ -61,6 +61,8 @@ security find-identity -v -p codesigning
 # Look for something like:
 # "Developer ID Application: Your Name (ABC123DEFG)"
 ```
+
+**Note**: The `APPLE_SIGNING_IDENTITY` secret is now **optional**. The build system will automatically discover your Developer ID Application certificate if you don't provide this secret.
 
 ## 🚀 Next Steps
 
