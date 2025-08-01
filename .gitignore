@@ -41,3 +41,14 @@ wallet_backup/
 # Temporary files
 *.tmp
 *.temp
+
+# Apple certificates - NEVER commit these!
+apple-certificates/
+*.p12
+*.cer
+*.key
+*.pem
+certificate-base64.txt
+apple-certificate-base64.txt
+*.certSigningRequest
+CertificateSigningRequest.certSigningRequest
