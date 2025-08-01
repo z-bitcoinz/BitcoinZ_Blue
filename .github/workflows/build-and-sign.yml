@@ -91,7 +91,8 @@ jobs:
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
       - name: Import Apple Developer Certificate
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        # TEMPORARILY DISABLED - Using ad-hoc signing until Apple ID is properly configured
+        if: false
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -221,32 +222,13 @@ jobs:
         run: |
           echo "📦 Creating DMG files..."
           
-          # List available signing identities for debugging
-          echo "🔍 Available signing identities:"
-          security find-identity -v -p codesigning || echo "No codesigning identities found"
+          # TEMPORARILY using ad-hoc signing until Apple ID is properly configured
+          echo "📝 Using ad-hoc signing (temporary solution)"
+          echo "   Users can right-click → Open to bypass security warning"
+          echo "   This avoids the 'damaged app' issue with unsigned Developer ID certificates"
           
-          # Always discover certificate hash to avoid masking issues
-          if [ -n "$APPLE_CERTIFICATE_BASE64" ]; then
-            echo "🔍 Discovering certificate hash..."
-            # Extract the hash to avoid GitHub masking
-            CERT_HASH=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk '{print $2}')
-            if [ -n "$CERT_HASH" ]; then
-              echo "✅ Found certificate hash: $CERT_HASH"
-              
-              # Always use the hash, even if identity was provided
-              if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
-                echo "⚠️  Overriding provided identity with discovered hash to avoid masking"
-              fi
-              export APPLE_SIGNING_IDENTITY="$CERT_HASH"
-            else
-              echo "❌ No Developer ID Application certificate found in keychain"
-              echo "Available certificates:"
-              security find-identity -v -p codesigning | head -10
-              exit 1
-            fi
-          else
-            echo "⚠️  No certificate provided, will use ad-hoc signing"
-          fi
+          # Clear any signing identity to force ad-hoc
+          unset APPLE_SIGNING_IDENTITY
           
           # Make the script executable
           chmod +x scripts/create-dmg.sh
@@ -260,7 +242,8 @@ jobs:
           ls -la dist/*.dmg || true
       
       - name: Notarize macOS Apps
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        # TEMPORARILY DISABLED - Using ad-hoc signing until Apple ID is properly configured
+        if: false
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}

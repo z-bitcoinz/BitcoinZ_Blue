@@ -25,7 +25,7 @@ Download compiled binaries from our [release page](https://github.com/z-bitcoinz
 
 ### 🍎 macOS Installation Instructions
 
-**✅ Good News: No more "damaged app" errors!** Thanks to our new ad-hoc code signing, macOS will no longer show the "damaged and can't be opened" error. You may still see an "unidentified developer" warning on first launch.
+**Note:** Currently using ad-hoc signing. You'll see an "unidentified developer" warning on first launch, but the app is safe to use. Simply right-click and select "Open" to bypass this warning.
 
 #### **Method 1: Right-click to Open (Recommended)**
 1. Download the appropriate ZIP file for your Mac:
