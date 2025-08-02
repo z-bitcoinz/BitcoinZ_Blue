@@ -5,7 +5,6 @@ import { currencyManager, SUPPORTED_CURRENCIES } from '../utils/currencyManager'
 import { WalletSettings, AddressBookEntry } from './AppState';
 import { useLock } from '../contexts/LockContext';
 import PinSetup from './PinSetup';
-import AddressbookImpl from '../utils/AddressbookImpl';
 
 type SettingsModalProps = {
   isOpen: boolean;
