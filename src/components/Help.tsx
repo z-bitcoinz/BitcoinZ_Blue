@@ -9,19 +9,58 @@ export default class Help extends Component<{}, HelpState> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      activeTab: "getting-started"
+      activeTab: "help"
     };
   }
 
   render() {
+    const { activeTab } = this.state;
+
     return (
       <div className={styles.helpContainer}>
         <div className={styles.helpHeader}>
-          <h2>📚 BitcoinZ Blue Help</h2>
+          <h2>📚 BitcoinZ Blue Help & About</h2>
           <p>Everything you need to know about using your BitcoinZ wallet</p>
         </div>
 
+        <div className={styles.helpTabs} style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
+          <button
+            onClick={() => this.setState({ activeTab: "help" })}
+            style={{
+              padding: '12px 30px',
+              background: activeTab === "help" ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '10px 10px 0 0',
+              color: 'white',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontSize: '16px'
+            }}
+          >
+            📖 Help
+          </button>
+          <button
+            onClick={() => this.setState({ activeTab: "about" })}
+            style={{
+              padding: '12px 30px',
+              background: activeTab === "about" ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '10px 10px 0 0',
+              color: 'white',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontSize: '16px'
+            }}
+          >
+            ℹ️ About
+          </button>
+        </div>
+
         <div className={styles.helpContent}>
+          {activeTab === "help" && (
+            <>
           <div className={styles.helpSection}>
             <h3>🔄 Why Your Funds Move Automatically (Auto-Shielding)</h3>
             <div className={styles.helpCard}>
@@ -270,13 +309,97 @@ export default class Help extends Component<{}, HelpState> {
           </div>
 
           <div className={styles.helpSection}>
+            <h3>🔧 Expert Mode - Advanced Information</h3>
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>📁 Wallet Data Locations</div>
+              <div className={styles.helpCardBody}>
+                <p><strong>Your wallet data is stored locally on your computer:</strong></p>
+                <div style={{ marginTop: '15px' }}>
+                  <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>💻 Windows:</h6>
+                  <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginBottom: '15px' }}>
+                    %APPDATA%\BitcoinZ Blue\
+                  </code>
+                  
+                  <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>🍎 macOS:</h6>
+                  <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginBottom: '15px' }}>
+                    ~/Library/Application Support/BitcoinZ Blue/
+                  </code>
+                  
+                  <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>🐧 Linux:</h6>
+                  <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px' }}>
+                    ~/.config/BitcoinZ Blue/
+                  </code>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>📄 Important Files</div>
+              <div className={styles.helpCardBody}>
+                <ul style={{ lineHeight: '1.8' }}>
+                  <li><strong>wallet.dat</strong> - Your encrypted wallet data (contains private keys)</li>
+                  <li><strong>lightclient.toml</strong> - Configuration file with server settings</li>
+                  <li><strong>logs/</strong> - Debug logs for troubleshooting</li>
+                  <li><strong>*.lock</strong> - Lock files to prevent multiple instances</li>
+                </ul>
+                
+                <div className={styles.safetyNote} style={{ marginTop: '20px' }}>
+                  <strong>⚠️ WARNING:</strong> Never share your wallet.dat file with anyone! It contains your private keys.
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>💾 Backup & Restore</div>
+              <div className={styles.helpCardBody}>
+                <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>Creating a Backup:</h6>
+                <ol style={{ marginBottom: '20px' }}>
+                  <li>Close BitcoinZ Blue wallet completely</li>
+                  <li>Navigate to your wallet data directory (see above)</li>
+                  <li>Copy the entire folder to a secure backup location</li>
+                  <li>Especially important: <code>wallet.dat</code> file</li>
+                </ol>
+                
+                <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>Restoring from Backup:</h6>
+                <ol>
+                  <li>Close BitcoinZ Blue if running</li>
+                  <li>Replace the wallet data folder with your backup</li>
+                  <li>Start BitcoinZ Blue - it will rescan the blockchain</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🗑️ Complete Reset (Clean Install)</div>
+              <div className={styles.helpCardBody}>
+                <p><strong>To completely reset BitcoinZ Blue:</strong></p>
+                <ol style={{ marginTop: '15px', lineHeight: '1.8' }}>
+                  <li>Make sure you have your seed phrase backed up!</li>
+                  <li>Close BitcoinZ Blue completely</li>
+                  <li>Delete the entire wallet data directory</li>
+                  <li>Restart BitcoinZ Blue</li>
+                  <li>Restore from your seed phrase</li>
+                </ol>
+                
+                <div className={styles.safetyNote} style={{ marginTop: '20px', background: 'rgba(255, 0, 0, 0.1)', border: '1px solid rgba(255, 0, 0, 0.3)' }}>
+                  <strong>🚨 CRITICAL:</strong> Deleting wallet data without a seed phrase backup means permanent loss of funds!
+                </div>
+              </div>
+            </div>
+          </div>
+            </>
+          )}
+
+          {activeTab === "about" && (
+            <>
+          <div className={styles.helpSection}>
             <h3>📋 About BitcoinZ Blue</h3>
             <div className={styles.helpCard}>
               <div className={styles.helpCardHeader}>🏆 Professional Light Wallet for BitcoinZ</div>
               <div className={styles.helpCardBody}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '24px', color: '#4A90E2', margin: '10px 0' }}>BitcoinZ Blue v1.2.6</h4>
-                  <p style={{ fontSize: '16px', color: '#666' }}>Modern, Secure, Privacy-Focused Light Wallet</p>
+                  <h4 style={{ fontSize: '24px', color: '#87CEEB', margin: '10px 0' }}>BitcoinZ Blue v1.2.6</h4>
+                  <p style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.9)' }}>Modern, Secure, Privacy-Focused Light Wallet</p>
                 </div>
 
                 <div style={{ marginBottom: '30px', padding: '20px', background: 'rgba(74, 144, 226, 0.05)', borderRadius: '8px', border: '1px solid rgba(74, 144, 226, 0.2)' }}>
@@ -335,7 +458,7 @@ export default class Help extends Component<{}, HelpState> {
                     no software can guarantee absolute security. Users must take responsibility for their own security:
                   </p>
                   <ul style={{ marginTop: '10px', fontSize: '13px', lineHeight: '1.8' }}>
-                    <li>• <strong>Always</strong> download from official sources: <strong style={{ color: '#4A90E2' }}>getbtcz.com</strong></li>
+                    <li>• <strong>Always</strong> download from official sources: <strong style={{ color: '#87CEEB' }}>getbtcz.com</strong></li>
                     <li>• <strong>Verify</strong> SHA256 checksums and digital signatures</li>
                     <li>• <strong>Backup</strong> your seed phrase in multiple secure locations</li>
                     <li>• <strong>Never</strong> share your seed phrase or private keys with anyone</li>
@@ -353,35 +476,39 @@ export default class Help extends Component<{}, HelpState> {
                   </p>
                   <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <a href="https://github.com/z-bitcoinz/BitcoinZ_Blue" target="_blank" rel="noopener noreferrer" 
-                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#87CEEB', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ fontSize: '20px' }}>💻</span>
                       <div>
                         <strong>GitHub Repository</strong><br />
-                        <small style={{ color: '#666' }}>Source code, issues, and contributions</small>
+                        <small style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Source code, issues, and contributions</small>
                       </div>
                     </a>
                     <a href="https://getbtcz.com" target="_blank" rel="noopener noreferrer" 
-                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#87CEEB', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ fontSize: '20px' }}>🌐</span>
                       <div>
                         <strong>Official BitcoinZ Website</strong><br />
-                        <small style={{ color: '#666' }}>Downloads, documentation, and resources</small>
+                        <small style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Downloads, documentation, and resources</small>
                       </div>
                     </a>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center', fontSize: '13px', color: '#666', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                <div style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', borderTop: '1px solid rgba(255, 255, 255, 0.2)', paddingTop: '20px' }}>
                   <p><strong>License:</strong> MIT License - Free and Open Source Software</p>
                   <p style={{ marginTop: '5px' }}><strong>Copyright © 2024</strong> BitcoinZ Community Contributors</p>
-                  <p style={{ marginTop: '10px', fontSize: '12px' }}>
+                  <p style={{ marginTop: '10px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
                     Built with ❤️ by the BitcoinZ community for the benefit of all humanity
                   </p>
                 </div>
               </div>
             </div>
           </div>
+            </>
+          )}
+        </div>
 
+        {activeTab === "help" && (
           <div className={styles.helpFooter}>
             <p>
               <strong>BitcoinZ Blue</strong> - Modern. Secure. Private. 💙
@@ -395,7 +522,7 @@ export default class Help extends Component<{}, HelpState> {
               </small>
             </p>
           </div>
-        </div>
+        )}
       </div>
     );
   }
