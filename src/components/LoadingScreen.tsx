@@ -670,20 +670,32 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               justifyContent: 'center',
               textAlign: 'center',
               maxWidth: '600px',
-              width: '100%'
+              width: '100%',
+              padding: '20px'
             }}>
               <div style={{
-                marginBottom: "30px",
                 display: 'flex',
-                justifyContent: 'center'
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                marginBottom: '30px'
               }}>
-                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
+                <div style={{
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  letterSpacing: '0.5px'
+                }}>
+                  Your Keys, Your Coins
+                </div>
+                <img src={Logo} width="90px" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
               <div style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '12px',
-                padding: '32px',
+                padding: '24px',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                 width: '100%',
@@ -813,20 +825,32 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               justifyContent: 'center',
               textAlign: 'center',
               maxWidth: '600px',
-              width: '100%'
+              width: '100%',
+              padding: '20px'
             }}>
               <div style={{
-                marginBottom: "30px",
                 display: 'flex',
-                justifyContent: 'center'
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                marginBottom: '30px'
               }}>
-                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
+                <div style={{
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  letterSpacing: '0.5px'
+                }}>
+                  Welcome Back to Freedom
+                </div>
+                <img src={Logo} width="90px" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
               <div style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '12px',
-                padding: '32px',
+                padding: '24px',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                 width: '100%',

@@ -746,10 +746,10 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
               {seed}
             </div>
             <hr />
-            <div style={{ textAlign: "center", padding: "10px", background: "rgba(255, 200, 0, 0.1)", borderRadius: "5px" }}>
-              <strong>Wallet Birthday:</strong> Block {birthday}
+            <div style={{ textAlign: "center", padding: "10px", background: "rgba(255, 255, 255, 0.15)", borderRadius: "5px", border: "1px solid rgba(255, 255, 255, 0.2)" }}>
+              <strong style={{ color: "white" }}>Wallet Birthday:</strong> Block {birthday}
               <br />
-              <small style={{ color: "#999" }}>Save this block number along with your seed phrase for wallet restoration.</small>
+              <small style={{ color: "rgba(255, 255, 255, 0.9)" }}>Save this block number along with your seed phrase for wallet restoration.</small>
             </div>
             <hr />
           </div>

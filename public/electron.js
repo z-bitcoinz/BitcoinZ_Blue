@@ -215,19 +215,6 @@ class MenuBuilder {
             this.mainWindow.webContents.send("zcashd");
           },
         },
-        { type: "separator" },
-        {
-          label: "Remove Wallet Encryption",
-          click: () => {
-            this.mainWindow.webContents.send("decrypt");
-          },
-        },
-        {
-          label: "Unlock",
-          click: () => {
-            this.mainWindow.webContents.send("unlock");
-          },
-        },
         // { type: 'separator' },
         // {
         //   label: 'Toggle Developer Tools',
@@ -289,19 +276,6 @@ class MenuBuilder {
           label: "Server info",
           click: () => {
             this.mainWindow.webContents.send("zcashd");
-          },
-        },
-        { type: "separator" },
-        {
-          label: "Remove Wallet Encryption",
-          click: () => {
-            this.mainWindow.webContents.send("decrypt");
-          },
-        },
-        {
-          label: "Unlock",
-          click: () => {
-            this.mainWindow.webContents.send("unlock");
           },
         },
       ],
@@ -423,19 +397,6 @@ class MenuBuilder {
           //     mainWindow.webContents.openDevTools();
           //   }
           // },
-          { type: "separator" },
-          {
-            label: "Remove Wallet Encryption",
-            click: () => {
-              this.mainWindow.webContents.send("decrypt");
-            },
-          },
-          {
-            label: "Unlock",
-            click: () => {
-              this.mainWindow.webContents.send("unlock");
-            },
-          },
         ],
       },
       {
