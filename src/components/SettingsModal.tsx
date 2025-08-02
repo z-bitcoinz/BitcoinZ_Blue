@@ -81,18 +81,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
 
     try {
+      const { ipcRenderer } = window.require('electron');
       const dataStr = JSON.stringify(addressBook, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
       const exportFileDefaultName = `bitcoinz_contacts_${new Date().toISOString().split('T')[0]}.json`;
       
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      linkElement.remove();
+      // Show save dialog
+      const result = await ipcRenderer.invoke('show-save-dialog', {
+        defaultPath: exportFileDefaultName,
+        filters: [
+          { name: 'JSON Files', extensions: ['json'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      });
       
-      alert(`Exported ${addressBook.length} contacts successfully`);
+      if (!result.canceled && result.filePath) {
+        // Write the file
+        const writeResult = await ipcRenderer.invoke('write-file', result.filePath, dataStr);
+        
+        if (writeResult.success) {
+          alert(`Exported ${addressBook.length} contacts successfully to ${result.filePath}`);
+        } else {
+          alert(`Failed to export contacts: ${writeResult.error}`);
+        }
+      }
     } catch (error) {
       console.error('Export error:', error);
       alert('Failed to export contacts');

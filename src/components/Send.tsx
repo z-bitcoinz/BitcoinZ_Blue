@@ -964,6 +964,7 @@ export default class Send extends PureComponent<Props, SendState> {
                 />
               );
             })}
+            {/* Multi-transaction feature temporarily disabled
             <div style={{
               textAlign: "right",
               marginTop: '16px',
@@ -1007,6 +1008,7 @@ export default class Send extends PureComponent<Props, SendState> {
                 <i className="fas fa-plus" />
               </button>
             </div>
+            */}
           </ScrollPane>
 
           <div className={cstyles.center}>

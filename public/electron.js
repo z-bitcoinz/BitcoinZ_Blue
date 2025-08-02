@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
 const fs = require("fs");
@@ -573,6 +573,35 @@ function createWindow() {
     } catch (error) {
       console.error("Failed to test embedded params:", error);
       return false;
+    }
+  });
+
+  // Add handler for showing save dialog
+  ipcMain.handle("show-save-dialog", async (event, options) => {
+    try {
+      const result = await dialog.showSaveDialog(mainWindow, {
+        defaultPath: options.defaultPath || "bitcoinz_contacts.json",
+        filters: options.filters || [
+          { name: "JSON Files", extensions: ["json"] },
+          { name: "All Files", extensions: ["*"] }
+        ],
+        ...options
+      });
+      return result;
+    } catch (error) {
+      console.error("Error showing save dialog:", error);
+      return { canceled: true };
+    }
+  });
+
+  // Add handler for writing file
+  ipcMain.handle("write-file", async (event, filePath, data) => {
+    try {
+      await fs.promises.writeFile(filePath, data, "utf8");
+      return { success: true };
+    } catch (error) {
+      console.error("Error writing file:", error);
+      return { success: false, error: error.message };
     }
   });
 
