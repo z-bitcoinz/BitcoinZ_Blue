@@ -516,20 +516,32 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               justifyContent: 'center',
               textAlign: 'center',
               maxWidth: '600px',
-              width: '100%'
+              width: '100%',
+              padding: '20px'
             }}>
               <div style={{
-                marginBottom: "30px",
                 display: 'flex',
-                justifyContent: 'center'
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                marginBottom: '30px'
               }}>
-                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
+                <div style={{
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  letterSpacing: '0.5px'
+                }}>
+                  In Decentralization We Trust
+                </div>
+                <img src={Logo} width="90px" alt="BitcoinZ Logo" style={{ display: 'block' }} />
               </div>
               <div style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '12px',
-                padding: '32px',
+                padding: '24px',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                 width: '100%',
@@ -538,7 +550,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                 <div style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '32px'
+                  gap: '24px'
                 }}>
                   <div style={{
                     display: 'flex',
@@ -547,17 +559,17 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                     textAlign: 'center'
                   }}>
                     <div style={{
-                      fontSize: '20px',
+                      fontSize: '18px',
                       fontWeight: '700',
                       color: 'white',
-                      marginBottom: '12px',
+                      marginBottom: '10px',
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                     }}>Create A New Wallet</div>
                     <div style={{
-                      fontSize: '14px',
+                      fontSize: '13px',
                       color: 'rgba(255, 255, 255, 0.8)',
-                      marginBottom: '20px',
-                      lineHeight: '1.5'
+                      marginBottom: '16px',
+                      lineHeight: '1.4'
                     }}>
                       Creates a new wallet with a new randomly generated seed phrase. Please save the seed phrase
                       carefully, it's the only way to restore your wallet.
@@ -569,7 +581,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        padding: '12px 24px',
+                        padding: '10px 20px',
                         background: 'rgba(255, 255, 255, 0.15)',
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -581,7 +593,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                         transition: 'all 0.3s ease',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                        minWidth: '160px',
+                        minWidth: '140px',
                         justifyContent: 'center'
                       }}
                     >
@@ -603,17 +615,17 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                     textAlign: 'center'
                   }}>
                     <div style={{
-                      fontSize: '20px',
+                      fontSize: '18px',
                       fontWeight: '700',
                       color: 'white',
-                      marginBottom: '12px',
+                      marginBottom: '10px',
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                     }}>Restore Wallet From Seed</div>
                     <div style={{
-                      fontSize: '14px',
+                      fontSize: '13px',
                       color: 'rgba(255, 255, 255, 0.8)',
-                      marginBottom: '20px',
-                      lineHeight: '1.5'
+                      marginBottom: '16px',
+                      lineHeight: '1.4'
                     }}>
                       If you already have a seed phrase, you can restore it to this wallet. This will rescan the
                       blockchain for all transactions from the seed phrase.
@@ -625,7 +637,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        padding: '12px 24px',
+                        padding: '10px 20px',
                         background: 'rgba(255, 255, 255, 0.15)',
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -637,7 +649,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                         transition: 'all 0.3s ease',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                        minWidth: '160px',
+                        minWidth: '140px',
                         justifyContent: 'center'
                       }}
                     >
