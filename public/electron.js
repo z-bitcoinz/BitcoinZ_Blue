@@ -644,8 +644,8 @@ function createWindow() {
     }, 5 * 1000);
   });
 
-  // Open DevTools if in dev mode or on Windows for debugging
-  if (isDev || process.platform === 'win32') {
+  // Open DevTools only in dev mode
+  if (isDev) {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
   
