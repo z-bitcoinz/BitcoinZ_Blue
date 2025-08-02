@@ -11,8 +11,11 @@ echo ""
 
 # Configuration
 APP_NAME="BitcoinZ Blue"
-VERSION="1.0.9"
+# Read version from package.json
+VERSION=$(node -p "require('../package.json').version")
 DIST_DIR="dist"
+
+echo "📦 Building version: $VERSION"
 
 # Check if dist directory exists
 if [ ! -d "$DIST_DIR" ]; then
