@@ -12,7 +12,7 @@ echo ""
 # Configuration
 APP_NAME="BitcoinZ Blue"
 # Read version from package.json
-VERSION=$(node -p "require('../package.json').version")
+VERSION=$(node -p "require('./package.json').version")
 DIST_DIR="dist"
 
 echo "📦 Building version: $VERSION"
