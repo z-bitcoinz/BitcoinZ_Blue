@@ -63,31 +63,72 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
       }, 1000);
     }
 
+    // Also set up a periodic check for auto-lock (every 30 seconds)
+    const autoLockCheckInterval = setInterval(() => {
+      const settings = securityManager.getSettings();
+      if (settings.hasPin && settings.autoLockMinutes > 0 && !securityManager.isLocked()) {
+        // Check if we should auto-lock based on last activity
+        const lastActivity = securityManager.getLastActivityTime();
+        const inactiveMinutes = (Date.now() - lastActivity) / (60 * 1000);
+        
+        if (inactiveMinutes >= settings.autoLockMinutes) {
+          console.log(`Auto-lock check: inactive for ${inactiveMinutes.toFixed(2)} minutes, locking...`);
+          securityManager.lock();
+          updateState();
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
     return () => {
       if (lockoutInterval) {
         clearInterval(lockoutInterval);
       }
+      clearInterval(autoLockCheckInterval);
     };
   }, [isInLockout, lockoutTimeRemaining, securityManager, updateState]);
 
   // Activity tracking
   useEffect(() => {
+    let lastActivityTime = Date.now();
+    const activityDebounce = 1000; // Only update activity once per second
+    
     const handleActivity = () => {
+      if (!isLocked && hasPin) {
+        const now = Date.now();
+        if (now - lastActivityTime > activityDebounce) {
+          lastActivityTime = now;
+          securityManager.updateActivity();
+        }
+      }
+    };
+
+    // Track user activity - more comprehensive list
+    const events = [
+      'mousedown', 'mousemove', 'mouseup', 'click',
+      'keydown', 'keypress', 'keyup',
+      'scroll', 'wheel',
+      'touchstart', 'touchmove', 'touchend',
+      'focus', 'blur'
+    ];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Also track window focus
+    const handleWindowFocus = () => {
       if (!isLocked && hasPin) {
         securityManager.updateActivity();
       }
     };
-
-    // Track user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, handleActivity, true);
-    });
+    
+    window.addEventListener('focus', handleWindowFocus);
 
     return () => {
       events.forEach(event => {
         document.removeEventListener(event, handleActivity, true);
       });
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, [isLocked, hasPin, securityManager]);
 

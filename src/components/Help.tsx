@@ -317,17 +317,25 @@ export default class Help extends Component<{}, HelpState> {
                 <div style={{ marginTop: '15px' }}>
                   <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>💻 Windows:</h6>
                   <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginBottom: '15px' }}>
-                    %APPDATA%\BitcoinZ Blue\
+                    %APPDATA%\BitcoinZ-LightWallet\
                   </code>
                   
                   <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>🍎 macOS:</h6>
-                  <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginBottom: '15px' }}>
-                    ~/Library/Application Support/BitcoinZ Blue/
-                  </code>
+                  <div style={{ marginBottom: '15px' }}>
+                    <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginBottom: '5px' }}>
+                      ~/Library/Application Support/BitcoinZ Wallet Lite/
+                    </code>
+                    <small style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Main wallet data (wallet.dat, keys, etc.)</small>
+                    
+                    <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px', marginTop: '10px', marginBottom: '5px' }}>
+                      ~/Library/Application Support/BitcoinZ-LightWallet/
+                    </code>
+                    <small style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Additional data (logs, address book, etc.)</small>
+                  </div>
                   
                   <h6 style={{ fontSize: '16px', marginBottom: '10px' }}>🐧 Linux:</h6>
                   <code style={{ display: 'block', padding: '10px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '5px' }}>
-                    ~/.config/BitcoinZ Blue/
+                    ~/.bitcoinz-lightwallet/
                   </code>
                 </div>
               </div>

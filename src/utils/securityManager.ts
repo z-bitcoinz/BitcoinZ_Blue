@@ -222,14 +222,22 @@ class SecurityManager {
     this.setupAutoLock();
   }
 
+  public getLastActivityTime(): number {
+    return this.lockState.lastActivity;
+  }
+
   private setupAutoLock(): void {
     if (this.autoLockTimer) {
       clearTimeout(this.autoLockTimer);
+      this.autoLockTimer = undefined;
     }
 
-    if (this.settings.autoLockMinutes > 0 && !this.lockState.isLocked) {
+    if (this.settings.autoLockMinutes > 0 && !this.lockState.isLocked && this.settings.hasPin) {
       const timeout = this.settings.autoLockMinutes * 60 * 1000;
+      console.log(`Setting up auto-lock timer for ${this.settings.autoLockMinutes} minutes`);
+      
       this.autoLockTimer = setTimeout(() => {
+        console.log('Auto-lock timer triggered, locking wallet');
         this.lock();
       }, timeout);
     }
