@@ -577,6 +577,11 @@ function createWindow() {
   });
 
   mainWindow.on("close", (event) => {
+    // Send app-closing event first for auto-lock functionality
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("app-closing");
+    }
+
     // If we are clear to close, then return and allow everything to close
     if (proceedToClose) {
       return;
@@ -645,6 +650,11 @@ app.whenReady().then(() => {
 // it no longer has any open windows. This listener is a no-op
 // on macOS due to the operating system's window management behavior.
 app.on("window-all-closed", () => {
+  // Send lock signal before closing if mainWindow exists
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("app-closing");
+  }
+  
   if (process.platform !== "darwin") {
     app.quit();
   }

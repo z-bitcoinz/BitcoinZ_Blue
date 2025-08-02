@@ -269,6 +269,119 @@ export default class Help extends Component<{}, HelpState> {
             </div>
           </div>
 
+          <div className={styles.helpSection}>
+            <h3>📋 About BitcoinZ Blue</h3>
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🏆 Professional Light Wallet for BitcoinZ</div>
+              <div className={styles.helpCardBody}>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <h4 style={{ fontSize: '24px', color: '#4A90E2', margin: '10px 0' }}>BitcoinZ Blue v1.2.6</h4>
+                  <p style={{ fontSize: '16px', color: '#666' }}>Modern, Secure, Privacy-Focused Light Wallet</p>
+                </div>
+
+                <div style={{ marginBottom: '30px', padding: '20px', background: 'rgba(74, 144, 226, 0.05)', borderRadius: '8px', border: '1px solid rgba(74, 144, 226, 0.2)' }}>
+                  <strong>🚀 About This Wallet</strong>
+                  <p style={{ marginTop: '10px', lineHeight: '1.6' }}>
+                    BitcoinZ Blue represents the pinnacle of community-driven cryptocurrency wallet development. Built with cutting-edge technology 
+                    and a deep commitment to user privacy, this wallet showcases what's possible when talented developers collaborate for a common cause.
+                  </p>
+                  <p style={{ marginTop: '10px', lineHeight: '1.6' }}>
+                    Our development team has invested countless hours ensuring this wallet meets the highest standards of security, usability, and performance. 
+                    We utilize industry-leading cryptographic libraries, implement best practices for secure key management, and maintain rigorous testing protocols.
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '30px' }}>
+                  <strong>🔧 Technical Excellence</strong>
+                  <ul style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                    <li>• <strong>zk-SNARKs Technology:</strong> Military-grade privacy protection for your transactions</li>
+                    <li>• <strong>Light Client Architecture:</strong> Fast synchronization without downloading the entire blockchain</li>
+                    <li>• <strong>Cross-Platform Support:</strong> Native performance on Windows, macOS, and Linux</li>
+                    <li>• <strong>Rust + TypeScript:</strong> Memory-safe backend with modern, reactive frontend</li>
+                    <li>• <strong>Hardware Security:</strong> Integration with secure key storage mechanisms</li>
+                    <li>• <strong>Open Source:</strong> Fully auditable codebase with transparent development</li>
+                  </ul>
+                </div>
+
+                <div className={styles.safetyNote} style={{ background: 'rgba(255, 0, 0, 0.05)', border: '1px solid rgba(255, 0, 0, 0.3)', marginBottom: '30px' }}>
+                  <strong>⚖️ LEGAL DISCLAIMER & TERMS OF USE</strong>
+                  <p style={{ marginTop: '15px', fontSize: '13px', lineHeight: '1.6' }}>
+                    <strong>PLEASE READ CAREFULLY BEFORE USING THIS SOFTWARE</strong>
+                  </p>
+                  <p style={{ marginTop: '10px', fontSize: '12px', lineHeight: '1.6' }}>
+                    This software is provided "AS IS" without warranty of any kind, either express or implied, including but not limited to 
+                    the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.
+                  </p>
+                  <p style={{ marginTop: '10px', fontSize: '12px', lineHeight: '1.6' }}>
+                    <strong>NO LIABILITY:</strong> In no event shall the developers, contributors, or BitcoinZ community be liable for any claim, 
+                    damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection 
+                    with the software or the use or other dealings in the software.
+                  </p>
+                  <p style={{ marginTop: '10px', fontSize: '12px', lineHeight: '1.6' }}>
+                    <strong>ASSUMPTION OF RISK:</strong> You acknowledge that cryptocurrency transactions carry inherent risks, including but not 
+                    limited to the risk of software bugs, hardware failures, protocol changes, regulatory actions, and market volatility. 
+                    You assume full responsibility for all risks associated with using this wallet.
+                  </p>
+                  <p style={{ marginTop: '10px', fontSize: '12px', lineHeight: '1.6' }}>
+                    <strong>NO PROFESSIONAL ADVICE:</strong> Nothing in this software constitutes professional financial, investment, legal, 
+                    or tax advice. You should consult with appropriate professionals before making any financial decisions.
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '30px', padding: '20px', background: 'rgba(255, 165, 0, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 165, 0, 0.2)' }}>
+                  <strong>🛡️ Security & Best Practices</strong>
+                  <p style={{ marginTop: '10px', fontSize: '14px', lineHeight: '1.6' }}>
+                    While our developers have implemented numerous security measures and follow industry best practices, 
+                    no software can guarantee absolute security. Users must take responsibility for their own security:
+                  </p>
+                  <ul style={{ marginTop: '10px', fontSize: '13px', lineHeight: '1.8' }}>
+                    <li>• <strong>Always</strong> download from official sources: <strong style={{ color: '#4A90E2' }}>getbtcz.com</strong></li>
+                    <li>• <strong>Verify</strong> SHA256 checksums and digital signatures</li>
+                    <li>• <strong>Backup</strong> your seed phrase in multiple secure locations</li>
+                    <li>• <strong>Never</strong> share your seed phrase or private keys with anyone</li>
+                    <li>• <strong>Test</strong> with small amounts before trusting with larger sums</li>
+                    <li>• <strong>Keep</strong> your software updated to the latest version</li>
+                    <li>• <strong>Use</strong> PIN protection and enable auto-lock features</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: '30px', padding: '20px', background: 'rgba(0, 255, 0, 0.05)', borderRadius: '8px', border: '1px solid rgba(0, 255, 0, 0.2)' }}>
+                  <strong>🌟 Community & Support</strong>
+                  <p style={{ marginTop: '10px', lineHeight: '1.6' }}>
+                    BitcoinZ Blue is a testament to the power of decentralized, community-driven development. 
+                    Hundreds of contributors worldwide have made this project possible.
+                  </p>
+                  <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <a href="https://github.com/z-bitcoinz/BitcoinZ_Blue" target="_blank" rel="noopener noreferrer" 
+                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>💻</span>
+                      <div>
+                        <strong>GitHub Repository</strong><br />
+                        <small style={{ color: '#666' }}>Source code, issues, and contributions</small>
+                      </div>
+                    </a>
+                    <a href="https://getbtcz.com" target="_blank" rel="noopener noreferrer" 
+                       style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', textDecoration: 'none', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>🌐</span>
+                      <div>
+                        <strong>Official BitcoinZ Website</strong><br />
+                        <small style={{ color: '#666' }}>Downloads, documentation, and resources</small>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '13px', color: '#666', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                  <p><strong>License:</strong> MIT License - Free and Open Source Software</p>
+                  <p style={{ marginTop: '5px' }}><strong>Copyright © 2024</strong> BitcoinZ Community Contributors</p>
+                  <p style={{ marginTop: '10px', fontSize: '12px' }}>
+                    Built with ❤️ by the BitcoinZ community for the benefit of all humanity
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className={styles.helpFooter}>
             <p>
               <strong>BitcoinZ Blue</strong> - Modern. Secure. Private. 💙

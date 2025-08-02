@@ -91,6 +91,26 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
     };
   }, [isLocked, hasPin, securityManager]);
 
+  // Handle app closing for auto-lock
+  useEffect(() => {
+    const { ipcRenderer } = window.require('electron');
+    
+    const handleAppClosing = () => {
+      const settings = securityManager.getSettings();
+      if (settings.hasPin && settings.lockOnClose && !isLocked) {
+        securityManager.lock();
+        // Save the lock state immediately
+        securityManager.saveLockState();
+      }
+    };
+
+    ipcRenderer.on('app-closing', handleAppClosing);
+
+    return () => {
+      ipcRenderer.removeListener('app-closing', handleAppClosing);
+    };
+  }, [isLocked, securityManager]);
+
   // Actions
   const setPin = async (pin: string): Promise<boolean> => {
     try {

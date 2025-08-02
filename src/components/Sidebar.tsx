@@ -666,24 +666,8 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
 
     // About
     ipcRenderer.on("about", () => {
-      openErrorModal(
-        "BitcoinZ Blue",
-        <div className={cstyles.verticalflex}>
-          <div className={cstyles.margintoplarge}>BitcoinZ Blue v1.1.0</div>
-          <div className={cstyles.margintoplarge}>A modern light wallet for BitcoinZ.</div>
-          <div className={cstyles.margintoplarge}>
-            <br />
-            Copyright (c) 2024 BitcoinZ Community
-            <br />
-            Licensed under MIT License.
-            <br />
-            <br />
-            🌐 GitHub: https://github.com/z-bitcoinz/BitcoinZ_Blue
-            <br />
-            💙 BitcoinZ Community Project
-          </div>
-        </div>
-      );
+      // Navigate to the Help page which now includes the About section
+      history.push(routes.HELP);
     });
 
     // Donate button

@@ -78,7 +78,7 @@ class Bitcoinzd extends Component<Props> {
                   <DetailLine label="Lightwallet Server" value={url} />
                   <DetailLine label="Network" value={info.testnet ? "Testnet" : "Mainnet"} />
                   <DetailLine label="Block Height" value={height} />
-                  <DetailLine label="BTCZ Price" value={`USD ${info.btczPrice.toFixed(2)}`} />
+                  <DetailLine label="BTCZ Price" value={`USD ${info.btczPrice.toFixed(8)}`} />
                 </div>
               </div>
 
