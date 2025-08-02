@@ -63,27 +63,10 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
       }, 1000);
     }
 
-    // Also set up a periodic check for auto-lock (every 30 seconds)
-    const autoLockCheckInterval = setInterval(() => {
-      const settings = securityManager.getSettings();
-      if (settings.hasPin && settings.autoLockMinutes > 0 && !securityManager.isLocked()) {
-        // Check if we should auto-lock based on last activity
-        const lastActivity = securityManager.getLastActivityTime();
-        const inactiveMinutes = (Date.now() - lastActivity) / (60 * 1000);
-        
-        if (inactiveMinutes >= settings.autoLockMinutes) {
-          console.log(`Auto-lock check: inactive for ${inactiveMinutes.toFixed(2)} minutes, locking...`);
-          securityManager.lock();
-          updateState();
-        }
-      }
-    }, 30000); // Check every 30 seconds
-
     return () => {
       if (lockoutInterval) {
         clearInterval(lockoutInterval);
       }
-      clearInterval(autoLockCheckInterval);
     };
   }, [isInLockout, lockoutTimeRemaining, securityManager, updateState]);
 

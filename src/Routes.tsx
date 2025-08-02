@@ -574,6 +574,8 @@ export default class RouteApp extends React.Component<Props, AppState> {
               onCurrencyChange={this.handleCurrencyChange}
               walletSettings={walletSettings}
               onWalletSettingsChange={this.setWalletSettings}
+              addressBook={addressBook}
+              addAddressBookEntry={this.addAddressBookEntry}
             />
           )}
 
@@ -694,7 +696,9 @@ const TopMenuBarWithLocation: React.FC<{
   onCurrencyChange?: (currency: string) => void;
   walletSettings?: WalletSettings;
   onWalletSettingsChange?: (settings: WalletSettings) => void;
-}> = ({ info, onCurrencyChange, walletSettings, onWalletSettingsChange }) => {
+  addressBook?: AddressBookEntry[];
+  addAddressBookEntry?: (label: string, address: string) => void;
+}> = ({ info, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry }) => {
   const location = useLocation();
 
   const getPageTitle = (pathname: string): string | undefined => {
@@ -725,6 +729,8 @@ const TopMenuBarWithLocation: React.FC<{
       onCurrencyChange={onCurrencyChange}
       walletSettings={walletSettings}
       onWalletSettingsChange={onWalletSettingsChange}
+      addressBook={addressBook}
+      addAddressBookEntry={addAddressBookEntry}
     />
   );
 };

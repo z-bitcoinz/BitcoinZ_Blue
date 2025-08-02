@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import styles from './SettingsModal.module.css';
 import { currencyManager, SUPPORTED_CURRENCIES } from '../utils/currencyManager';
-import { WalletSettings } from './AppState';
+import { WalletSettings, AddressBookEntry } from './AppState';
 import { useLock } from '../contexts/LockContext';
 import PinSetup from './PinSetup';
+import AddressbookImpl from '../utils/AddressbookImpl';
 
 type SettingsModalProps = {
   isOpen: boolean;
@@ -12,6 +13,8 @@ type SettingsModalProps = {
   onCurrencyChange: (currency: string) => void;
   walletSettings: WalletSettings;
   onWalletSettingsChange: (settings: WalletSettings) => void;
+  addressBook?: AddressBookEntry[];
+  addAddressBookEntry?: (label: string, address: string) => void;
 };
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -19,7 +22,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onCurrencyChange,
   walletSettings,
-  onWalletSettingsChange
+  onWalletSettingsChange,
+  addressBook,
+  addAddressBookEntry
 }) => {
   const { hasPin, getSettings, updateSettings, setPin, removePin } = useLock();
 
@@ -68,6 +73,76 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (success) {
       setSecuritySettings(newSettings);
     }
+  };
+
+  const handleExportContacts = async () => {
+    if (!addressBook || addressBook.length === 0) {
+      alert('No contacts to export');
+      return;
+    }
+
+    try {
+      const dataStr = JSON.stringify(addressBook, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `bitcoinz_contacts_${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      linkElement.remove();
+      
+      alert(`Exported ${addressBook.length} contacts successfully`);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export contacts');
+    }
+  };
+
+  const handleImportContacts = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const importedContacts: AddressBookEntry[] = JSON.parse(text);
+        
+        if (!Array.isArray(importedContacts)) {
+          throw new Error('Invalid contacts file format');
+        }
+        
+        let addedCount = 0;
+        let skippedCount = 0;
+        
+        for (const contact of importedContacts) {
+          if (!contact.label || !contact.address) {
+            skippedCount++;
+            continue;
+          }
+          
+          const exists = addressBook?.some(c => c.label === contact.label);
+          if (!exists && addAddressBookEntry) {
+            addAddressBookEntry(contact.label, contact.address);
+            addedCount++;
+          } else {
+            skippedCount++;
+          }
+        }
+        
+        alert(`Import complete!\nAdded: ${addedCount} contacts\nSkipped: ${skippedCount} (duplicates or invalid)`);
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('Failed to import contacts. Please check the file format.');
+      }
+    };
+    
+    input.click();
   };
 
 
@@ -162,24 +237,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span className={styles.slider}></span>
                   </label>
                 </div>
-
-                <div className={styles.autoLockSection}>
-                  <span className={styles.toggleLabel}>Auto-lock after inactivity</span>
-                  <select
-                    className={styles.autoLockSelect}
-                    value={securitySettings.autoLockMinutes}
-                    onChange={(e) => handleSecuritySettingChange('autoLockMinutes', parseInt(e.target.value))}
-                  >
-                    <option value={0}>Disabled</option>
-                    <option value={5}>5 minutes</option>
-                    <option value={10}>10 minutes</option>
-                    <option value={15}>15 minutes</option>
-                    <option value={30}>30 minutes</option>
-                    <option value={60}>1 hour</option>
-                  </select>
-                </div>
               </>
             )}
+          </div>
+
+          {/* Contacts Backup Section */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>
+              <i className="fas fa-address-book" /> Contacts Backup
+            </h3>
+
+            <div className={styles.securityItem}>
+              <div className={styles.securityInfo}>
+                <span className={styles.securityLabel}>Backup & Restore</span>
+                <span className={styles.securityDescription}>
+                  Export your contacts to a file or import contacts from a backup
+                </span>
+              </div>
+              <div className={styles.securityActions}>
+                <button
+                  className={styles.setupButton}
+                  onClick={handleExportContacts}
+                  disabled={!addressBook || addressBook.length === 0}
+                >
+                  <i className="fas fa-download" /> Export Contacts
+                </button>
+                <button
+                  className={styles.changeButton}
+                  onClick={handleImportContacts}
+                >
+                  <i className="fas fa-upload" /> Import Contacts
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className={styles.toggleSection}>

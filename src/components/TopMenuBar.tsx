@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { Info, WalletSettings } from "./AppState";
+import { Info, WalletSettings, AddressBookEntry } from "./AppState";
 import routes from "../constants/routes.json";
 import styles from "./TopMenuBar.module.css";
 import { SettingsModal } from "./SettingsModal";
@@ -13,9 +13,11 @@ type TopMenuBarProps = {
   onCurrencyChange?: (currency: string) => void;
   walletSettings?: WalletSettings;
   onWalletSettingsChange?: (settings: WalletSettings) => void;
+  addressBook?: AddressBookEntry[];
+  addAddressBookEntry?: (label: string, address: string) => void;
 };
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry }) => {
   const history = useHistory();
   const { hasPin, isLocked, lock } = useLock();
   const [showSettings, setShowSettings] = useState(false);
@@ -138,6 +140,8 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
           onCurrencyChange={onCurrencyChange}
           walletSettings={walletSettings}
           onWalletSettingsChange={onWalletSettingsChange}
+          addressBook={addressBook}
+          addAddressBookEntry={addAddressBookEntry}
         />
       )}
     </>
