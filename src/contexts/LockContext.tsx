@@ -47,9 +47,19 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
     setLockoutTimeRemaining(securityManager.getLockoutTimeRemaining());
   }, [securityManager]);
 
-  // Initialize state
+  // Initialize state and ensure we wait for settings to load from disk
   useEffect(() => {
+    let mounted = true;
+
+    // Always do an initial refresh (may reflect defaults)
     updateState();
+
+    // Then wait for SecurityManager to finish loading persisted settings
+    securityManager.ready().then(() => {
+      if (mounted) {
+        updateState();
+      }
+    });
 
     // Set up lockout timer if needed
     let lockoutInterval: NodeJS.Timeout;
@@ -64,6 +74,7 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
     }
 
     return () => {
+      mounted = false;
       if (lockoutInterval) {
         clearInterval(lockoutInterval);
       }

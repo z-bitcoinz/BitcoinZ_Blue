@@ -26,6 +26,8 @@ class SecurityManager {
   private lockState: LockState;
   private autoLockTimer?: NodeJS.Timeout;
   private lockoutTimer?: NodeJS.Timeout;
+  // Promise that resolves when initial settings have been loaded from disk
+  private settingsReadyPromise: Promise<void>;
 
   private constructor() {
     this.settings = {
@@ -35,7 +37,7 @@ class SecurityManager {
       maxAttempts: 5,
       lockoutMinutes: 5
     };
-    
+
     this.lockState = {
       isLocked: false,
       failedAttempts: 0,
@@ -44,9 +46,15 @@ class SecurityManager {
       lockoutLevel: 0
     };
 
-    this.loadSettings();
-    this.loadLockState();
-    this.setupAutoLock();
+    // Ensure we load settings first, then derive lock state + timers using loaded settings
+    this.settingsReadyPromise = this.loadSettings()
+      .catch((error) => {
+        console.error('Error loading security settings during init:', error);
+      })
+      .finally(() => {
+        this.loadLockState();
+        this.setupAutoLock();
+      });
   }
 
   public static getInstance(): SecurityManager {
@@ -54,6 +62,11 @@ class SecurityManager {
       SecurityManager.instance = new SecurityManager();
     }
     return SecurityManager.instance;
+  }
+
+  // Allow consumers (e.g., React context) to wait until settings are loaded from disk
+  public ready(): Promise<void> {
+    return this.settingsReadyPromise;
   }
 
   // PIN Management
