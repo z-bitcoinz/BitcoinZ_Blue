@@ -529,7 +529,31 @@ function createWindow() {
   // Helper function to get wallet data directory
   function getWalletDataDir() {
     const userDataPath = app.getPath('userData');
-    return path.join(userDataPath, 'bitcoinz-lightwallet');
+    const walletDir = path.join(userDataPath, 'bitcoinz-lightwallet');
+
+    // Windows-specific directory validation
+    if (process.platform === 'win32') {
+      try {
+        // Ensure the directory exists and is accessible
+        if (!fs.existsSync(walletDir)) {
+          fs.mkdirSync(walletDir, { recursive: true });
+          console.log('🪟 Created Windows wallet directory:', walletDir);
+        }
+
+        // Test write permissions
+        const testFile = path.join(walletDir, 'test-write.tmp');
+        fs.writeFileSync(testFile, 'test');
+        fs.unlinkSync(testFile);
+        console.log('✅ Windows wallet directory permissions verified');
+
+      } catch (error) {
+        console.error('❌ Windows wallet directory issue:', error);
+        console.error('Wallet directory:', walletDir);
+        console.error('This may cause balance persistence issues');
+      }
+    }
+
+    return walletDir;
   }
 
   // Security settings IPC handlers
@@ -601,6 +625,55 @@ function createWindow() {
       return { success: true };
     } catch (error) {
       console.error("Error writing file:", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Windows-specific wallet diagnostics handler
+  ipcMain.handle('windows-wallet-diagnostics', async () => {
+    if (process.platform !== 'win32') {
+      return { success: false, error: 'Not a Windows platform' };
+    }
+
+    try {
+      const walletDataDir = getWalletDataDir();
+      const walletFile = path.join(walletDataDir, 'zecwallet-light-wallet.dat');
+
+      const diagnostics = {
+        platform: process.platform,
+        walletDir: walletDataDir,
+        walletFile: walletFile,
+        walletDirExists: fs.existsSync(walletDataDir),
+        walletFileExists: fs.existsSync(walletFile),
+        walletDirPermissions: null,
+        walletFileSize: null,
+        walletFileModified: null
+      };
+
+      // Check directory permissions
+      try {
+        await fs.promises.access(walletDataDir, fs.constants.R_OK | fs.constants.W_OK);
+        diagnostics.walletDirPermissions = 'OK';
+      } catch (permError) {
+        diagnostics.walletDirPermissions = `Error: ${permError.message}`;
+      }
+
+      // Check wallet file details
+      if (diagnostics.walletFileExists) {
+        try {
+          const stats = await fs.promises.stat(walletFile);
+          diagnostics.walletFileSize = stats.size;
+          diagnostics.walletFileModified = stats.mtime.toISOString();
+        } catch (statError) {
+          console.error('Error getting wallet file stats:', statError);
+        }
+      }
+
+      console.log('🪟 Windows wallet diagnostics:', diagnostics);
+      return { success: true, diagnostics };
+
+    } catch (error) {
+      console.error('❌ Windows wallet diagnostics failed:', error);
       return { success: false, error: error.message };
     }
   });

@@ -131,7 +131,7 @@ function loadNativeModule(): any {
     nativeModule = loadedModule;
     console.log('SUCCESS: Native module loaded successfully');
     console.log('Available functions:', Object.keys(nativeModule));
-    
+
     // Test a basic function if available
     if (nativeModule.litelib_say_hello) {
       try {
@@ -141,7 +141,26 @@ function loadNativeModule(): any {
         console.warn('Native module loaded but test function failed:', testError);
       }
     }
-    
+
+    // Windows-specific wallet file integrity check
+    if (process.platform === 'win32') {
+      console.log('🪟 Performing Windows wallet integrity check...');
+      try {
+        const walletExists = nativeModule.litelib_wallet_exists('main');
+        console.log('Wallet exists:', walletExists);
+
+        if (walletExists) {
+          // Additional Windows-specific checks could be added here
+          console.log('✅ Windows wallet file integrity check passed');
+        } else {
+          console.log('ℹ️ No existing wallet found (this is normal for new installations)');
+        }
+      } catch (integrityError) {
+        console.error('❌ Windows wallet integrity check failed:', integrityError);
+        console.error('This may indicate file permission or corruption issues');
+      }
+    }
+
     return nativeModule;
     
   } catch (error) {

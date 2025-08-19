@@ -224,6 +224,14 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   setupExitHandler = () => {
     // App is quitting, make sure to save the wallet properly.
     ipcRenderer.on("appquitting", () => {
+      try {
+        // Attempt a final save to persist latest balances/txs before shutdown
+        RPC.doSave();
+      } catch (e) {
+        console.error("Error during final wallet save:", e);
+      }
+
+      // Then deinitialize the native client cleanly
       RPC.deinitialize();
 
       // And reply that we're all done after 100ms, to allow cleanup of the rust stuff.
@@ -239,6 +247,56 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       // Do a sync at start
       this.setState({ currentStatus: "Setting things up..." });
 
+      // Enhanced Windows wallet validation
+      if (process.platform === 'win32') {
+        console.log("🪟 Windows platform detected - performing wallet validation...");
+
+        // Verify wallet balance is accessible before sync
+        try {
+          const balanceStr = getNativeModule().litelib_execute("balance", "");
+          const balanceJSON = JSON.parse(balanceStr);
+          const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+          console.log("💰 Pre-sync balance verification:", {
+            transparent: balanceJSON.tbalance / 10 ** 8,
+            shielded: balanceJSON.zbalance / 10 ** 8,
+            unified: balanceJSON.uabalance / 10 ** 8,
+            total: totalBalance
+          });
+
+          // If balance is zero but wallet has transactions, this might indicate a loading issue
+          if (totalBalance === 0) {
+            const listStr = getNativeModule().litelib_execute("list", "");
+            const listJSON = JSON.parse(listStr);
+            if (listJSON.length > 0) {
+              console.warn("⚠️ WARNING: Wallet has transactions but zero balance - potential Windows loading issue");
+              console.log("Transaction count:", listJSON.length);
+
+              // Force a save and reload cycle to fix potential Windows file locking issues
+              console.log("🔄 Attempting Windows wallet recovery...");
+              try {
+                RPC.doSave();
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds for file system
+
+                // Try to refresh the balance
+                const refreshedBalanceStr = getNativeModule().litelib_execute("balance", "");
+                const refreshedBalanceJSON = JSON.parse(refreshedBalanceStr);
+                const refreshedTotal = (refreshedBalanceJSON.tbalance + refreshedBalanceJSON.zbalance + refreshedBalanceJSON.uabalance) / 10 ** 8;
+                console.log("💰 Post-recovery balance:", refreshedTotal);
+
+                if (refreshedTotal > 0) {
+                  console.log("✅ Windows wallet recovery successful!");
+                }
+              } catch (recoveryError) {
+                console.error("❌ Windows wallet recovery failed:", recoveryError);
+              }
+            }
+          }
+        } catch (balanceError) {
+          console.error("❌ Windows balance verification failed:", balanceError);
+          // Continue with sync anyway, but log the issue
+        }
+      }
+
       // Grab the previous sync ID.
       const prevSyncId = JSON.parse(RPC.doSyncStatus()).sync_id;
 
@@ -247,8 +305,17 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
 
       this.runSyncStatusPoller(prevSyncId);
     } catch (err) {
+      // Enhanced error handling for Windows
+      console.error("❌ getInfo error:", err);
+
+      let errorMessage = err as string;
+      if (process.platform === 'win32') {
+        console.error("🪟 Windows-specific error detected");
+        errorMessage = `Windows Error: ${err}\n\nThis may be caused by:\n• File permission issues\n• Antivirus software blocking wallet files\n• Corrupted wallet data\n• Missing Visual C++ Redistributables\n\nTry running as administrator or check Windows Event Viewer for details.`;
+      }
+
       // Not yet finished loading. So update the state, and setup the next refresh
-      this.setState({ currentStatus: err as string });
+      this.setState({ currentStatus: errorMessage });
     }
   }
 

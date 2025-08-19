@@ -230,8 +230,8 @@ export default class RPC {
 
   // Special method to get the Info object. This is used both internally and by the Loading screen
   static getInfoObject(): Info {
-    const infostr = RPC.getNative().litelib_execute("info", "");
     try {
+      const infostr = RPC.getNative().litelib_execute("info", "");
       const infoJSON = JSON.parse(infostr);
 
       const info = new Info();
@@ -252,10 +252,52 @@ export default class RPC {
       const walletHeight = RPC.fetchWalletHeight();
       info.walletHeight = walletHeight;
 
+      // Windows-specific validation
+      if (process.platform === 'win32') {
+        console.log("🪟 Windows info validation:", {
+          latestBlock: info.latestBlock,
+          walletHeight: info.walletHeight,
+          encrypted: info.encrypted,
+          locked: info.locked,
+          version: info.version
+        });
+
+        // Validate that we got reasonable values
+        if (!info.latestBlock || info.latestBlock < 0) {
+          console.warn("⚠️ Windows: Invalid latest block height detected");
+        }
+        if (!info.walletHeight || info.walletHeight < 0) {
+          console.warn("⚠️ Windows: Invalid wallet height detected");
+        }
+      }
+
       return info;
     } catch (err) {
-      console.log("Failed to parse info", err);
-      return new Info();
+      console.error("❌ Failed to parse wallet info:", err);
+
+      // Enhanced Windows error handling
+      if (process.platform === 'win32') {
+        console.error("🪟 Windows wallet info parsing failed");
+        console.error("This may indicate:");
+        console.error("• Wallet file corruption");
+        console.error("• File locking issues");
+        console.error("• Permission problems");
+        console.error("• Native module communication failure");
+
+        // Try to provide more diagnostic information
+        try {
+          const walletExists = RPC.getNative().litelib_wallet_exists("main");
+          console.log("Wallet exists check:", walletExists);
+        } catch (existsError) {
+          console.error("Cannot check wallet existence:", existsError);
+        }
+      }
+
+      // Return a default Info object to prevent complete failure
+      const defaultInfo = new Info();
+      defaultInfo.disconnected = true;
+      defaultInfo.currencyName = "BTCZ";
+      return defaultInfo;
     }
   }
 
@@ -329,6 +371,43 @@ export default class RPC {
     const balanceStr = RPC.getNative().litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
 
+    // Windows-specific balance validation
+    if (process.platform === 'win32') {
+      const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+      console.log("🪟 Windows balance fetch:", {
+        transparent: balanceJSON.tbalance / 10 ** 8,
+        shielded: balanceJSON.zbalance / 10 ** 8,
+        unified: balanceJSON.uabalance / 10 ** 8,
+        total: totalBalance
+      });
+
+      // Check for potential Windows balance loading issues
+      if (totalBalance === 0) {
+        console.log("🔍 Windows: Zero balance detected, checking for transactions...");
+
+        try {
+          const listStr = RPC.getNative().litelib_execute("list", "");
+          const listJSON = JSON.parse(listStr);
+
+          if (listJSON.length > 0) {
+            console.warn("⚠️ Windows: Wallet has transactions but zero balance - potential data loading issue");
+            console.log("Transaction count:", listJSON.length);
+
+            // Log some transaction details for debugging
+            const recentTxs = listJSON.slice(0, 3);
+            console.log("Recent transactions:", recentTxs.map((tx: any) => ({
+              txid: tx.txid?.substring(0, 8) + "...",
+              amount: tx.amount / 10 ** 8,
+              block_height: tx.block_height,
+              unconfirmed: tx.unconfirmed
+            })));
+          }
+        } catch (listError) {
+          console.error("❌ Windows: Failed to check transaction list:", listError);
+        }
+      }
+    }
+
     // Get unconfirmed transactions to calculate pending balances
     const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
@@ -389,6 +468,35 @@ export default class RPC {
     
     balance.pendingChange = totalPendingChange;
 
+    // Windows-specific balance recovery mechanism
+    if (process.platform === 'win32' && balance.total === 0) {
+      // Check if we have transactions but zero balance - this indicates a Windows loading issue
+      try {
+        const listStr = RPC.getNative().litelib_execute("list", "");
+        const listJSON = JSON.parse(listStr);
+
+        if (listJSON.length > 0) {
+          console.warn("🚨 Windows Balance Recovery: Detected zero balance with existing transactions");
+          console.log("Attempting automatic recovery...");
+
+          // Try to trigger a wallet recovery
+          this.attemptWindowsBalanceRecovery().then((recovered) => {
+            if (recovered) {
+              console.log("✅ Windows balance recovery successful, refreshing balance...");
+              // Retry fetching balance after recovery
+              setTimeout(() => {
+                this.fetchTotalBalance();
+              }, 2000);
+            }
+          }).catch((error) => {
+            console.error("❌ Windows balance recovery failed:", error);
+          });
+        }
+      } catch (error) {
+        console.error("❌ Windows balance recovery check failed:", error);
+      }
+    }
+
     this.fnSetTotalBalance(balance);
 
     // Fetch pending notes and UTXOs
@@ -443,6 +551,94 @@ export default class RPC {
     const allAddresses = allZAddresses.concat(allTAddresses);
 
     this.fnSetAllAddresses(allAddresses);
+  }
+
+  // Windows-specific balance recovery mechanism
+  private async attemptWindowsBalanceRecovery(): Promise<boolean> {
+    if (process.platform !== 'win32') {
+      return false;
+    }
+
+    console.log("🔄 Starting Windows balance recovery process...");
+
+    try {
+      // Step 1: Force save the wallet to ensure data persistence
+      console.log("Step 1: Forcing wallet save...");
+      RPC.doSave();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Step 2: Check if balance is now available
+      console.log("Step 2: Checking balance after save...");
+      const balanceStr = RPC.getNative().litelib_execute("balance", "");
+      const balanceJSON = JSON.parse(balanceStr);
+      const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+
+      if (totalBalance > 0) {
+        console.log("✅ Balance recovered after wallet save:", totalBalance);
+        return true;
+      }
+
+      // Step 3: Try to trigger a rescan if balance is still zero
+      console.log("Step 3: Balance still zero, attempting rescan...");
+      try {
+        // Get the wallet birthday to use for rescan
+        const info = RPC.getInfoObject();
+        const walletHeight = info.walletHeight || 0;
+
+        // Trigger a rescan from a recent block (last 1000 blocks or wallet height, whichever is smaller)
+        const rescanHeight = Math.max(0, walletHeight - 1000);
+        console.log(`Triggering rescan from block ${rescanHeight}...`);
+
+        const rescanResult = RPC.getNative().litelib_execute("rescan", rescanHeight.toString());
+        console.log("Rescan result:", rescanResult);
+
+        // Wait for rescan to complete
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // Check balance again
+        const postRescanBalanceStr = RPC.getNative().litelib_execute("balance", "");
+        const postRescanBalanceJSON = JSON.parse(postRescanBalanceStr);
+        const postRescanTotal = (postRescanBalanceJSON.tbalance + postRescanBalanceJSON.zbalance + postRescanBalanceJSON.uabalance) / 10 ** 8;
+
+        if (postRescanTotal > 0) {
+          console.log("✅ Balance recovered after rescan:", postRescanTotal);
+          return true;
+        }
+      } catch (rescanError) {
+        console.error("❌ Rescan failed:", rescanError);
+      }
+
+      // Step 4: Last resort - try to reinitialize the wallet connection
+      console.log("Step 4: Attempting wallet reinitialization...");
+      try {
+        const serverUrl = "https://lightd.btcz.rocks:9067";
+        const reinitResult = RPC.getNative().litelib_initialize_existing(serverUrl);
+
+        if (reinitResult === "OK") {
+          console.log("✅ Wallet reinitialization successful");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Check balance one more time
+          const finalBalanceStr = RPC.getNative().litelib_execute("balance", "");
+          const finalBalanceJSON = JSON.parse(finalBalanceStr);
+          const finalTotal = (finalBalanceJSON.tbalance + finalBalanceJSON.zbalance + finalBalanceJSON.uabalance) / 10 ** 8;
+
+          if (finalTotal > 0) {
+            console.log("✅ Balance recovered after reinitialization:", finalTotal);
+            return true;
+          }
+        }
+      } catch (reinitError) {
+        console.error("❌ Wallet reinitialization failed:", reinitError);
+      }
+
+      console.log("❌ All Windows balance recovery attempts failed");
+      return false;
+
+    } catch (error) {
+      console.error("❌ Windows balance recovery process failed:", error);
+      return false;
+    }
   }
 
   static getLastTxid(): string {
