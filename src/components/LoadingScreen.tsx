@@ -275,17 +275,24 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               console.log("🔄 Attempting Windows wallet recovery...");
               try {
                 RPC.doSave();
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds for file system
 
-                // Try to refresh the balance
-                const refreshedBalanceStr = getNativeModule().litelib_execute("balance", "");
-                const refreshedBalanceJSON = JSON.parse(refreshedBalanceStr);
-                const refreshedTotal = (refreshedBalanceJSON.tbalance + refreshedBalanceJSON.zbalance + refreshedBalanceJSON.uabalance) / 10 ** 8;
-                console.log("💰 Post-recovery balance:", refreshedTotal);
+                // Use setTimeout instead of await since this is not an async function
+                setTimeout(() => {
+                  try {
+                    // Try to refresh the balance after delay
+                    const refreshedBalanceStr = getNativeModule().litelib_execute("balance", "");
+                    const refreshedBalanceJSON = JSON.parse(refreshedBalanceStr);
+                    const refreshedTotal = (refreshedBalanceJSON.tbalance + refreshedBalanceJSON.zbalance + refreshedBalanceJSON.uabalance) / 10 ** 8;
+                    console.log("💰 Post-recovery balance:", refreshedTotal);
 
-                if (refreshedTotal > 0) {
-                  console.log("✅ Windows wallet recovery successful!");
-                }
+                    if (refreshedTotal > 0) {
+                      console.log("✅ Windows wallet recovery successful!");
+                    }
+                  } catch (refreshError) {
+                    console.error("❌ Windows balance refresh failed:", refreshError);
+                  }
+                }, 2000); // Wait 2 seconds for file system
+
               } catch (recoveryError) {
                 console.error("❌ Windows wallet recovery failed:", recoveryError);
               }
