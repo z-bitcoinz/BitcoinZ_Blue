@@ -1,6 +1,6 @@
 # BitcoinZ Blue
 
-BitcoinZ Blue is a modern, z-Addr first, Sapling compatible light wallet client for BitcoinZ. It provides a clean, user-friendly interface with full support for all BitcoinZ features:
+BitcoinZ Blue is a modern, z-Addr first, Sapling compatible light wallet client for BitcoinZ. It provides a clean, user-friendly interface with full support for all BitcoinZ features including large amounts up to 21 billion BTCZ:
 
 ## ✨ Features
 
