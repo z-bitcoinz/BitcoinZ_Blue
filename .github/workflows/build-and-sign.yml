@@ -71,6 +71,12 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      - name: Install protoc
+        run: |
+          brew install protobuf
+          echo "PROTOC=$(which protoc)" >> $GITHUB_ENV
+          protoc --version
+
       - name: Build native module
         run: |
           # Verify we're using the right Rust version
@@ -413,6 +419,28 @@ jobs:
           if (Test-Path "node_modules") { Remove-Item -Recurse -Force "node_modules" }
           if (Test-Path "native/target") { Remove-Item -Recurse -Force "native/target" }
           if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+        shell: powershell
+
+      - name: Install protoc
+        run: |
+          # Download and install protoc for Windows
+          $protocVersion = "25.1"
+          $protocUrl = "https://github.com/protocolbuffers/protobuf/releases/download/v$protocVersion/protoc-$protocVersion-win64.zip"
+
+          Write-Host "Downloading protoc v$protocVersion..."
+          Invoke-WebRequest -Uri $protocUrl -OutFile protoc.zip
+
+          Write-Host "Extracting protoc..."
+          Expand-Archive -Path protoc.zip -DestinationPath protoc -Force
+
+          # Add to PATH
+          $protocPath = "$PWD\protoc\bin"
+          Write-Host "Adding protoc to PATH: $protocPath"
+          echo "$protocPath" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          echo "PROTOC=$protocPath\protoc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          # Verify installation
+          & "$protocPath\protoc.exe" --version
         shell: powershell
 
       - name: Build native module for Windows
@@ -890,6 +918,14 @@ jobs:
           rm -rf node_modules
           rm -rf native/target
           rm -rf dist
+
+      - name: Install protoc
+        run: |
+          # Install protoc on Ubuntu
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          echo "PROTOC=$(which protoc)" >> $GITHUB_ENV
+          protoc --version
 
       - name: Build Linux app
         run: |
