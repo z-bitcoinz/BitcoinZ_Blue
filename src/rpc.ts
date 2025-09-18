@@ -295,7 +295,7 @@ export default class RPC {
 
       // Return a default Info object to prevent complete failure
       const defaultInfo = new Info();
-      defaultInfo.disconnected = true;
+      defaultInfo.connections = 0; // 0 connections indicates disconnected state
       defaultInfo.currencyName = "BTCZ";
       return defaultInfo;
     }
