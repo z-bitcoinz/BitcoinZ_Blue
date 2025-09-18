@@ -134,8 +134,7 @@ export const LockProvider: React.FC<LockProviderProps> = ({ children }) => {
       const settings = securityManager.getSettings();
       if (settings.hasPin && settings.lockOnClose && !isLocked) {
         securityManager.lock();
-        // Save the lock state immediately
-        securityManager.saveLockState();
+        // The lock() method already saves the lock state internally
       }
     };
 
