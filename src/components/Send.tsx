@@ -297,8 +297,10 @@ const ToAddrBox = ({
                   const fiatAmount = parseFloat(e.target.value);
                   if (!isNaN(fiatAmount) && btczPrice) {
                     const btczAmount = fiatAmount / btczPrice;
+                    // Round to 8 decimal places (BTCZ precision) to avoid "Too Many Decimals" error
+                    const roundedBtczAmount = Math.floor(btczAmount * 100000000) / 100000000;
                     const syntheticEvent = {
-                      target: { value: btczAmount.toString() }
+                      target: { value: roundedBtczAmount.toString() }
                     } as React.ChangeEvent<HTMLInputElement>;
                     updateToField(toaddr.id as number, null, syntheticEvent, null);
                   } else if (e.target.value === "") {
