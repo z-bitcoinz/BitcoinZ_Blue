@@ -13,6 +13,7 @@ import {
 } from "./components/AppState";
 import { SendManyJson } from "./components/Send";
 import { currencyManager } from "./utils/currencyManager";
+import Utils from "./utils/utils";
 
 import getNativeModule from "./native-loader";
 
@@ -431,14 +432,14 @@ export default class RPC {
       }
     });
 
-    // Total Balance
+    // Total Balance - Use safe conversion for potentially large amounts
     const balance = new TotalBalance();
-    balance.uabalance = balanceJSON.uabalance / 10 ** 8;
-    balance.zbalance = balanceJSON.zbalance / 10 ** 8;
-    balance.transparent = balanceJSON.tbalance / 10 ** 8;
-    balance.verifiedZ = balanceJSON.verified_zbalance / 10 ** 8;
-    balance.unverifiedZ = balanceJSON.unverified_zbalance / 10 ** 8;
-    balance.spendableZ = balanceJSON.spendable_zbalance / 10 ** 8;
+    balance.uabalance = Utils.zatoshiToBtcz(balanceJSON.uabalance);
+    balance.zbalance = Utils.zatoshiToBtcz(balanceJSON.zbalance);
+    balance.transparent = Utils.zatoshiToBtcz(balanceJSON.tbalance);
+    balance.verifiedZ = Utils.zatoshiToBtcz(balanceJSON.verified_zbalance);
+    balance.unverifiedZ = Utils.zatoshiToBtcz(balanceJSON.unverified_zbalance);
+    balance.spendableZ = Utils.zatoshiToBtcz(balanceJSON.spendable_zbalance);
 
     // Set pending balances
     balance.pendingTransparent = pendingTransparent;
@@ -713,7 +714,15 @@ export default class RPC {
         // eslint-disable-next-line no-nested-ternary
         type === "sent" ? (tx.outgoing_metadata.length > 0 ? tx.outgoing_metadata[0].address : "") : tx.address;
       transaction.type = type;
-      transaction.amount = tx.amount / 10 ** 8;
+      // Use safe conversion for potentially large amounts
+      if (tx.amount && BigInt(tx.amount) > BigInt(Number.MAX_SAFE_INTEGER)) {
+        // For very large amounts, keep as string and convert for display
+        const btczStr = Utils.zatoshiToBtczString(tx.amount);
+        transaction.amount = parseFloat(btczStr); // Will lose precision but OK for display
+        console.log(`Large transaction detected: ${btczStr} BTCZ`);
+      } else {
+        transaction.amount = Utils.zatoshiToBtcz(tx.amount);
+      }
       transaction.confirmations = tx.unconfirmed ? 0 : latestBlockHeight - tx.block_height + 1;
 
       // Log unconfirmed transactions for debugging
@@ -729,7 +738,12 @@ export default class RPC {
         const dts = tx.outgoing_metadata.map((o: any) => {
           const detail = new TxDetail();
           detail.address = o.address;
-          detail.amount = (o.value / 10 ** 8).toFixed(8);
+          // Handle large amounts safely
+          if (o.value && BigInt(o.value) > BigInt(Number.MAX_SAFE_INTEGER)) {
+            detail.amount = Utils.zatoshiToBtczString(o.value);
+          } else {
+            detail.amount = Utils.zatoshiToBtcz(o.value).toFixed(8);
+          }
           detail.memo = o.memo;
 
           return detail;
@@ -739,7 +753,12 @@ export default class RPC {
       } else {
         transaction.detailedTxns = [new TxDetail()];
         transaction.detailedTxns[0].address = tx.address;
-        transaction.detailedTxns[0].amount = (tx.amount / 10 ** 8).toFixed(8);
+        // Handle large amounts safely
+        if (tx.amount && BigInt(tx.amount) > BigInt(Number.MAX_SAFE_INTEGER)) {
+          transaction.detailedTxns[0].amount = Utils.zatoshiToBtczString(tx.amount);
+        } else {
+          transaction.detailedTxns[0].amount = Utils.zatoshiToBtcz(tx.amount).toFixed(8);
+        }
         transaction.detailedTxns[0].memo = tx.memo;
       }
 

@@ -78,6 +78,7 @@ const ToAddrBox = ({
     toaddr.to === "" || Utils.isZaddr(toaddr.to) || Utils.isTransparent(toaddr.to);
 
   let amountError = null;
+  let amountWarning = null;
   if (toaddr.amount) {
     if (toaddr.amount < 0) {
       amountError = "Amount cannot be negative";
@@ -91,6 +92,14 @@ const ToAddrBox = ({
     const s = toaddr.amount.toString().split(".");
     if (s && s.length > 1 && s[1].length > 8) {
       amountError = "Too Many Decimals";
+    }
+    // Check for large amounts - BitcoinZ max supply is 21 billion
+    if (Utils.exceedsMaxSupply(toaddr.amount)) {
+      amountError = "Amount exceeds BitcoinZ max supply (21 billion)";
+    } else if (toaddr.amount > 1000000000) {  // 1 billion BTCZ
+      amountWarning = "⚠️ Extremely large amount (over 1 billion BTCZ) - please double-check";
+    } else if (toaddr.amount > 100000000) {  // 100 million BTCZ
+      amountWarning = "⚠️ Very large amount - please double-check";
     }
   }
 
@@ -281,7 +290,8 @@ const ToAddrBox = ({
               </button>
             </div>
             <div className={cstyles.validationerror} style={{ fontSize: "11px" }}>
-              {amountError ? <span className={cstyles.red}>{amountError}</span> : (
+              {amountError ? <span className={cstyles.red}>{amountError}</span> :
+               amountWarning ? <span style={{ color: '#FFA500' }}>{amountWarning}</span> : (
                 <span>{inputInFiat ? `${toaddr.amount ? toaddr.amount.toFixed(8) : '0'} BTCZ` : fiatValue}</span>
               )}
             </div>
@@ -420,7 +430,8 @@ export type SendManyJson = {
 function getSendManyJSON(sendPageState: SendPageState): SendManyJson[] {
   const json = sendPageState.toaddrs.flatMap((to) => {
     const memo = to.memo || "";
-    const amount = parseInt((to.amount * 10 ** 8).toFixed(0));
+    // Use BigInt conversion to safely handle large amounts like 23 million BTCZ
+    const amount = Utils.btczToZatoshi(to.amount);
 
     if (memo === "") {
       return { address: to.to, amount, memo: undefined };
@@ -768,7 +779,7 @@ export default class Send extends PureComponent<Props, SendState> {
       // Check to see the new amount if valid
       // $FlowFixMe
       const newAmount = parseFloat(amount.target.value);
-      if (newAmount < 0 || newAmount > 21 * 10 ** 6) {
+      if (newAmount < 0 || Utils.exceedsMaxSupply(newAmount)) {
         return;
       }
       // $FlowFixMe
