@@ -1635,11 +1635,62 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
         tx.write(&mut raw_tx).unwrap();
         info!("Transaction size: {} bytes", raw_tx.len());
 
-        info!("Broadcasting transaction to network...");
-        let txid = broadcast_fn(raw_tx.clone().into_boxed_slice()).await?;
-        info!("Transaction broadcast successful, txid: {}", txid);
+        // Mark UTXOs as unconfirmed spent BEFORE broadcasting to prevent double-spending
+        info!("Marking {} UTXOs as pending spend before broadcast...", utxos.len());
+        {
+            let mut txs = self.txns.write().await;
 
-        // Mark notes as spent.
+            // First, validate that all UTXOs are still unspent
+            for selected_utxo in &utxos {
+                let utxo_entry = txs
+                    .current
+                    .get(&selected_utxo.txid)
+                    .and_then(|wtx| {
+                        wtx.utxos
+                            .iter()
+                            .find(|u| selected_utxo.txid == u.txid && selected_utxo.output_index == u.output_index)
+                    });
+
+                if let Some(utxo) = utxo_entry {
+                    if utxo.unconfirmed_spent.is_some() || utxo.spent.is_some() {
+                        let err = format!("UTXO {}:{} is no longer available (already marked as spent)",
+                            selected_utxo.txid, selected_utxo.output_index);
+                        error!("{}", err);
+                        info!("Transaction aborted due to spent UTXO, will need to rebuild with fresh inputs");
+                        return Err(err);
+                    }
+                } else {
+                    let err = format!("UTXO {}:{} not found in wallet", selected_utxo.txid, selected_utxo.output_index);
+                    error!("{}", err);
+                    return Err(err);
+                }
+            }
+
+            // Mark UTXOs as unconfirmed spent
+            for utxo in &utxos {
+                let spent_utxo = txs
+                    .current
+                    .get_mut(&utxo.txid)
+                    .unwrap()
+                    .utxos
+                    .iter_mut()
+                    .find(|u| utxo.txid == u.txid && utxo.output_index == u.output_index)
+                    .unwrap();
+                spent_utxo.unconfirmed_spent = Some((tx.txid(), u32::from(target_height)));
+            }
+            info!("All {} UTXOs marked as pending spend", utxos.len());
+        }
+
+        info!("Broadcasting transaction to network...");
+        info!("Sending transaction to lightwalletd server: {}/", self.config.server);
+        info!("Sending transaction of {} bytes to server", raw_tx.len());
+        let broadcast_result = broadcast_fn(raw_tx.clone().into_boxed_slice()).await;
+
+        match broadcast_result {
+            Ok(txid) => {
+                info!("Transaction broadcast successful, txid: {}", txid);
+
+                // Mark notes as spent.
         {
             // Mark sapling and orchard notes as unconfirmed spent
             let mut txs = self.txns.write().await;
@@ -1672,18 +1723,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
                 spent_note.unconfirmed_spent = Some((tx.txid(), u32::from(target_height)));
             }
 
-            // Mark this utxo as unconfirmed spent
-            for utxo in utxos {
-                let mut spent_utxo = txs
-                    .current
-                    .get_mut(&utxo.txid)
-                    .unwrap()
-                    .utxos
-                    .iter_mut()
-                    .find(|u| utxo.txid == u.txid && utxo.output_index == u.output_index)
-                    .unwrap();
-                spent_utxo.unconfirmed_spent = Some((tx.txid(), u32::from(target_height)));
-            }
+            // UTXOs already marked as spent before broadcast
         }
 
         // Add this Tx to the mempool structure
@@ -1703,7 +1743,62 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
             .await;
         }
 
-        Ok((txid, raw_tx))
+                Ok((txid.to_string(), raw_tx))
+            }
+            Err(e) => {
+                error!("Server response - error_message: '{}'", e);
+
+                // Check if it's a "Missing inputs" error
+                if e.contains("Missing inputs") || e.contains("-25") {
+                    // Unmark the UTXOs since broadcast failed
+                    info!("Broadcast failed with 'Missing inputs' error, unmarking UTXOs...");
+                    {
+                        let mut txs = self.txns.write().await;
+                        for utxo in &utxos {
+                            if let Some(spent_utxo) = txs
+                                .current
+                                .get_mut(&utxo.txid)
+                                .and_then(|wtx| {
+                                    wtx.utxos
+                                        .iter_mut()
+                                        .find(|u| utxo.txid == u.txid && utxo.output_index == u.output_index)
+                                }) {
+                                // Only unmark if it was marked for this transaction
+                                if spent_utxo.unconfirmed_spent == Some((tx.txid(), u32::from(target_height))) {
+                                    spent_utxo.unconfirmed_spent = None;
+                                }
+                            }
+                        }
+                    }
+
+                    // Return more informative error message
+                    let err_msg = format!("Transaction failed: Server reported 'Missing inputs'. \n\nThis typically occurs when:\n1. The wallet is not fully synchronized\n2. A UTXO was already spent in another transaction\n3. The mempool has conflicting transactions\n\nPlease try:\n- Resyncing your wallet\n- Waiting a moment and retrying\n- Restarting the wallet if the issue persists\n\nOriginal error: {}", e);
+                    return Err(err_msg);
+                } else {
+                    // For other errors, also unmark UTXOs
+                    {
+                        let mut txs = self.txns.write().await;
+                        for utxo in &utxos {
+                            if let Some(spent_utxo) = txs
+                                .current
+                                .get_mut(&utxo.txid)
+                                .and_then(|wtx| {
+                                    wtx.utxos
+                                        .iter_mut()
+                                        .find(|u| utxo.txid == u.txid && utxo.output_index == u.output_index)
+                                }) {
+                                // Only unmark if it was marked for this transaction
+                                if spent_utxo.unconfirmed_spent == Some((tx.txid(), u32::from(target_height))) {
+                                    spent_utxo.unconfirmed_spent = None;
+                                }
+                            }
+                        }
+                    }
+
+                    return Err(format!("Error broadcasting transaction: {}", e));
+                }
+            }
+        }
     }
 
     pub async fn encrypt(&self, passwd: String) -> io::Result<()> {
