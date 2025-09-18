@@ -148,7 +148,8 @@ export default class RPC {
     // Also check balance and transaction count for better detection
     const balanceStr = RPC.getNative().litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
-    const currentBalance = balanceJSON.tbalance + balanceJSON.zbalance;
+    // CRITICAL: Convert zatoshis to BTCZ for proper comparison!
+    const currentBalance = Utils.zatoshiToBtcz(balanceJSON.tbalance + balanceJSON.zbalance);
 
     const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
@@ -374,7 +375,7 @@ export default class RPC {
 
     // Windows-specific balance validation
     if (process.platform === 'win32') {
-      const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+      const totalBalance = Utils.zatoshiToBtcz(balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance);
       console.log("🪟 Windows balance fetch:", {
         transparent: balanceJSON.tbalance / 10 ** 8,
         shielded: balanceJSON.zbalance / 10 ** 8,
@@ -572,7 +573,7 @@ export default class RPC {
       console.log("Step 2: Checking balance after save...");
       const balanceStr = RPC.getNative().litelib_execute("balance", "");
       const balanceJSON = JSON.parse(balanceStr);
-      const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+      const totalBalance = Utils.zatoshiToBtcz(balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance);
 
       if (totalBalance > 0) {
         console.log("✅ Balance recovered after wallet save:", totalBalance);
@@ -599,7 +600,7 @@ export default class RPC {
         // Check balance again
         const postRescanBalanceStr = RPC.getNative().litelib_execute("balance", "");
         const postRescanBalanceJSON = JSON.parse(postRescanBalanceStr);
-        const postRescanTotal = (postRescanBalanceJSON.tbalance + postRescanBalanceJSON.zbalance + postRescanBalanceJSON.uabalance) / 10 ** 8;
+        const postRescanTotal = Utils.zatoshiToBtcz(postRescanBalanceJSON.tbalance + postRescanBalanceJSON.zbalance + postRescanBalanceJSON.uabalance);
 
         if (postRescanTotal > 0) {
           console.log("✅ Balance recovered after rescan:", postRescanTotal);
@@ -622,7 +623,7 @@ export default class RPC {
           // Check balance one more time
           const finalBalanceStr = RPC.getNative().litelib_execute("balance", "");
           const finalBalanceJSON = JSON.parse(finalBalanceStr);
-          const finalTotal = (finalBalanceJSON.tbalance + finalBalanceJSON.zbalance + finalBalanceJSON.uabalance) / 10 ** 8;
+          const finalTotal = Utils.zatoshiToBtcz(finalBalanceJSON.tbalance + finalBalanceJSON.zbalance + finalBalanceJSON.uabalance);
 
           if (finalTotal > 0) {
             console.log("✅ Balance recovered after reinitialization:", finalTotal);
@@ -859,7 +860,7 @@ export default class RPC {
     // Get current balance to calculate change
     const balanceStr = RPC.getNative().litelib_execute("balance", "");
     const balanceJSON = JSON.parse(balanceStr);
-    const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+    const totalBalance = Utils.zatoshiToBtcz(balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance);
     
     // Track this transaction as pending
     const tempTxId = `pending-${Date.now()}`;

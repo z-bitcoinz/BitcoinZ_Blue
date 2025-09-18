@@ -255,7 +255,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         try {
           const balanceStr = getNativeModule().litelib_execute("balance", "");
           const balanceJSON = JSON.parse(balanceStr);
-          const totalBalance = (balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance) / 10 ** 8;
+          const totalBalance = Utils.zatoshiToBtcz(balanceJSON.tbalance + balanceJSON.zbalance + balanceJSON.uabalance);
           console.log("💰 Pre-sync balance verification:", {
             transparent: balanceJSON.tbalance / 10 ** 8,
             shielded: balanceJSON.zbalance / 10 ** 8,
@@ -282,7 +282,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                     // Try to refresh the balance after delay
                     const refreshedBalanceStr = getNativeModule().litelib_execute("balance", "");
                     const refreshedBalanceJSON = JSON.parse(refreshedBalanceStr);
-                    const refreshedTotal = (refreshedBalanceJSON.tbalance + refreshedBalanceJSON.zbalance + refreshedBalanceJSON.uabalance) / 10 ** 8;
+                    const refreshedTotal = Utils.zatoshiToBtcz(refreshedBalanceJSON.tbalance + refreshedBalanceJSON.zbalance + refreshedBalanceJSON.uabalance);
                     console.log("💰 Post-recovery balance:", refreshedTotal);
 
                     if (refreshedTotal > 0) {
