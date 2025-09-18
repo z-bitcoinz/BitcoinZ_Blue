@@ -1458,18 +1458,10 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
         let mut change = 0u64;
 
         // Add all tinputs
-        info!("Adding {} transparent inputs to transaction", utxos.len());
         utxos
             .iter()
-            .enumerate()
-            .map(|(idx, utxo)| {
+            .map(|utxo| {
                 let outpoint: OutPoint = utxo.to_outpoint();
-
-                // Log detailed UTXO information for debugging
-                info!("UTXO {}: txid={}, output_index={}, value={} zatoshis, address={}, height={}",
-                      idx, utxo.txid, utxo.output_index, utxo.value, utxo.address, utxo.height);
-                info!("  -> Creating OutPoint with index: {} (as u32: {})",
-                      utxo.output_index, utxo.output_index as u32);
 
                 let coin = TxOut {
                     value: Amount::from_u64(utxo.value).unwrap(),
@@ -1479,7 +1471,6 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
                 match address_to_sk.get(&utxo.address) {
                     Some(sk) => {
                         change += u64::from(coin.value);
-                        info!("  -> Successfully added UTXO {} as input", idx);
                         builder.add_transparent_input(*sk, outpoint.clone(), coin.clone())
                     }
                     None => {
@@ -1690,14 +1681,6 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
             info!("All {} UTXOs marked as pending spend", utxos.len());
         }
 
-        // Add a small delay to ensure state consistency, especially on Windows
-        // This helps ensure that UTXO marking is fully propagated before broadcast
-        #[cfg(target_os = "windows")]
-        {
-            info!("Windows detected: Adding 200ms delay to ensure state consistency...");
-            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-        }
-
         info!("Broadcasting transaction to network...");
         info!("Sending transaction to lightwalletd server: {}/", self.config.server);
         info!("Sending transaction of {} bytes to server", raw_tx.len());
@@ -1767,14 +1750,6 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
 
                 // Check if it's a "Missing inputs" error
                 if e.contains("Missing inputs") || e.contains("-25") {
-                    // Log the UTXOs that were attempted to be spent
-                    error!("'Missing inputs' error occurred. Debugging information:");
-                    for (idx, utxo) in utxos.iter().enumerate() {
-                        error!("  UTXO {}: txid={}, index={} (u32: {}), value={}, height={}",
-                               idx, utxo.txid, utxo.output_index,
-                               utxo.output_index as u32, utxo.value, utxo.height);
-                    }
-
                     // Unmark the UTXOs since broadcast failed
                     info!("Broadcast failed with 'Missing inputs' error, unmarking UTXOs...");
                     {

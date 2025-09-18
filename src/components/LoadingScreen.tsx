@@ -496,13 +496,26 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               maxWidth: '600px',
               width: '100%'
             }}>
-              <div style={{
-                marginBottom: "30px",
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
-                <img src={Logo} width="200px;" alt="BitcoinZ Logo" style={{ display: 'block' }} />
-              </div>
+              {Logo && (
+                <div style={{
+                  marginBottom: "30px",
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  <img
+                    src={Logo}
+                    width="200"
+                    height="200"
+                    alt="BitcoinZ Logo"
+                    style={{ display: 'block', objectFit: 'contain' }}
+                    onError={(e) => {
+                      console.error("Failed to load logo image:", e);
+                      // Fallback to displaying text if image fails
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <div style={{
                 fontSize: '16px',
                 fontWeight: '500',

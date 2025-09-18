@@ -1,7 +1,7 @@
 use crate::compact_formats::CompactBlock;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use incrementalmerkletree::Position;
-use log::error;
+use log::warn;
 use orchard::keys::FullViewingKey;
 use orchard::note::RandomSeed;
 use orchard::value::NoteValue;
@@ -594,14 +594,9 @@ impl Utxo {
     pub fn to_outpoint(&self) -> OutPoint {
         // Check for potential overflow when converting u64 to u32
         if self.output_index > u32::MAX as u64 {
-            error!("UTXO output_index {} exceeds u32::MAX, will overflow!", self.output_index);
-            // Log the full UTXO details for debugging
-            error!("Problem UTXO: txid={}, index={}, value={}, address={}",
-                   self.txid, self.output_index, self.value, self.address);
+            warn!("UTXO output_index {} exceeds u32::MAX, potential overflow", self.output_index);
         }
 
-        // Note: We still perform the conversion to maintain compatibility,
-        // but the error log will help identify when this causes issues
         OutPoint::new(*self.txid.as_ref(), self.output_index as u32)
     }
 
