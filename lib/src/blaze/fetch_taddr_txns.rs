@@ -116,11 +116,21 @@ impl<P: consensus::Parameters + Send + Sync + 'static> FetchTaddrTxns<P> {
                     }
                     prev_height = rtx.height;
 
+                    // Debug: Log transaction data size for large transactions
+                    if rtx.data.len() > 10000 {
+                        eprintln!("DEBUG: Processing large transaction at height {} with {} bytes",
+                                 rtx.height, rtx.data.len());
+                    }
+
                     let tx = Transaction::read(
                         &rtx.data[..],
                         BranchId::for_height(&network, BlockHeight::from_u32(rtx.height as u32)),
                     )
-                    .map_err(|e| format!("Error reading Tx: {}", e))?;
+                    .map_err(|e| {
+                        eprintln!("DEBUG: Failed to read transaction at height {}: {}", rtx.height, e);
+                        eprintln!("DEBUG: Transaction data size: {} bytes", rtx.data.len());
+                        format!("Error reading Tx at height {}: {}", rtx.height, e)
+                    })?;
                     full_tx_scanner
                         .send((tx, BlockHeight::from_u32(rtx.height as u32)))
                         .unwrap();

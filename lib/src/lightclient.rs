@@ -84,7 +84,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         }
 
         let l = LightClient {
-            wallet: LightWallet::new(config.clone(), seed_phrase, height, 1, 1)?,
+            wallet: LightWallet::new(config.clone(), seed_phrase, height, 1, 0)?,
             config: config.clone(),
             mempool_monitor: std::sync::RwLock::new(None),
             bsync_data: Arc::new(RwLock::new(BlazeSyncData::new(&config))),
@@ -288,8 +288,12 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
             })
         } else {
             Runtime::new().unwrap().block_on(async move {
+                // Start with a reasonable number of addresses to check during restoration
+                // We'll discover more during sync if needed
+                const INITIAL_ADDR_COUNT: u32 = 20;  // Check first 20 addresses of each type
+
                 let l = LightClient {
-                    wallet: LightWallet::new(config.clone(), Some(seed_phrase), birthday, 1, 1)?,
+                    wallet: LightWallet::new(config.clone(), Some(seed_phrase), birthday, INITIAL_ADDR_COUNT, 1)?,
                     config: config.clone(),
                     mempool_monitor: std::sync::RwLock::new(None),
                     sync_lock: Mutex::new(()),
@@ -301,7 +305,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
                     .await
                     .map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
 
-                info!("Created new wallet!");
+                info!("Created wallet with {} initial addresses for HD discovery!", INITIAL_ADDR_COUNT);
 
                 Ok(l)
             })

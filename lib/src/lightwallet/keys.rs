@@ -175,8 +175,19 @@ impl<P: consensus::Parameters> Keys<P> {
         // we need to get the 64 byte bip39 entropy
         let bip39_seed = Seed::new(&Mnemonic::from_entropy(&seed_bytes, Language::English).unwrap(), "");
 
-        // Derive only the first sk and address
-        let tpk = WalletTKey::new_hdkey(config, 0, &bip39_seed.as_bytes());
+        // Transparent keys - generate multiple for HD discovery during restoration
+        let mut tkeys = vec![];
+        if num_zaddrs > 1 {
+            // During restoration, generate multiple T addresses to scan for funds
+            for i in 0..num_zaddrs {
+                let tpk = WalletTKey::new_hdkey(config, i, &bip39_seed.as_bytes());
+                tkeys.push(tpk);
+            }
+        } else {
+            // Normal wallet creation - just create one T address
+            let tpk = WalletTKey::new_hdkey(config, 0, &bip39_seed.as_bytes());
+            tkeys.push(tpk);
+        }
 
         // Sapling keys
         let mut zkeys = vec![];
@@ -203,7 +214,7 @@ impl<P: consensus::Parameters> Keys<P> {
             nonce: vec![],
             seed: seed_bytes,
             zkeys,
-            tkeys: vec![tpk],
+            tkeys,
             okeys,
         })
     }

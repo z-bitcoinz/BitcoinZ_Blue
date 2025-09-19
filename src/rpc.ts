@@ -704,7 +704,22 @@ export default class RPC {
   fetchTandZTransactions(latestBlockHeight: number) {
     const listStr = RPC.getNative().litelib_execute("list", "");
     const listJSON = JSON.parse(listStr);
-    //console.log(listJSON);
+
+    // Debug logging for large transactions
+    console.log(`📊 Fetching ${listJSON.length} transactions...`);
+    listJSON.forEach((tx: any) => {
+      if (tx.amount > 1000000000000000) { // Over 10M BTCZ in zatoshis
+        console.log('🔍 LARGE TRANSACTION FOUND:', {
+          txid: tx.txid?.substring(0, 16) + '...',
+          amount_zatoshis: tx.amount,
+          amount_btcz: tx.amount / 100000000,
+          type: tx.outgoing_metadata ? 'sent' : 'received',
+          address: tx.address,
+          unconfirmed: tx.unconfirmed,
+          block_height: tx.block_height
+        });
+      }
+    });
 
     let txlist: Transaction[] = listJSON.map((tx: any) => {
       const transaction = new Transaction();
@@ -715,14 +730,29 @@ export default class RPC {
         // eslint-disable-next-line no-nested-ternary
         type === "sent" ? (tx.outgoing_metadata.length > 0 ? tx.outgoing_metadata[0].address : "") : tx.address;
       transaction.type = type;
-      // Use safe conversion for potentially large amounts
-      if (tx.amount && BigInt(tx.amount) > BigInt(Number.MAX_SAFE_INTEGER)) {
-        // For very large amounts, keep as string and convert for display
-        const btczStr = Utils.zatoshiToBtczString(tx.amount);
-        transaction.amount = parseFloat(btczStr); // Will lose precision but OK for display
-        console.log(`Large transaction detected: ${btczStr} BTCZ`);
-      } else {
-        transaction.amount = Utils.zatoshiToBtcz(tx.amount);
+
+      // Debug: Check the type and value of amount
+      if (tx.amount > 1000000000000000) { // Over 10M BTCZ
+        console.log(`🎯 Processing large amount - Type: ${typeof tx.amount}, Value: ${tx.amount}`);
+      }
+
+      // Handle amount conversion - check if it's already a string or number
+      const amountValue = typeof tx.amount === 'string' ? tx.amount : tx.amount.toString();
+
+      try {
+        // Use safe conversion for potentially large amounts
+        if (BigInt(amountValue) > BigInt(Number.MAX_SAFE_INTEGER)) {
+          // For very large amounts, keep as string and convert for display
+          const btczStr = Utils.zatoshiToBtczString(amountValue);
+          transaction.amount = parseFloat(btczStr); // Will lose precision but OK for display
+          console.log(`✅ Large transaction converted: ${btczStr} BTCZ (from ${amountValue} zatoshis)`);
+        } else {
+          transaction.amount = Utils.zatoshiToBtcz(amountValue);
+        }
+      } catch (e) {
+        console.error(`❌ Error converting amount ${tx.amount}:`, e);
+        // Fallback to direct division
+        transaction.amount = tx.amount / 100000000;
       }
       transaction.confirmations = tx.unconfirmed ? 0 : latestBlockHeight - tx.block_height + 1;
 

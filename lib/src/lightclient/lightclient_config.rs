@@ -28,11 +28,9 @@ pub const WALLET_NAME: &str = "bitcoinz-light-wallet.dat";
 pub const LOGFILE_NAME: &str = "bitcoinz-light-wallet.debug.log";
 pub const DEFAULT_ANCHOR_OFFSET: u32 = 1;
 pub const MAX_REORG: usize = 100;
-pub const GAP_RULE_UNUSED_ADDRESSES: usize = if cfg!(any(target_os = "ios", target_os = "android")) {
-    0
-} else {
-    5
-};
+// BIP44 standard gap limit for HD wallet address discovery
+// This ensures we find all addresses with transactions during wallet restoration
+pub const GAP_RULE_UNUSED_ADDRESSES: usize = 20;
 
 // Marker struct for the production network.
 #[derive(PartialEq, Copy, Clone, Debug)]

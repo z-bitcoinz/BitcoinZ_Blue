@@ -1179,7 +1179,13 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
                 if *running_total >= target_amount {
                     None
                 } else {
-                    *running_total += Amount::from_u64(spendable.note.value().inner()).unwrap();
+                    match Amount::from_u64(spendable.note.value().inner()) {
+                        Ok(amount) => *running_total += amount,
+                        Err(_) => {
+                            eprintln!("WARNING: Orchard note value {} exceeds maximum, skipping", spendable.note.value().inner());
+                            return None;
+                        }
+                    }
                     Some(spendable)
                 }
             })
@@ -1218,14 +1224,23 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
                 if *running_total >= target_amount {
                     None
                 } else {
-                    *running_total += Amount::from_u64(spendable.note.value).unwrap();
+                    match Amount::from_u64(spendable.note.value) {
+                        Ok(amount) => *running_total += amount,
+                        Err(_) => {
+                            eprintln!("WARNING: Sapling note value {} exceeds maximum, skipping", spendable.note.value);
+                            return None;
+                        }
+                    }
                     Some(spendable)
                 }
             })
             .collect::<Vec<_>>();
 
         let sapling_value_selected = s_notes.iter().fold(Amount::zero(), |prev, sn| {
-            (prev + Amount::from_u64(sn.note.value).unwrap()).unwrap()
+            match Amount::from_u64(sn.note.value) {
+                Ok(amount) => (prev + amount).unwrap_or(prev),
+                Err(_) => prev
+            }
         });
 
         if sapling_value_selected >= target_amount {
@@ -1253,7 +1268,13 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
 
         // Check how much we've selected
         let transparent_value_selected = utxos.iter().fold(Amount::zero(), |prev, utxo| {
-            (prev + Amount::from_u64(utxo.value).unwrap()).unwrap()
+            match Amount::from_u64(utxo.value) {
+                Ok(amount) => (prev + amount).unwrap_or(prev),
+                Err(_) => {
+                    eprintln!("WARNING: UTXO value {} exceeds maximum, skipping", utxo.value);
+                    prev
+                }
+            }
         });
 
         // If we are allowed only transparent funds or we've selected enough then return
@@ -1272,7 +1293,10 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
             // Collect orchard notes first
             o_notes = self.select_orchard_notes(remaining_amount.unwrap()).await;
             orchard_value_selected = o_notes.iter().fold(Amount::zero(), |prev, on| {
-                (prev + Amount::from_u64(on.note.value().inner()).unwrap()).unwrap()
+                match Amount::from_u64(on.note.value().inner()) {
+                    Ok(amount) => (prev + amount).unwrap_or(prev),
+                    Err(_) => prev
+                }
             });
 
             // If we've selected enough, just return
@@ -1307,7 +1331,10 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightWallet<P> {
             // Select orchard notes
             o_notes = self.select_orchard_notes(remaining_amount.unwrap()).await;
             orchard_value_selected = o_notes.iter().fold(Amount::zero(), |prev, on| {
-                (prev + Amount::from_u64(on.note.value().inner()).unwrap()).unwrap()
+                match Amount::from_u64(on.note.value().inner()) {
+                    Ok(amount) => (prev + amount).unwrap_or(prev),
+                    Err(_) => prev
+                }
             });
         }
 

@@ -351,19 +351,25 @@ export default class Utils {
    * @returns Amount in BTCZ as a number (for amounts under 90M BTCZ) or throws for larger amounts
    */
   static zatoshiToBtcz(zatoshi: number | string | bigint): number {
-    const zatoshiBigInt = typeof zatoshi === 'bigint' ? zatoshi : BigInt(zatoshi.toString());
+    try {
+      const zatoshiBigInt = typeof zatoshi === 'bigint' ? zatoshi : BigInt(zatoshi.toString());
 
-    // Check if amount exceeds safe limit
-    if (zatoshiBigInt > BigInt(Number.MAX_SAFE_INTEGER)) {
-      // For display purposes, we can still calculate and return a number, but with a warning
-      console.warn(`Large amount detected: ${zatoshiBigInt} zatoshis. Using string conversion for safety.`);
+      // Check if amount exceeds safe limit
+      if (zatoshiBigInt > BigInt(Number.MAX_SAFE_INTEGER)) {
+        // For display purposes, we can still calculate and return a number, but with a warning
+        console.warn(`Large amount detected: ${zatoshiBigInt} zatoshis. Using string conversion for safety.`);
+      }
+
+      const btczWhole = zatoshiBigInt / BigInt(100000000);
+      const btczDecimal = zatoshiBigInt % BigInt(100000000);
+
+      // Convert to number with proper decimal places
+      return Number(btczWhole) + Number(btczDecimal) / 100000000;
+    } catch (e) {
+      console.error('Error converting zatoshi to BTCZ:', zatoshi, e);
+      // Fallback to simple division
+      return Number(zatoshi) / 100000000;
     }
-
-    const btczWhole = zatoshiBigInt / BigInt(100000000);
-    const btczDecimal = zatoshiBigInt % BigInt(100000000);
-
-    // Convert to number with proper decimal places
-    return Number(btczWhole) + Number(btczDecimal) / 100000000;
   }
 
   /**
