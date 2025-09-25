@@ -47,13 +47,24 @@ export default class Utils {
 
   static isValidSaplingPrivateKey(key: string): boolean {
     return (
-      new RegExp("^secret-extended-key-test[0-9a-z]{278}$").test(key) ||
-      new RegExp("^secret-extended-key-main[0-9a-z]{278}$").test(key)
+      // BitcoinZ mainnet
+      new RegExp("^btcz-secret-extended-key-main[0-9a-z]{278}$").test(key) ||
+      // Zcash-style mainnet (keep for compatibility)
+      new RegExp("^secret-extended-key-main[0-9a-z]{278}$").test(key) ||
+      // Testnet
+      new RegExp("^secret-extended-key-test[0-9a-z]{278}$").test(key)
     );
   }
 
   static isValidSaplingViewingKey(key: string): boolean {
-    return new RegExp("^zxviews[0-9a-z]{278}$").test(key);
+    return (
+      // BitcoinZ mainnet viewing key
+      new RegExp("^btczxviews[0-9a-z]{278}$").test(key) ||
+      // Zcash-style viewing key (compat)
+      new RegExp("^zxviews[0-9a-z]{278}$").test(key) ||
+      // Testnet viewing key
+      new RegExp("^zxviewtestsapling[0-9a-z]{278}$").test(key)
+    );
   }
 
   // Convert to max 8 decimal places, and remove trailing zeros
