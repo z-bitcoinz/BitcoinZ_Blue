@@ -48,6 +48,12 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
     justifyContent: 'center'
   };
 
+  // Clipboard and helpers for formatting keys
+  const { clipboard } = window.require("electron");
+  const truncMid = (s: string, head = 16, tail = 16) =>
+    s && s.length > head + tail + 3 ? `${s.slice(0, head)}…${s.slice(-tail)}` : s;
+
+
   return (
     <Modal
         isOpen={modalIsOpen}
@@ -100,30 +106,99 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
           These are all the private keys in your wallet. Please store them carefully!
         </div>
 
-        {exportedPrivKeys && (
-          <TextareaAutosize
-            value={exportedPrivKeys.join("\n")}
-            className={styles.exportedPrivKeys}
-            disabled
+        {exportedPrivKeys && exportedPrivKeys.length > 0 && (
+          <div
             style={{
               background: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '8px',
               color: 'white',
               padding: '12px',
-              fontFamily: 'monospace'
+              fontFamily: 'monospace',
+              maxHeight: '50vh',
+              overflowY: 'auto'
             }}
-          />
+          >
+            {exportedPrivKeys.map((line, idx) => {
+              const hash = line.lastIndexOf('#');
+              const key = hash >= 0 ? line.substring(0, hash).trim() : line;
+              const addr = hash >= 0 ? line.substring(hash + 1).trim() : '';
+              const shortAddr = addr ? `${addr.slice(0, 10)}…${addr.slice(-6)}` : '';
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    padding: '6px 0',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                  }}
+                >
+                  <div style={{ flex: '1 1 auto' }}>
+                    <div style={{ fontSize: '12px', opacity: 0.9 }}>{shortAddr}</div>
+                    <div style={{ whiteSpace: 'nowrap' }}>{truncMid(key, 16, 16)}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" style={modernButtonStyle} onClick={() => clipboard.writeText(key)}>
+                      <i className="fas fa-copy" /> Copy key
+                    </button>
+                    <button
+                      type="button"
+                      style={modernButtonStyle}
+                      onClick={() => clipboard.writeText(`${key} # ${addr}`)}
+                    >
+                      <i className="fas fa-clipboard" /> Copy line
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: '20px',
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        marginTop: '16px'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px',
+          paddingTop: '20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          marginTop: '16px'
+        }}
+      >
+        <button
+          type="button"
+          style={modernButtonStyle}
+          onClick={() => clipboard.writeText(exportedPrivKeys.join("\n"))}
+        >
+          <i className="fas fa-copy" /> Copy all
+        </button>
+        <button
+          type="button"
+          style={modernButtonStyle}
+          onClick={async () => {
+            const dataStr = exportedPrivKeys.join("\n");
+            const exportFileDefaultName = `bitcoinz_keys_${new Date().toISOString().split('T')[0]}.txt`;
+            const result = await ipcRenderer.invoke('show-save-dialog', {
+              defaultPath: exportFileDefaultName,
+              filters: [
+                { name: 'Text Files', extensions: ['txt'] },
+                { name: 'All Files', extensions: ['*'] }
+              ]
+            });
+            if (!result.canceled && result.filePath) {
+              const writeResult = await ipcRenderer.invoke('write-file', result.filePath, dataStr);
+              if (!writeResult.success) {
+                alert(`Failed to export keys: ${writeResult.error}`);
+              }
+            }
+          }}
+        >
+          <i className="fas fa-download" /> Download .txt
+        </button>
         <button
           type="button"
           style={modernButtonStyle}
@@ -899,7 +974,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
 
         const privKeysPromise = currentAddresses.map(async (a) => {
           const privKey = currentGetPrivKeyAsString(a.address);
-          return `${privKey} #${a}`;
+          return `${privKey} # ${a.address}`;
         });
         const exportedPrivKeys = await Promise.all(privKeysPromise);
 
