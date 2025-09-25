@@ -53,6 +53,12 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
   const truncMid = (s: string, head = 16, tail = 16) =>
     s && s.length > head + tail + 3 ? `${s.slice(0, head)}…${s.slice(-tail)}` : s;
 
+  const [copied, setCopied] = useState<{ idx: number; type: 'key' | 'line' | 'all' } | null>(null);
+  const markCopied = (idx: number, type: 'key' | 'line' | 'all') => {
+    setCopied({ idx, type });
+    setTimeout(() => setCopied(null), 1500);
+  };
+
 
   return (
     <Modal
@@ -141,15 +147,15 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
                     <div style={{ whiteSpace: 'nowrap' }}>{truncMid(key, 16, 16)}</div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button type="button" style={modernButtonStyle} onClick={() => clipboard.writeText(key)}>
-                      <i className="fas fa-copy" /> Copy key
+                    <button type="button" style={modernButtonStyle} onClick={() => { clipboard.writeText(key); markCopied(idx, 'key'); }}>
+                      <i className={copied?.idx === idx && copied?.type === 'key' ? 'fas fa-check' : 'fas fa-copy'} /> {copied?.idx === idx && copied?.type === 'key' ? 'Copied' : 'Copy key'}
                     </button>
                     <button
                       type="button"
                       style={modernButtonStyle}
-                      onClick={() => clipboard.writeText(`${key} # ${addr}`)}
+                      onClick={() => { clipboard.writeText(`${key} # ${addr}`); markCopied(idx, 'line'); }}
                     >
-                      <i className="fas fa-clipboard" /> Copy line
+                      <i className={copied?.idx === idx && copied?.type === 'line' ? 'fas fa-check' : 'fas fa-clipboard'} /> {copied?.idx === idx && copied?.type === 'line' ? 'Copied' : 'Copy line'}
                     </button>
                   </div>
                 </div>
@@ -172,9 +178,9 @@ const ExportPrivKeyModal = ({ modalIsOpen, exportedPrivKeys, closeModal }: Expor
         <button
           type="button"
           style={modernButtonStyle}
-          onClick={() => clipboard.writeText(exportedPrivKeys.join("\n"))}
+          onClick={() => { clipboard.writeText(exportedPrivKeys.join("\n")); markCopied(-1, 'all'); }}
         >
-          <i className="fas fa-copy" /> Copy all
+          <i className={copied?.type === 'all' ? 'fas fa-check' : 'fas fa-copy'} /> {copied?.type === 'all' ? 'Copied' : 'Copy all'}
         </button>
         <button
           type="button"
