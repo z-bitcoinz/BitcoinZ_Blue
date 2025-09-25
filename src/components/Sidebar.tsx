@@ -1053,10 +1053,10 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
         return;
       }
 
-      if (!Utils.isValidSaplingPrivateKey(keys[0]) && !Utils.isValidSaplingViewingKey(keys[0])) {
+      if (!Utils.isValidSaplingPrivateKey(keys[0]) && !Utils.isValidSaplingViewingKey(keys[0]) && !Utils.isValidTransparentPrivateKey(keys[0])) {
         openErrorModal(
           "Bad Key",
-          "The input key was not recognized as either a sapling spending key or a sapling viewing key"
+          "The input key was not recognized as a Sapling spending/viewing key or a transparent private key (WIF)."
         );
         return;
       }
@@ -1070,6 +1070,16 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
         );
         return;
       }
+
+      // importing a transparent private key requires the wallet to be unlocked
+      if (Utils.isValidTransparentPrivateKey(keys[0]) && info.locked) {
+        openErrorModal(
+          "Wallet Is Locked",
+          "In order to import a transparent private key, your wallet must be unlocked. If you wish to continue, unlock your wallet and try again."
+        );
+        return;
+      }
+
 
       // in order to import a private key, the wallet must be unencrypted
       if (Utils.isValidSaplingPrivateKey(keys[0]) && info.encrypted) {

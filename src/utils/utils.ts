@@ -46,24 +46,33 @@ export default class Utils {
   }
 
   static isValidSaplingPrivateKey(key: string): boolean {
+    if (!key) return false;
+    const k = key.trim().toLowerCase();
     return (
-      // BitcoinZ mainnet
-      new RegExp("^btcz-secret-extended-key-main[0-9a-z]{278}$").test(key) ||
-      // Zcash-style mainnet (keep for compatibility)
-      new RegExp("^secret-extended-key-main[0-9a-z]{278}$").test(key) ||
-      // Testnet
-      new RegExp("^secret-extended-key-test[0-9a-z]{278}$").test(key)
+      /^btcz-secret-extended-key-main[0-9a-z]{10,500}$/.test(k) ||
+      /^secret-extended-key-main[0-9a-z]{10,500}$/.test(k) ||
+      /^secret-extended-key-test[0-9a-z]{10,500}$/.test(k)
     );
   }
 
   static isValidSaplingViewingKey(key: string): boolean {
+    if (!key) return false;
+    const k = key.trim().toLowerCase();
     return (
-      // BitcoinZ mainnet viewing key
-      new RegExp("^btczxviews[0-9a-z]{278}$").test(key) ||
-      // Zcash-style viewing key (compat)
-      new RegExp("^zxviews[0-9a-z]{278}$").test(key) ||
-      // Testnet viewing key
-      new RegExp("^zxviewtestsapling[0-9a-z]{278}$").test(key)
+      /^btczxviews[0-9a-z]{10,500}$/.test(k) ||
+      /^zxviews[0-9a-z]{10,500}$/.test(k) ||
+      /^zxviewtestsapling[0-9a-z]{10,500}$/.test(k)
+    );
+  }
+
+  // Transparent private key (WIF) for BitcoinZ/Zcash - typically starts with K or L (compressed), or 5 (uncompressed)
+  static isValidTransparentPrivateKey(key: string): boolean {
+    if (!key) return false;
+    const k = key.trim();
+    return (
+      /^K[1-9A-HJ-NP-Za-km-z]{51}$/.test(k) ||
+      /^L[1-9A-HJ-NP-Za-km-z]{51}$/.test(k) ||
+      /^5[1-9A-HJ-NP-Za-km-z]{50}$/.test(k)
     );
   }
 
