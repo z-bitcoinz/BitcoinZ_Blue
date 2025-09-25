@@ -14,6 +14,8 @@ Major release with protocol upgrades, key management improvements, and multiple 
 - Copy success feedback for all copy actions
 - Import: accept BitcoinZ HRPs (btcz-secret-extended-key-main, btczxviews)
 - Import: accept transparent WIF keys (K/L/5…)
+- Remember PIN/lock state across app restarts
+
 
 ### Amounts & Conversions
 - Correct zatoshis→BTCZ conversion for balance change detection
