@@ -970,12 +970,6 @@ export default class Send extends PureComponent<Props, SendState> {
               </div>
             )}
 
-            {totalBalance.pendingOutflow > 0 && (
-              <div className={[cstyles.sublight, cstyles.small].join(" ")}
-                   title="You have a transaction in progress. Those funds will be available after confirmation (~1–2 min).">
-                <i className="fas fa-clock" /> Transaction pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingOutflow)} BTCZ — funds available after confirmation (~1–2 min)
-              </div>
-            )}
 
 
 
