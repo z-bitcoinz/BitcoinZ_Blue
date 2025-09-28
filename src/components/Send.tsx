@@ -908,6 +908,9 @@ export default class Send extends PureComponent<Props, SendState> {
     } = this.props;
 
     const totalAmountAvailable = totalBalance.transparent + totalBalance.spendableZ + totalBalance.uabalance;
+    // Subtract pending change from immediate spendable to avoid overstating funds post-send
+    const pendingAdj = Math.min(totalBalance.pendingChange || 0, Math.max(0, totalAmountAvailable));
+    const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj);
     const fromaddr = addresses.find((a) => Utils.isSapling(a.address))?.address || "";
 
     // If there are unverified funds, then show a tooltip
@@ -938,8 +941,8 @@ export default class Send extends PureComponent<Props, SendState> {
           }}>
             <BalanceBlockHighlight
               topLabel="Spendable Funds"
-              zecValue={totalAmountAvailable}
-              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalAmountAvailable)}
+              zecValue={totalAmountAvailableEff}
+              usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalAmountAvailableEff)}
               currencyName={info.currencyName}
               tooltip={tooltip}
             />
@@ -968,10 +971,10 @@ export default class Send extends PureComponent<Props, SendState> {
                   btczPrice={info.btczPrice}
                   updateToField={this.updateToField}
                   fromAddress={fromaddr}
-                  fromAmount={totalAmountAvailable}
+                  fromAmount={totalAmountAvailableEff}
                   setMaxAmount={this.setMaxAmount}
                   setSendButtonEnable={this.setSendButtonEnable}
-                  totalAmountAvailable={totalAmountAvailable}
+                  totalAmountAvailable={totalAmountAvailableEff}
                   addressBook={addressBook}
                   openErrorModal={openErrorModal}
                 />
