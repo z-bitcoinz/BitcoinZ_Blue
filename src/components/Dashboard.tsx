@@ -54,16 +54,19 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                 </div>
                 {/* Conservative spendable display (does not change Total) */}
                 <div className={[cstyles.sublight, cstyles.small].join(" ")}
-                     title="Spendable excludes pending change from recent sends">
-                  Spendable now: {Utils.maxPrecisionTrimmedBtcz(totalAmountAvailableEff)} BTCZ
+                     title="When you send, any extra comes back to you as 'change'. It becomes available after the network confirms (~1–2 min).">
+                  Available to send: {Utils.maxPrecisionTrimmedBtcz(totalAmountAvailableEff)} BTCZ
                 </div>
                 {totalBalance.pendingChange > 0 && (
-                  <div className={styles.pendingChangeNotice}>
+                  <div className={styles.pendingChangeNotice}
+                       title="When you send, any extra comes back to you as 'change'. It becomes available after the network confirms (~1–2 min).">
                     <i className="fas fa-clock"></i>
-                    <span>{Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ change pending</span>
-                    <div className={styles.pendingChangeTooltip}>
-                      Your transaction is being processed. The change will appear shortly.
-                    </div>
+                    <span style={{ display: "none" }}>
+
+                    <span>Change pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ  returns after confirmation (~12 min)</span>
+                    </span>
+                    <span>Change pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ — returns after confirmation (~1–2 min)</span>
+
                   </div>
                 )}
               </div>

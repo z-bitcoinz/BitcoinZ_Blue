@@ -574,10 +574,10 @@ const ConfirmModalInternal: React.FC<RouteComponentProps & ConfirmModalProps> = 
       if (progress && progress.sendInProgress) {
         openErrorModal(
           `Computing Transaction`,
-          <TransactionLoader 
-            progress={progress.progress} 
-            total={progress.total} 
-            etaSeconds={progress.etaSeconds} 
+          <TransactionLoader
+            progress={progress.progress}
+            total={progress.total}
+            etaSeconds={progress.etaSeconds}
           />
         );
       }
@@ -940,7 +940,7 @@ export default class Send extends PureComponent<Props, SendState> {
             justifyContent: 'center'
           }}>
             <BalanceBlockHighlight
-              topLabel="Spendable Funds"
+              topLabel="Available to send"
               zecValue={totalAmountAvailableEff}
               usdValue={Utils.getBtczToUsdStringBtcz(info.btczPrice, totalAmountAvailableEff)}
               currencyName={info.currencyName}
@@ -961,6 +961,14 @@ export default class Send extends PureComponent<Props, SendState> {
               />
             )}
           </div>
+
+            {totalBalance.pendingChange > 0 && (
+              <div className={[cstyles.sublight, cstyles.small].join(" ")}
+                   title="When you send, any extra comes back to you as 'change'. It becomes available after the network confirms (~1–2 min).">
+                <i className="fas fa-clock" /> Change pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ — returns after confirmation (~1–2 min)
+              </div>
+            )}
+
 
           <ScrollPane className={cstyles.containermargin} offsetHeight={320} scrollbarType="glass">
             {sendPageState.toaddrs.map((toaddr) => {

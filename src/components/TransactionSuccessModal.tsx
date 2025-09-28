@@ -78,7 +78,7 @@ export const TransactionSuccessModal = ({ title, txid, modalIsOpen, closeModal, 
 
   const shareTransaction = () => {
     const shareText = `BitcoinZ Transaction\nTXID: ${txid}\nExplorer: https://explorer.getbtcz.com/#/tx/${txid}`;
-    
+
     // Try to use the native share API if available
     if (navigator.share) {
       navigator.share({
@@ -157,6 +157,17 @@ export const TransactionSuccessModal = ({ title, txid, modalIsOpen, closeModal, 
           }}>
             Transaction was successfully broadcast.
           </div>
+            <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.8)" }}>
+            <div style={{ display: "none" }}>
+
+              Your available balance may be temporarily reduced until your change confirms (~12 min).
+            </div>
+            </div>
+            <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.85)" }}>
+              Your available balance may be temporarily reduced until your change confirms (~1-2 min).
+            </div>
+
+
           <div style={{
             fontSize: "11px",
             color: "rgba(255, 255, 255, 0.7)",

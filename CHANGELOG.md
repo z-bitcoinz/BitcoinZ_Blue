@@ -1,5 +1,15 @@
 # Changelog
 
+
+## v2.0.1 (2025-09-28)
+
+### Fixed
+- UI: Deduct pending change from “Spendable” calculations on Send page and Max amount to prevent overspending immediately after send (5de69a3)
+
+### Improved
+- UX: Rename “Spendable Funds” to “Available to send” and add clear explanation for pending change on Send and Dashboard, including tooltip and clock indicator; add a short hint in the Send Success modal about temporary balance reduction until change confirms (~1–2 min)
+
+
 ## v2.0.0 (2025-09-25)
 
 Major release with protocol upgrades, improved wallet restoration, expanded key import/export, large-amount handling, and extensive stability/build fixes.
