@@ -418,6 +418,7 @@ export default class RPC {
     // Calculate pending balances from unconfirmed transactions
     let pendingTransparent = 0;
     let pendingShielded = 0;
+    let pendingOutflow = 0; // Net BTCZ being sent in unconfirmed outgoing txs
 
     unconfirmedTxs.forEach((tx: any) => {
       const amount = tx.amount / 10 ** 8;
@@ -430,6 +431,9 @@ export default class RPC {
         } else if (tx.address && tx.address.startsWith('zs1')) {
           pendingShielded += amount;
         }
+      } else if (!isReceived && amount < 0) {
+        // Outgoing unconfirmed transaction: track net outflow (positive number)
+        pendingOutflow += Math.abs(amount);
       }
     });
 
@@ -446,6 +450,7 @@ export default class RPC {
     balance.pendingTransparent = pendingTransparent;
     balance.pendingShielded = pendingShielded;
     balance.totalPending = pendingTransparent + pendingShielded;
+    balance.pendingOutflow = pendingOutflow;
 
     // Calculate confirmed balances (excluding pending)
     balance.totalConfirmed = balance.transparent + balance.zbalance + balance.uabalance - balance.totalPending;

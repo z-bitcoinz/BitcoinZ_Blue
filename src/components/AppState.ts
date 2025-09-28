@@ -42,8 +42,11 @@ export class TotalBalance {
   // Total confirmed balance (excluding pending)
   totalConfirmed: number;
 
-  // Pending change from sent transactions not yet in mempool
+  // Pending change from recently sent transactions not yet reflected in mempool
   pendingChange: number;
+
+  // Net BTCZ currently being sent in unconfirmed outgoing transactions (mempool outflow)
+  pendingOutflow: number;
 
   constructor() {
     this.uabalance = 0;
@@ -58,6 +61,7 @@ export class TotalBalance {
     this.totalPending = 0;
     this.totalConfirmed = 0;
     this.pendingChange = 0;
+    this.pendingOutflow = 0;
   }
 }
 

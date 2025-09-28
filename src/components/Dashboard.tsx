@@ -24,10 +24,11 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
   const history = useHistory();
 
   // Compute effective spendable funds (conservative):
-  // spendable = transparent + spendableZ + uabalance - pendingChange (not below 0)
+  // spendable = transparent + spendableZ + uabalance - pendingChange - pendingOutflow (not below 0)
   const totalAmountAvailable = totalBalance.transparent + totalBalance.spendableZ + totalBalance.uabalance;
   const pendingAdj = Math.min(totalBalance.pendingChange || 0, Math.max(0, totalAmountAvailable));
-  const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj);
+  const mempoolOutAdj = Math.min(totalBalance.pendingOutflow || 0, Math.max(0, totalAmountAvailable - pendingAdj));
+  const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj - mempoolOutAdj);
 
 
   const navigateToTransactions = () => {

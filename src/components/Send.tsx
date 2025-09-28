@@ -908,9 +908,10 @@ export default class Send extends PureComponent<Props, SendState> {
     } = this.props;
 
     const totalAmountAvailable = totalBalance.transparent + totalBalance.spendableZ + totalBalance.uabalance;
-    // Subtract pending change from immediate spendable to avoid overstating funds post-send
+    // Subtract pending change and unconfirmed outgoing outflow to avoid overstating funds post-send
     const pendingAdj = Math.min(totalBalance.pendingChange || 0, Math.max(0, totalAmountAvailable));
-    const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj);
+    const mempoolOutAdj = Math.min(totalBalance.pendingOutflow || 0, Math.max(0, totalAmountAvailable - pendingAdj));
+    const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj - mempoolOutAdj);
     const fromaddr = addresses.find((a) => Utils.isSapling(a.address))?.address || "";
 
     // If there are unverified funds, then show a tooltip
@@ -968,6 +969,14 @@ export default class Send extends PureComponent<Props, SendState> {
                 <i className="fas fa-clock" /> Change pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingChange)} BTCZ — returns after confirmation (~1–2 min)
               </div>
             )}
+
+            {totalBalance.pendingOutflow > 0 && (
+              <div className={[cstyles.sublight, cstyles.small].join(" ")}
+                   title="You have a transaction in progress. Those funds will be available after confirmation (~1–2 min).">
+                <i className="fas fa-clock" /> Transaction pending: {Utils.maxPrecisionTrimmedBtcz(totalBalance.pendingOutflow)} BTCZ — funds available after confirmation (~1–2 min)
+              </div>
+            )}
+
 
 
           <ScrollPane className={cstyles.containermargin} offsetHeight={320} scrollbarType="glass">
