@@ -150,13 +150,6 @@ export const TransactionSuccessModal = ({ title, txid, modalIsOpen, closeModal, 
           borderRadius: "10px",
           border: "1px solid rgba(255, 255, 255, 0.15)"
         }}>
-          <div style={{
-            marginBottom: "12px",
-            fontSize: "14px",
-            fontWeight: "500"
-          }}>
-            Transaction was successfully broadcast.
-          </div>
             <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.8)" }}>
             <div style={{ display: "none" }}>
 
