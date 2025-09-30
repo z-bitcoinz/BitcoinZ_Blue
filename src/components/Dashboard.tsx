@@ -23,13 +23,6 @@ type Props = {
 const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, transactions }) => {
   const history = useHistory();
 
-  // Compute effective spendable funds (conservative):
-  // spendable = transparent + spendableZ + uabalance - pendingChange (not below 0)
-  const totalAmountAvailable = totalBalance.transparent + totalBalance.spendableZ + totalBalance.uabalance;
-  const pendingAdj = Math.min(totalBalance.pendingChange || 0, Math.max(0, totalAmountAvailable));
-  const totalAmountAvailableEff = Math.max(0, totalAmountAvailable - pendingAdj);
-
-
   const navigateToTransactions = () => {
     history.push(routes.TRANSACTIONS);
   };
@@ -51,11 +44,6 @@ const Home: React.FC<Props> = ({ totalBalance, info, addressesWithBalance, trans
                 </div>
                 <div className={styles.mainBalanceUsd}>
                   {Utils.getBtczToUsdStringBtcz(info.btczPrice, totalBalance.total)}
-                </div>
-                {/* Conservative spendable display (does not change Total) */}
-                <div className={[cstyles.sublight, cstyles.small].join(" ")}
-                     title="Spendable excludes pending change from recent sends">
-                  Spendable now: {Utils.maxPrecisionTrimmedBtcz(totalAmountAvailableEff)} BTCZ
                 </div>
                 {totalBalance.pendingChange > 0 && (
                   <div className={styles.pendingChangeNotice}>
