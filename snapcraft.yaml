@@ -1,6 +1,6 @@
 name: bitcoinz-blue
 base: core22
-version: '2.0.0'
+version: '2.0.1'
 summary: BitcoinZ Blue - A modern light wallet for BitcoinZ
 description: |
   BitcoinZ Blue is a legitimate, open-source light wallet for the BitcoinZ
