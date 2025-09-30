@@ -144,6 +144,152 @@ export default class Help extends Component<{}, HelpState> {
           </div>
 
           <div className={styles.helpSection}>
+            <h3>💰 Understanding Your Spendable Balance (How Notes Work)</h3>
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🎫 What Are Sapling Notes?</div>
+              <div className={styles.helpCardBody}>
+                <p><strong>Think of notes like physical bills in your wallet:</strong></p>
+                <ul style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                  <li>💵 You have: $100 bill, $50 bill, $20 bill</li>
+                  <li>💰 Total: $170</li>
+                  <li>📝 Each bill is a separate "note"</li>
+                </ul>
+
+                <p style={{ marginTop: '15px' }}><strong>In BitcoinZ:</strong></p>
+                <ul style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                  <li>🎫 You might have: 10,000 BTCZ note, 5,000 BTCZ note</li>
+                  <li>💰 Total: 15,000 BTCZ</li>
+                  <li>📝 Each amount is a separate Sapling "note"</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🔄 Why Your Spendable Balance Drops After Sending</div>
+              <div className={styles.helpCardBody}>
+                <p><strong>Example: You send 1 BTCZ from 10,000 BTCZ</strong></p>
+
+                <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0, 255, 0, 0.05)', border: '1px solid rgba(0, 255, 0, 0.3)', borderRadius: '8px' }}>
+                  <strong>BEFORE SENDING:</strong>
+                  <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '5px' }}>
+                    <div>✅ Spendable: <strong>10,000 BTCZ</strong></div>
+                    <div>✅ Total: <strong>10,000 BTCZ</strong></div>
+                    <small style={{ color: 'rgba(255, 255, 255, 0.7)' }}>You have one 10,000 BTCZ note</small>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(33, 150, 243, 0.05)', border: '1px solid rgba(33, 150, 243, 0.3)', borderRadius: '8px' }}>
+                  <strong>WHAT HAPPENS:</strong>
+                  <ol style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                    <li>Wallet uses the FULL 10,000 BTCZ note</li>
+                    <li>Sends 1 BTCZ to recipient</li>
+                    <li>Creates 9,999 BTCZ "change" returning to you</li>
+                  </ol>
+                </div>
+
+                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(255, 165, 0, 0.05)', border: '1px solid rgba(255, 165, 0, 0.3)', borderRadius: '8px' }}>
+                  <strong>IMMEDIATELY AFTER (Scary! 😱):</strong>
+                  <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '5px' }}>
+                    <div>⚠️ Spendable: <strong>0 BTCZ</strong> ← Change not confirmed yet!</div>
+                    <div>✅ Total: <strong>10,000 BTCZ</strong></div>
+                    <div>⏱️ Change Returning: <strong>9,999 BTCZ</strong> (waiting ~1-2 min)</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(0, 255, 0, 0.05)', border: '1px solid rgba(0, 255, 0, 0.3)', borderRadius: '8px' }}>
+                  <strong>AFTER 1 CONFIRMATION (~2.5 min):</strong>
+                  <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '5px' }}>
+                    <div>✅ Spendable: <strong>9,999 BTCZ</strong> ← Change confirmed!</div>
+                    <div>✅ Total: <strong>9,999 BTCZ</strong></div>
+                    <small style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Everything is back to normal!</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>💡 Real-World Analogy</div>
+              <div className={styles.helpCardBody}>
+                <p><strong>Like paying with cash:</strong></p>
+                <ul style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                  <li>💵 You have: $100 bill</li>
+                  <li>☕ You buy: $1 coffee</li>
+                  <li>💸 You give: Full $100 bill (can't split it!)</li>
+                  <li>💰 You get back: $99 change</li>
+                  <li>⏱️ While waiting for change: You have $0 spendable</li>
+                  <li>✅ After getting change: You have $99 spendable</li>
+                </ul>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px' }}>
+                  <strong>Same with BitcoinZ notes!</strong> You can't split a note, so the wallet uses the full amount and creates change.
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>⏱️ Why Does Change Need Confirmation?</div>
+              <div className={styles.helpCardBody}>
+                <ul style={{ lineHeight: '1.8' }}>
+                  <li>🔒 <strong>Security:</strong> Prevents double-spending attacks</li>
+                  <li>🌐 <strong>Network consensus:</strong> Ensures transaction is accepted by the network</li>
+                  <li>🌳 <strong>Cryptographic tree:</strong> Note must be included in the Sapling commitment tree</li>
+                  <li>⏱️ <strong>Time needed:</strong> ~1-2 minutes (1 confirmation)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>📊 More Examples</div>
+              <div className={styles.helpCardBody}>
+                <div style={{ marginBottom: '15px' }}>
+                  <strong>Example 1: Send 100 from 500 BTCZ</strong>
+                  <ul style={{ marginTop: '5px', lineHeight: '1.6' }}>
+                    <li>Before: Spendable 500</li>
+                    <li>After: Spendable 0, Change 400 (waiting)</li>
+                    <li>After 1 conf: Spendable 400 ✅</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <strong>Example 2: Send 5,000 from 10,000 BTCZ</strong>
+                  <ul style={{ marginTop: '5px', lineHeight: '1.6' }}>
+                    <li>Before: Spendable 10,000</li>
+                    <li>After: Spendable 0, Change 5,000 (waiting)</li>
+                    <li>After 1 conf: Spendable 5,000 ✅</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <strong>Example 3: Multiple notes (1,000 + 2,000 + 5,000 BTCZ)</strong>
+                  <ul style={{ marginTop: '5px', lineHeight: '1.6' }}>
+                    <li>Send 500: Uses 1,000 note, change 500</li>
+                    <li>Remaining: 2,000 + 5,000 still spendable immediately</li>
+                    <li>After 1 conf: All 7,500 spendable (500 + 2,000 + 5,000) ✅</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>✅ Key Takeaways</div>
+              <div className={styles.helpCardBody}>
+                <ul style={{ lineHeight: '1.8' }}>
+                  <li>🎫 <strong>Notes are like physical bills</strong> - can't be split</li>
+                  <li>💸 <strong>Wallet uses full notes</strong> and creates change</li>
+                  <li>⏱️ <strong>Change needs 1 confirmation</strong> (~1-2 min) to be spendable</li>
+                  <li>✅ <strong>Your funds are SAFE</strong> - just waiting for confirmation</li>
+                  <li>💰 <strong>Total balance stays the same</strong> during this time</li>
+                  <li>🔧 <strong>This is normal blockchain behavior</strong>, not a bug!</li>
+                </ul>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)' }}>
+                  <strong>💡 Don't Panic!</strong> When you see your spendable balance drop to 0 after sending, it's completely normal. Your change is on the way and will be spendable in ~1-2 minutes!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.helpSection}>
             <h3>🆘 Common Issues</h3>
             <div className={styles.helpCard}>
               <div className={styles.helpCardHeader}>💸 "Can't Send Transaction"</div>
