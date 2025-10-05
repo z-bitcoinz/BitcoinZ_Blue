@@ -1,5 +1,72 @@
 # Changelog
 
+## v2.0.2 (2025-10-05)
+
+Critical bug fixes for private key import, new Full Rescan feature, and enhanced documentation.
+
+### 🔥 Critical Fixes
+- **CRITICAL:** Fixed missing funds after private key import - wallet now correctly scans from imported key's birthday, not wallet's birthday (4edaeab)
+- Added birthday-aware rescan with `rescanfromheight` command for custom height rescanning
+- Users can now set birthday to 0 to scan entire blockchain (safest option)
+- Enhanced import modal with comprehensive birthday explanation and collapsible help section
+
+### ✨ New Features
+- **Full Rescan:** Added "Full Rescan (from Sapling activation)" option to scan from block 328,500 (028b2d0)
+- Both rescan options now clearly labeled in menu:
+  - "Rescan (from wallet birthday)" - Quick rescan from wallet creation
+  - "Full Rescan (from Sapling activation)" - Complete rescan ensuring all transactions found
+- Informative modal explains Full Rescan process when triggered
+
+### 📚 Documentation
+- Added comprehensive "Understanding Spendable Balance (How Notes Work)" section in Help (4e2f514)
+- Added "Importing Private Keys & Wallet Birthday" guide
+- Explains UTXO/note system and why balance changes after sending
+- Common troubleshooting scenarios for imports and rescans
+- Detailed rescan process documentation
+
+### 🎨 UI/UX Improvements
+- Removed confusing 'Spendable now' display from Dashboard for cleaner UI (3c73d51)
+- Better balance presentation and user understanding
+- Enhanced import workflow with visual feedback
+
+### 📝 Technical Changes
+**Backend (Rust):**
+- New `do_full_rescan()` method - rescans from Sapling activation
+- New `do_rescan_from_height(height)` - rescans from custom block height
+- New `FullRescanCommand` and `RescanFromHeightCommand` for CLI access
+- Enhanced native bindings for new rescan commands
+
+**Frontend (TypeScript/React):**
+- New `RPC.doFullRescan()` and `RPC.doRescanFromHeight(height)` methods
+- Enhanced import modal with birthday help section
+- Informative modals for rescan operations
+- Updated electron menu with clear rescan option labels
+- IPC handlers for fullrescan events
+
+### 🔄 Migration Notes
+- Users with missing funds after importing keys should use "Full Rescan"
+- When importing private keys, always specify correct birthday or use 0
+- Both rescan options available in File menu
+
+Compare: https://github.com/z-bitcoinz/BitcoinZ_Blue/compare/v2.0.0...v2.0.2
+
+---
+
+## v2.0.1 (2025-09-30)
+
+Minor UI improvements for balance display.
+
+### Improved
+- Deduct pending change from Spendable Funds to prevent overspending after send (5de69a3)
+- Show 'Spendable now' on Dashboard for clarity
+
+### Docs
+- Note PIN/lock state remembered across app restarts (25b2a83)
+
+Compare: https://github.com/z-bitcoinz/BitcoinZ_Blue/compare/v2.0.0...v2.0.1
+
+---
+
 ## v2.0.0 (2025-09-25)
 
 Major release with protocol upgrades, improved wallet restoration, expanded key import/export, large-amount handling, and extensive stability/build fixes.
