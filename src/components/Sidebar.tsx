@@ -807,6 +807,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     ipcRenderer.removeAllListeners("decrypt");
     ipcRenderer.removeAllListeners("unlock");
     ipcRenderer.removeAllListeners("rescan");
+    ipcRenderer.removeAllListeners("fullrescan");
     ipcRenderer.removeAllListeners("exportall");
     ipcRenderer.removeAllListeners("zcashd");
     ipcRenderer.removeAllListeners("walletSettings");
@@ -1013,6 +1014,44 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       const prevSyncId = JSON.parse(RPC.doSyncStatus()).sync_id;
 
       RPC.doRescan();
+
+      // Set the rescanning global state to true
+      setRescanning(true, prevSyncId);
+
+      // Reset the info object, it will be refetched
+      setInfo(new Info());
+
+      history.push(routes.LOADING);
+    });
+
+    // Full Rescan
+    ipcRenderer.on("fullrescan", () => {
+      // Show info modal explaining what full rescan does
+      openErrorModal(
+        "Full Rescan - Scanning Entire Blockchain",
+        <div style={{ textAlign: 'left' }}>
+          <p>Full rescan will scan the blockchain from Sapling activation (block 328,500).</p>
+          <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.2)', margin: '12px 0' }} />
+          <p><strong>This ensures all transactions are found, even if they occurred before your wallet was created.</strong></p>
+          <p style={{
+            background: 'rgba(255, 193, 7, 0.2)',
+            border: '1px solid rgba(255, 193, 7, 0.4)',
+            borderRadius: '6px',
+            padding: '8px',
+            marginTop: '12px'
+          }}>
+            ⚠️ <strong>Note:</strong> Full rescan may take several minutes depending on your connection speed.
+          </p>
+        </div>
+      );
+
+      // To rescan, we reset the wallet loading
+      clearTimers();
+
+      // Grab the previous sync ID.
+      const prevSyncId = JSON.parse(RPC.doSyncStatus()).sync_id;
+
+      RPC.doFullRescan();
 
       // Set the rescanning global state to true
       setRescanning(true, prevSyncId);

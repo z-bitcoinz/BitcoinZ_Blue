@@ -1192,6 +1192,35 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         response
     }
 
+    /// Full rescan - rescans the entire blockchain from Sapling activation height
+    /// This ensures all transactions are found, even if they occurred before wallet creation
+    pub async fn do_full_rescan(&self) -> Result<JsonValue, String> {
+        if !self.wallet.is_unlocked_for_spending().await {
+            warn!("Wallet is locked, new HD addresses won't be added!");
+        }
+
+        info!("Full rescan starting from Sapling activation height");
+
+        // First, clear the wallet state
+        self.wallet.clear_all().await;
+
+        // Always rescan from Sapling activation height (328500 for BitcoinZ mainnet)
+        let rescan_height = self.config.sapling_activation_height;
+        self.set_wallet_initial_state(rescan_height).await;
+        info!("Set wallet initial state to Sapling activation height {}", rescan_height);
+
+        // Then, do a sync, which will force a full rescan from Sapling activation
+        let response = self.do_sync(true).await;
+
+        if response.is_ok() {
+            self.do_save(true).await?;
+        }
+
+        info!("Full rescan from Sapling activation finished");
+
+        response
+    }
+
     async fn update_current_price(&self) {
         // Get the zec price from the server
         match GrpcConnector::get_current_zec_price(self.get_server_uri()).await {

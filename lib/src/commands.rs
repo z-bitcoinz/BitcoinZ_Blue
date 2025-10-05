@@ -210,6 +210,34 @@ impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for RescanFrom
     }
 }
 
+struct FullRescanCommand {}
+impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for FullRescanCommand {
+    fn help(&self) -> String {
+        let mut h = vec![];
+        h.push("Full rescan - rescans the entire blockchain from Sapling activation");
+        h.push("Usage:");
+        h.push("fullrescan");
+        h.push("");
+        h.push("This command will rescan the blockchain from Sapling activation height,");
+        h.push("ensuring all transactions are found even if they occurred before wallet creation.");
+        h.push("This is more thorough than 'rescan' which only scans from wallet birthday.");
+
+        h.join("\n")
+    }
+
+    fn short_help(&self) -> String {
+        "Full rescan from Sapling activation - finds all transactions".to_string()
+    }
+    fn exec(&self, _args: &[&str], lightclient: &LightClient<P>) -> String {
+        RT.block_on(async move {
+            match lightclient.do_full_rescan().await {
+                Ok(j) => j.pretty(2),
+                Err(e) => e,
+            }
+        })
+    }
+}
+
 struct ClearCommand {}
 
 impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for ClearCommand {
@@ -1346,6 +1374,7 @@ pub fn get_commands<P: consensus::Parameters + Send + Sync + 'static>() -> Box<H
     map.insert("decryptmessage".to_string(), Box::new(DecryptMessageCommand {}));
     map.insert("rescan".to_string(), Box::new(RescanCommand {}));
     map.insert("rescanfromheight".to_string(), Box::new(RescanFromHeightCommand {}));
+    map.insert("fullrescan".to_string(), Box::new(FullRescanCommand {}));
     map.insert("clear".to_string(), Box::new(ClearCommand {}));
     map.insert("help".to_string(), Box::new(HelpCommand {}));
     map.insert("lasttxid".to_string(), Box::new(LastTxIdCommand {}));

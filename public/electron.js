@@ -204,9 +204,15 @@ class MenuBuilder {
           },
         },
         {
-          label: "&Rescan",
+          label: "&Rescan (from wallet birthday)",
           click: () => {
             mainWindow.webContents.send("rescan");
+          },
+        },
+        {
+          label: "&Full Rescan (from Sapling activation)",
+          click: () => {
+            mainWindow.webContents.send("fullrescan");
           },
         },
         {
@@ -261,9 +267,15 @@ class MenuBuilder {
           },
         },
         {
-          label: "&Rescan",
+          label: "&Rescan (from wallet birthday)",
           click: () => {
             mainWindow.webContents.send("rescan");
+          },
+        },
+        {
+          label: "&Full Rescan (from Sapling activation)",
+          click: () => {
+            mainWindow.webContents.send("fullrescan");
           },
         },
         {
@@ -374,9 +386,15 @@ class MenuBuilder {
             },
           },
           {
-            label: "&Rescan",
+            label: "&Rescan (from wallet birthday)",
             click: () => {
               mainWindow.webContents.send("rescan");
+            },
+          },
+          {
+            label: "&Full Rescan (from Sapling activation)",
+            click: () => {
+              mainWindow.webContents.send("fullrescan");
             },
           },
           {

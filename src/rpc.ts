@@ -124,6 +124,11 @@ export default class RPC {
     console.log(`rescanfromheight exec result from height ${height}: ${syncstr}`);
   }
 
+  static doFullRescan() {
+    const syncstr = RPC.getNative().litelib_execute("fullrescan", "");
+    console.log(`fullrescan exec result: ${syncstr}`);
+  }
+
   static doSyncStatus(): string {
     const syncstr = RPC.getNative().litelib_execute("syncstatus", "");
     console.log(`syncstatus: ${syncstr}`);

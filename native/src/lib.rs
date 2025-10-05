@@ -186,7 +186,7 @@ fn litelib_execute(mut cx: FunctionContext) -> JsResult<JsString> {
             lightclient = lc.borrow().as_ref().unwrap().clone();
         };
 
-        if cmd == "sync" || cmd == "rescan" || cmd == "rescanfromheight" || cmd == "import" || cmd == "send" {
+        if cmd == "sync" || cmd == "rescan" || cmd == "rescanfromheight" || cmd == "fullrescan" || cmd == "import" || cmd == "send" {
             println!("[DEBUG] Starting async command: {}", cmd);
             thread::spawn(move || {
                 println!("[DEBUG] Thread spawned for command: {}", cmd);
