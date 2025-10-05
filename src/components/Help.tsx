@@ -318,6 +318,67 @@ export default class Help extends Component<{}, HelpState> {
           </div>
 
           <div className={styles.helpSection}>
+            <h3>🔑 Importing Private Keys & Wallet Birthday</h3>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🎂 What is Wallet Birthday?</div>
+              <div className={styles.helpCardBody}>
+                <p>The "birthday" is the block height (block number) where your wallet or a specific private key was first created or used.</p>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(74, 144, 226, 0.1)', border: '1px solid rgba(74, 144, 226, 0.3)' }}>
+                  <strong>Why it matters:</strong> The wallet only scans the blockchain starting from the birthday block. This saves time by not scanning blocks where no transactions could exist.
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>📥 Importing Private Keys</div>
+              <div className={styles.helpCardBody}>
+                <p>When importing a private key, you must specify its birthday (the block height where it was first used):</p>
+
+                <ul style={{ marginTop: '10px', marginBottom: '15px' }}>
+                  <li><strong>Use 0</strong> - Scans entire blockchain (safest, but slower)</li>
+                  <li><strong>Use 328,500</strong> - BitcoinZ Sapling activation (for shielded addresses created after this block)</li>
+                  <li><strong>Use specific height</strong> - If you know exactly when the key was created/first used</li>
+                </ul>
+
+                <div className={styles.safetyNote} style={{ background: 'rgba(255, 193, 7, 0.1)', border: '1px solid rgba(255, 193, 7, 0.3)' }}>
+                  <strong>⚠️ Important:</strong> If you set the birthday too high (after the key's actual first use), you will miss transactions! When in doubt, always use birthday 0.
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🔄 Rescan Process</div>
+              <div className={styles.helpCardBody}>
+                <p>After importing a private key, the wallet rescans the blockchain:</p>
+
+                <ol style={{ marginTop: '10px', lineHeight: '1.8' }}>
+                  <li>Wallet clears its transaction history</li>
+                  <li>Starts scanning from the birthday block height</li>
+                  <li>Searches every block for transactions belonging to your keys</li>
+                  <li>Rebuilds your transaction history and balance</li>
+                </ol>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)' }}>
+                  <strong>💡 Tip:</strong> Rescanning from block 0 can take several minutes. Be patient and let it complete - your funds will appear once the scan reaches the blocks containing your transactions.
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>❌ Common Import Issues</div>
+              <div className={styles.helpCardBody}>
+                <ul>
+                  <li><strong>Missing funds after import?</strong> You likely set the birthday too high. Import again with birthday = 0</li>
+                  <li><strong>Import stuck/slow?</strong> Birthday 0 scans the entire chain - this is normal and may take time</li>
+                  <li><strong>Can't import private key?</strong> Ensure wallet is unlocked (for viewing keys) or unencrypted (for spending keys)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.helpSection}>
             <h3>🔒 Security Best Practices</h3>
             <div className={styles.helpCard}>
               <div className={styles.helpCardHeader}>🔐 PIN Protection</div>

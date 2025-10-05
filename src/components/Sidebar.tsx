@@ -240,6 +240,7 @@ type ImportPrivKeyModalProps = {
 const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: ImportPrivKeyModalProps) => {
   const [pkey, setPKey] = useState("");
   const [birthday, setBirthday] = useState("0");
+  const [showBirthdayHelp, setShowBirthdayHelp] = useState(false);
 
   const modernModalStyle = {
     content: {
@@ -360,14 +361,77 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
         {/* Birthday Section */}
         <div>
           <div style={{
-            fontSize: '14px',
-            color: 'rgba(255, 255, 255, 0.85)',
-            marginBottom: '12px',
-            fontWeight: '500',
-            textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px'
           }}>
-            Birthday (The earliest block height where this key was used. Ok to enter '0')
+            <div style={{
+              fontSize: '14px',
+              color: 'rgba(255, 255, 255, 0.85)',
+              fontWeight: '500',
+              textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+            }}>
+              Birthday (Block Height)
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowBirthdayHelp(!showBirthdayHelp)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+            >
+              ?
+            </button>
           </div>
+
+          {showBirthdayHelp && (
+            <div style={{
+              background: 'rgba(74, 144, 226, 0.2)',
+              border: '1px solid rgba(74, 144, 226, 0.4)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '12px',
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: 'rgba(255, 255, 255, 0.95)'
+            }}>
+              <div style={{ marginBottom: '8px', fontWeight: '600', color: 'white' }}>
+                🎂 What is Birthday?
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                The "birthday" is the earliest block height where this private key was first used or received funds.
+              </div>
+              <div style={{ marginBottom: '8px', fontWeight: '600', color: 'white' }}>
+                Why does it matter?
+              </div>
+              <ul style={{ margin: '0 0 12px 20px', padding: 0 }}>
+                <li>The wallet will rescan the blockchain starting from this block height</li>
+                <li>Lower block = longer rescan time, but ensures all transactions are found</li>
+                <li>If unsure, use <strong>0</strong> to scan the entire blockchain (safest option)</li>
+              </ul>
+              <div style={{ marginBottom: '8px', fontWeight: '600', color: 'white' }}>
+                Common values:
+              </div>
+              <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
+                <li><strong>0</strong> - Scan entire chain (recommended if you don't know)</li>
+                <li><strong>328500</strong> - BitcoinZ Sapling activation (shielded addresses start here)</li>
+                <li><strong>Specific height</strong> - If you know when the key was first used</li>
+              </ul>
+            </div>
+          )}
+
           <div style={{
             background: 'rgba(255, 255, 255, 0.08)',
             backdropFilter: 'blur(10px)',
@@ -395,6 +459,15 @@ const ImportPrivKeyModal = ({ modalIsOpen, closeModal, doImportPrivKeys }: Impor
               onChange={(e) => setBirthday(e.target.value)}
               placeholder="0"
             />
+            <div style={{
+              marginTop: '8px',
+              fontSize: '12px',
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontStyle: 'italic'
+            }}>
+              {birthday === "0" && "⚠️ Scanning from block 0 may take several minutes"}
+              {birthday !== "0" && birthday !== "" && `Will scan from block ${birthday} onwards`}
+            </div>
           </div>
         </div>
 
@@ -1099,6 +1172,31 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       const success = await importPrivKeys(keys, birthday);
 
       if (success) {
+        // Show user what's happening with the birthday-aware rescan
+        openErrorModal(
+          "Import Successful - Rescanning Blockchain",
+          <div style={{ textAlign: 'left' }}>
+            <p>✅ Private key imported successfully!</p>
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.2)', margin: '12px 0' }} />
+            <p><strong>Rescanning from block height: {birthday}</strong></p>
+            <p>The wallet will now scan the blockchain starting from block {birthday} to find all transactions associated with this key.</p>
+            {birthday === "0" && (
+              <p style={{
+                background: 'rgba(255, 193, 7, 0.2)',
+                border: '1px solid rgba(255, 193, 7, 0.4)',
+                borderRadius: '6px',
+                padding: '8px',
+                marginTop: '12px'
+              }}>
+                ⚠️ <strong>Note:</strong> Scanning from block 0 will scan the entire blockchain. This may take several minutes depending on your connection speed.
+              </p>
+            )}
+          </div>
+        );
+
+        // Trigger the birthday-aware rescan instead of regular rescan
+        RPC.doRescanFromHeight(birthday);
+
         // Set the rescanning global state to true
         setRescanning(true, prevSyncId);
 

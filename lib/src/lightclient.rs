@@ -1164,6 +1164,34 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         response
     }
 
+    /// Rescan the blockchain starting from a specific block height
+    /// This is used when importing private keys with a known birthday
+    pub async fn do_rescan_from_height(&self, height: u64) -> Result<JsonValue, String> {
+        if !self.wallet.is_unlocked_for_spending().await {
+            warn!("Wallet is locked, new HD addresses won't be added!");
+        }
+
+        info!("Rescan starting from height {}", height);
+
+        // First, clear the wallet state
+        self.wallet.clear_all().await;
+
+        // Set the initial state to the specified height, not the wallet's birthday
+        self.set_wallet_initial_state(height).await;
+        info!("Set wallet initial state to height {}", height);
+
+        // Then, do a sync, which will force a full rescan from the specified height
+        let response = self.do_sync(true).await;
+
+        if response.is_ok() {
+            self.do_save(true).await?;
+        }
+
+        info!("Rescan from height {} finished", height);
+
+        response
+    }
+
     async fn update_current_price(&self) {
         // Get the zec price from the server
         match GrpcConnector::get_current_zec_price(self.get_server_uri()).await {

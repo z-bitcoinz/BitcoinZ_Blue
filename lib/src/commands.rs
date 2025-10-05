@@ -168,6 +168,48 @@ impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for RescanComm
     }
 }
 
+struct RescanFromHeightCommand {}
+impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for RescanFromHeightCommand {
+    fn help(&self) -> String {
+        let mut h = vec![];
+        h.push("Rescan the wallet starting from a specific block height");
+        h.push("Usage:");
+        h.push("rescanfromheight <height>");
+        h.push("");
+        h.push("This command will rescan the blockchain starting from the specified height.");
+        h.push("This is useful when importing private keys with a known birthday.");
+        h.push("");
+        h.push("Example:");
+        h.push("rescanfromheight 0");
+        h.push("rescanfromheight 328500");
+
+        h.join("\n")
+    }
+
+    fn short_help(&self) -> String {
+        "Rescan the wallet from a specific block height".to_string()
+    }
+    fn exec(&self, args: &[&str], lightclient: &LightClient<P>) -> String {
+        if args.len() != 1 {
+            return format!("Error: Need exactly 1 argument\n\n{}", Command::<P>::help(self));
+        }
+
+        let height = match args[0].parse::<u64>() {
+            Ok(h) => h,
+            Err(_) => {
+                return format!("Error: Couldn't parse {} as block height. Please specify an integer.", args[0])
+            }
+        };
+
+        RT.block_on(async move {
+            match lightclient.do_rescan_from_height(height).await {
+                Ok(j) => j.pretty(2),
+                Err(e) => e,
+            }
+        })
+    }
+}
+
 struct ClearCommand {}
 
 impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for ClearCommand {
@@ -1303,6 +1345,7 @@ pub fn get_commands<P: consensus::Parameters + Send + Sync + 'static>() -> Box<H
     map.insert("encryptmessage".to_string(), Box::new(EncryptMessageCommand {}));
     map.insert("decryptmessage".to_string(), Box::new(DecryptMessageCommand {}));
     map.insert("rescan".to_string(), Box::new(RescanCommand {}));
+    map.insert("rescanfromheight".to_string(), Box::new(RescanFromHeightCommand {}));
     map.insert("clear".to_string(), Box::new(ClearCommand {}));
     map.insert("help".to_string(), Box::new(HelpCommand {}));
     map.insert("lasttxid".to_string(), Box::new(LastTxIdCommand {}));
