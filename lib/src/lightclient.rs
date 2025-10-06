@@ -73,6 +73,20 @@ pub struct LightClient<P> {
 }
 
 impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
+    /// Helper method to create GrpcConnector with proxy support
+    fn create_grpc_connector(&self) -> GrpcConnector {
+        use crate::grpc_connector::GrpcConnector;
+        if self.config.proxy_config.enabled {
+            info!("Creating GrpcConnector with proxy: {}", self.config.proxy_config.url);
+            GrpcConnector::new_with_proxy(
+                self.config.server.clone(),
+                self.config.proxy_config.clone()
+            )
+        } else {
+            GrpcConnector::new(self.config.server.clone())
+        }
+    }
+
     /// Method to create a test-only version of the LightClient
     #[allow(dead_code)]
     pub async fn test_new(config: &LightClientConfig<P>, seed_phrase: Option<String>, height: u64) -> io::Result<Self> {
@@ -1571,7 +1585,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         self.update_current_price().await;
 
         // Sapling Tree GRPC Fetcher
-        let grpc_connector = GrpcConnector::new(uri.clone());
+        let grpc_connector = self.create_grpc_connector();
 
         // A signal to detect reorgs, and if so, ask the block_fetcher to fetch new blocks.
         let (reorg_tx, reorg_rx) = unbounded_channel();

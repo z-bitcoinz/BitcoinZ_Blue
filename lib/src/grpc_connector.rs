@@ -16,26 +16,55 @@ use tokio::sync::mpsc::{Sender, UnboundedReceiver};
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
-use tonic::transport::{Certificate, ClientTlsConfig};
+use tonic::transport::{Certificate, ClientTlsConfig, Endpoint};
 use tonic::{
     transport::{Channel, Error},
     Request,
 };
+use hyper::client::HttpConnector;
+use hyper::Uri;
+use hyper_socks2::SocksConnector;
 use zcash_primitives::consensus::{self, BlockHeight, BranchId};
 use zcash_primitives::transaction::{Transaction, TxId};
+
+#[derive(Clone, Debug)]
+pub struct ProxyConfig {
+    pub enabled: bool,
+    pub url: String, // Format: "socks5://127.0.0.1:9050"
+}
+
+impl Default for ProxyConfig {
+    fn default() -> Self {
+        ProxyConfig {
+            enabled: false,
+            url: "socks5://127.0.0.1:9050".to_string(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct GrpcConnector {
     uri: http::Uri,
+    proxy_config: ProxyConfig,
 }
 
 impl GrpcConnector {
     pub fn new(uri: http::Uri) -> Self {
-        Self { uri }
+        Self {
+            uri,
+            proxy_config: ProxyConfig::default(),
+        }
+    }
+
+    pub fn new_with_proxy(uri: http::Uri, proxy_config: ProxyConfig) -> Self {
+        Self { uri, proxy_config }
     }
 
     async fn get_client(&self) -> Result<CompactTxStreamerClient<Channel>, Error> {
-        let channel = if self.uri.scheme_str() == Some("http") {
+        let channel = if self.proxy_config.enabled {
+            info!("Connecting via SOCKS5 proxy: {}", self.proxy_config.url);
+            self.connect_with_proxy().await?
+        } else if self.uri.scheme_str() == Some("http") {
             //println!("http");
             Channel::builder(self.uri.clone()).connect().await?
         } else {
@@ -57,6 +86,40 @@ impl GrpcConnector {
         };
 
         Ok(CompactTxStreamerClient::new(channel))
+    }
+
+    async fn connect_with_proxy(&self) -> Result<Channel, Error> {
+        // Parse the proxy URL (format: socks5://127.0.0.1:9050)
+        let proxy_uri: Uri = self.proxy_config.url.parse()
+            .expect(&format!("Invalid proxy URL: {}", self.proxy_config.url));
+
+        info!("Setting up SOCKS5 connector to {}", self.proxy_config.url);
+
+        // Create HTTP connector with enforce_http(false) - CRITICAL for SOCKS5!
+        let mut http_connector = HttpConnector::new();
+        http_connector.enforce_http(false);
+
+        // Create SOCKS5 connector
+        let socks = SocksConnector {
+            proxy_addr: proxy_uri,  // Use parsed URI directly
+            auth: None,  // No authentication for local Tor
+            connector: http_connector,
+        };
+
+        // Build endpoint and connect using custom connector
+        let endpoint = Endpoint::from(self.uri.clone());
+
+        info!("Connecting to {} via SOCKS5 proxy", self.uri);
+        let channel = endpoint
+            .connect_with_connector(socks)
+            .await
+            .map_err(|e| {
+                error!("SOCKS5 connection failed: {}", e);
+                e
+            })?;
+
+        info!("Successfully connected via SOCKS5 proxy");
+        Ok(channel)
     }
 
     pub async fn start_saplingtree_fetcher(

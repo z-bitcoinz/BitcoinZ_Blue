@@ -379,6 +379,59 @@ export default class Help extends Component<{}, HelpState> {
           </div>
 
           <div className={styles.helpSection}>
+            <h3>🧅 Tor Support & Privacy</h3>
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🔐 Anonymous Connections with Tor</div>
+              <div className={styles.helpCardBody}>
+                <p>BitcoinZ Blue supports connecting to the network through Tor for enhanced privacy and anonymity.</p>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(128, 90, 213, 0.1)', border: '1px solid rgba(128, 90, 213, 0.3)' }}>
+                  <strong>🔒 Why Use Tor?</strong>
+                  <ul style={{ marginTop: '10px' }}>
+                    <li>Hide your IP address from the blockchain server</li>
+                    <li>Bypass network restrictions and censorship</li>
+                    <li>Add an extra layer of privacy to your transactions</li>
+                    <li>Access BitcoinZ from anywhere anonymously</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>⚙️ How to Enable Tor</div>
+              <div className={styles.helpCardBody}>
+                <ol style={{ lineHeight: '1.8' }}>
+                  <li><strong>Install Tor:</strong> Download and install Tor Browser or standalone Tor from <a href="https://www.torproject.org/" target="_blank" rel="noopener noreferrer" style={{ color: '#4A90E2' }}>torproject.org</a></li>
+                  <li><strong>Start Tor:</strong> Launch Tor - it runs on <code>127.0.0.1:9050</code> by default</li>
+                  <li><strong>Switch Server:</strong> Go to Settings → Switch Server</li>
+                  <li><strong>Select "BitcoinZ Tor Hidden Service"</strong> from the server list</li>
+                  <li><strong>Restart Wallet:</strong> The wallet will automatically use Tor proxy</li>
+                </ol>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)' }}>
+                  <strong>💡 Automatic Configuration:</strong> When you select the Tor server, the wallet automatically enables SOCKS5 proxy on 127.0.0.1:9050. You don't need to configure anything manually!
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.helpCard}>
+              <div className={styles.helpCardHeader}>🔧 Troubleshooting Tor</div>
+              <div className={styles.helpCardBody}>
+                <ul>
+                  <li><strong>Connection failed?</strong> Make sure Tor is running on port 9050</li>
+                  <li><strong>Slow sync?</strong> Tor adds latency - this is normal for privacy</li>
+                  <li><strong>Can't connect?</strong> Try switching back to regular server, restart wallet, then switch to Tor again</li>
+                  <li><strong>Port conflict?</strong> If Tor runs on different port, use Custom Server: <code>http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067</code></li>
+                </ul>
+
+                <div className={styles.safetyNote} style={{ marginTop: '15px', background: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.3)' }}>
+                  <strong>⚠️ Important:</strong> Tor provides network-level privacy, but your transactions are still visible on the blockchain. Use shielded (Z) addresses for full privacy!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.helpSection}>
             <h3>🔒 Security Best Practices</h3>
             <div className={styles.helpCard}>
               <div className={styles.helpCardHeader}>🔐 PIN Protection</div>
@@ -613,7 +666,7 @@ export default class Help extends Component<{}, HelpState> {
               <div className={styles.helpCardHeader}>🏆 Professional Light Wallet for BitcoinZ</div>
               <div className={styles.helpCardBody}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '24px', color: '#87CEEB', margin: '10px 0' }}>BitcoinZ Blue v2.0.3</h4>
+                  <h4 style={{ fontSize: '24px', color: '#87CEEB', margin: '10px 0' }}>BitcoinZ Blue v2.1.0</h4>
                   <p style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.9)' }}>Modern, Secure, Privacy-Focused Light Wallet</p>
                 </div>
 

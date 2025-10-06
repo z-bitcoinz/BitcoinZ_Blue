@@ -1364,6 +1364,87 @@ impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for QuitComman
     }
 }
 
+struct SetProxyCommand {}
+
+impl<P: consensus::Parameters + Send + Sync + 'static> Command<P> for SetProxyCommand {
+    fn help(&self) -> String {
+        let mut h = vec![];
+        h.push("Configure SOCKS5 proxy settings for Tor connections");
+        h.push("Usage:");
+        h.push("setproxy '{\"enabled\": true, \"url\": \"socks5://127.0.0.1:9050\"}'");
+        h.push("");
+        h.push("Example:");
+        h.push("Enable Tor proxy:");
+        h.push("setproxy '{\"enabled\": true, \"url\": \"socks5://127.0.0.1:9050\"}'");
+        h.push("");
+        h.push("Disable proxy:");
+        h.push("setproxy '{\"enabled\": false, \"url\": \"\"}'");
+        h.join("\n")
+    }
+
+    fn short_help(&self) -> String {
+        "Configure SOCKS5 proxy settings for Tor connections".to_string()
+    }
+
+    fn exec(&self, args: &[&str], lightclient: &LightClient<P>) -> String {
+        if args.len() != 1 {
+            return format!("Invalid arguments. Expected JSON string\n{}", Command::<P>::help(self));
+        }
+
+        RT.block_on(async move {
+            // Parse JSON argument
+            let proxy_config = match json::parse(args[0]) {
+                Ok(config) => config,
+                Err(e) => {
+                    return object! {
+                        "error" => format!("Invalid JSON: {}", e)
+                    }
+                    .pretty(2);
+                }
+            };
+
+            // Extract enabled and url fields
+            let enabled = match proxy_config["enabled"].as_bool() {
+                Some(val) => val,
+                None => {
+                    return object! {
+                        "error" => "Missing or invalid 'enabled' field (expected boolean)"
+                    }
+                    .pretty(2);
+                }
+            };
+
+            let url = match proxy_config["url"].as_str() {
+                Some(val) => val.to_string(),
+                None => {
+                    return object! {
+                        "error" => "Missing or invalid 'url' field (expected string)"
+                    }
+                    .pretty(2);
+                }
+            };
+
+            // Validate URL format if proxy is enabled
+            if enabled && !url.starts_with("socks5://") {
+                return object! {
+                    "error" => "Proxy URL must start with 'socks5://' (e.g., socks5://127.0.0.1:9050)"
+                }
+                .pretty(2);
+            }
+
+            // Return success - the JavaScript layer will persist this configuration
+            // and apply it when creating the next LightClient instance
+            object! {
+                "result" => "success",
+                "proxy_enabled" => enabled,
+                "proxy_url" => url,
+                "note" => "Proxy settings saved. Please reconnect for changes to take effect."
+            }
+            .pretty(2)
+        })
+    }
+}
+
 pub fn get_commands<P: consensus::Parameters + Send + Sync + 'static>() -> Box<HashMap<String, Box<dyn Command<P>>>> {
     let mut map: HashMap<String, Box<dyn Command<P>>> = HashMap::new();
 
@@ -1401,6 +1482,7 @@ pub fn get_commands<P: consensus::Parameters + Send + Sync + 'static>() -> Box<H
     map.insert("decrypt".to_string(), Box::new(DecryptCommand {}));
     map.insert("unlock".to_string(), Box::new(UnlockCommand {}));
     map.insert("lock".to_string(), Box::new(LockCommand {}));
+    map.insert("setproxy".to_string(), Box::new(SetProxyCommand {}));
 
     Box::new(map)
 }

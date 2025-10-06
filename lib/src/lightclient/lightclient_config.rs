@@ -21,7 +21,7 @@ use zcash_primitives::{
     constants::{self},
 };
 
-use crate::{grpc_connector::GrpcConnector, lightclient::checkpoints};
+use crate::{grpc_connector::{GrpcConnector, ProxyConfig}, lightclient::checkpoints};
 
 pub const DEFAULT_SERVER: &str = "http://localhost:9067";
 pub const WALLET_NAME: &str = "bitcoinz-light-wallet.dat";
@@ -90,6 +90,7 @@ pub struct LightClientConfig<P> {
     pub monitor_mempool: bool,
     pub data_dir: Option<String>,
     pub params: P,
+    pub proxy_config: ProxyConfig,
 }
 
 impl<P: consensus::Parameters> LightClientConfig<P> {
@@ -103,6 +104,7 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
             anchor_offset: 1,
             data_dir: dir,
             params: params.clone(),
+            proxy_config: ProxyConfig::default(),
         }
     }
 
@@ -139,6 +141,7 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
                 anchor_offset: DEFAULT_ANCHOR_OFFSET,
                 data_dir: data_dir,
                 params,
+                proxy_config: ProxyConfig::default(),
             };
 
 

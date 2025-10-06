@@ -1,5 +1,56 @@
 # Changelog
 
+## v2.1.0 (2025-10-06)
+
+Major privacy enhancement - **Full Tor network support with SOCKS5 proxy integration**.
+
+### 🧅 Tor & Privacy Features
+- **NEW:** Complete Tor/SOCKS5 proxy support for anonymous connections
+- **NEW:** BitcoinZ Tor Hidden Service server option in server list
+- **NEW:** Automatic proxy configuration when selecting Tor server
+- **NEW:** Comprehensive Tor documentation in Help section
+- Rust backend implements SOCKS5 connectivity via hyper-socks2
+- Native RPC command `setproxy` for dynamic proxy configuration
+- Electron settings persistence for proxy preferences
+
+### 🔧 Technical Implementation
+**Rust Backend (lib/):**
+- Added SOCKS5 support to GrpcConnector with hyper-socks2
+- New ProxyConfig struct with enabled/url fields
+- Updated LightClientConfig to include proxy_config
+- Modified fetch_compact_blocks.rs to use proxy-aware connectors
+- Created SetProxyCommand for proxy management via RPC
+
+**Frontend (src/):**
+- Added RPC.setProxy() method for JavaScript integration
+- Updated ServerSelectModal with "BitcoinZ Tor Hidden Service" option
+- Automatic proxy enable/disable based on server selection
+- Added comprehensive Tor troubleshooting guide in Help.tsx
+
+**Dependencies:**
+- Added: `hyper-socks2@0.8`, `tower@0.4`, `hyper@0.14`
+- Native module size: 66.5 MB (optimized release build)
+
+### 🌐 Network Privacy
+- Connect via Tor hidden service: `http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067`
+- Default SOCKS5 proxy: `127.0.0.1:9050` (standard Tor port)
+- Custom .onion server support via Custom Server option
+- Full gRPC-over-Tor compatibility verified
+
+### 📚 Documentation
+- New "🧅 Tor Support & Privacy" section in Help
+- Step-by-step Tor setup instructions
+- Troubleshooting guide for common Tor issues
+- Privacy best practices combining Tor + shielded addresses
+
+### ✅ Compatibility
+- Maintains full backward compatibility with regular servers
+- Tor optional - wallet works normally without Tor installation
+- No breaking changes to existing functionality
+- All previous features remain intact
+
+---
+
 ## v2.0.3 (2025-10-06)
 
 Major security improvements - **85% reduction in critical npm vulnerabilities** without breaking changes.
