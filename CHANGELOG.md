@@ -1,5 +1,69 @@
 # Changelog
 
+## v2.0.3 (2025-10-06)
+
+Major security improvements - **85% reduction in critical npm vulnerabilities** without breaking changes.
+
+### 🔒 Security Enhancements
+- **MAJOR:** Fixed 22 of 26 critical npm vulnerabilities (85% reduction: 26 → 4)
+- Removed deprecated 'request' package - eliminated 5 critical vulnerabilities
+- Updated immer (8.0.1 → 10.1.3) - fixed 2 critical prototype pollution vulnerabilities
+- Updated shell-quote (1.7.2 → 1.8.3) - fixed 1 critical command injection vulnerability
+- Applied 28 automated safe security updates via `npm audit fix`
+- Overall vulnerability reduction: 179 → 146 (18% improvement)
+
+### 📊 Security Audit Results
+| Severity | Before | After | Improvement |
+|----------|--------|-------|-------------|
+| Critical | 26 | 4 | **-22 (85%)** |
+| High | 70 | 34 | -36 (51%) |
+| Moderate | 58 | 102 | +44* |
+| Low | 25 | 6 | -19 (76%) |
+| **Total** | **179** | **146** | **-33 (18%)** |
+
+*Note: Some high-severity issues were reclassified as moderate in newer advisories
+
+### 🛡️ Security Impact
+- **Production Security:** ✅ Excellent - All remaining critical vulnerabilities are in dev/build tools only
+- **Wallet Core:** Unaffected - Rust cryptography, key management, and transaction signing remain secure
+- **User Data:** Safe - No vulnerabilities affect runtime wallet operations
+
+### 🧹 Code Cleanup
+- Removed unused download functionality from LoadingScreen.tsx
+- Cleaned up deprecated package dependencies
+- Updated package overrides for better dependency security
+
+### 📝 Technical Changes
+**Dependencies:**
+- Removed: `request`, `progress-stream` (deprecated packages)
+- Added direct dependencies: `cipher-base`, `pbkdf2`
+- Added npm overrides: `immer@^10.1.3`, `shell-quote@^1.8.3`
+- Updated: 28 packages via automated security fixes
+
+**Documentation:**
+- Added comprehensive `SECURITY_AUDIT.md` with detailed vulnerability analysis
+- Documented remaining vulnerabilities and mitigation strategies
+- Included recommendations for future maintenance
+
+### ✅ Testing & Verification
+- Native Rust module builds successfully
+- Production build completes without errors
+- No functionality lost (removed code was unused)
+- TypeScript compilation clean
+- All existing features work as expected
+
+### 🔄 Migration Notes
+- No action required - all changes are backward compatible
+- Builds may require `NODE_OPTIONS="--openssl-legacy-provider"` on Node.js 17+ (already handled in scripts)
+- No user-facing changes or feature modifications
+
+### 📚 Additional Information
+See `SECURITY_AUDIT.md` for complete security analysis and recommendations.
+
+Compare: https://github.com/z-bitcoinz/BitcoinZ_Blue/compare/v2.0.2...v2.0.3
+
+---
+
 ## v2.0.2 (2025-10-05)
 
 Critical bug fixes for private key import, new Full Rescan feature, and enhanced documentation.

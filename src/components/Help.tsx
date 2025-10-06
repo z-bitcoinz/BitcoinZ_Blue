@@ -613,7 +613,7 @@ export default class Help extends Component<{}, HelpState> {
               <div className={styles.helpCardHeader}>🏆 Professional Light Wallet for BitcoinZ</div>
               <div className={styles.helpCardBody}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '24px', color: '#87CEEB', margin: '10px 0' }}>BitcoinZ Blue v2.0.2</h4>
+                  <h4 style={{ fontSize: '24px', color: '#87CEEB', margin: '10px 0' }}>BitcoinZ Blue v2.0.3</h4>
                   <p style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.9)' }}>Modern, Secure, Privacy-Focused Light Wallet</p>
                 </div>
 
