@@ -3,8 +3,6 @@
 import React, { Component } from "react";
 import { Redirect, RouteComponentProps, withRouter } from "react-router";
 import TextareaAutosize from "react-textarea-autosize";
-import request from "request";
-import progress from "progress-stream";
 import getNativeModule from "../native-loader";
 import routes from "../constants/routes.json";
 import { RPCConfig, Info } from "./AppState";
@@ -14,7 +12,6 @@ import Utils from "../utils/utils";
 import { ParamManager } from "../utils/paramManager";
 
 const { ipcRenderer } = window.require("electron");
-const fs = window.require("fs");
 
 class LoadingScreenState {
   currentStatus: string | JSX.Element;
@@ -82,46 +79,6 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       })();
     }
   }
-
-  download = (url: string, dest: string, name: string, cb: (msg: string) => void) => {
-    const file = fs.createWriteStream(dest);
-    const sendReq = request.get(url);
-
-    // verify response code
-    sendReq.on("response", (response) => {
-      if (response.statusCode !== 200) {
-        return cb(`Response status was ${response.statusCode}`);
-      }
-
-      const len = response.headers["content-length"] || "";
-      const totalSize = (parseInt(len, 10) / 1024 / 1024).toFixed(0);
-
-      const str = progress({ time: 1000 }, (pgrs) => {
-        this.setState({
-          currentStatus: `Downloading ${name}... (${(pgrs.transferred / 1024 / 1024).toFixed(0)} MB / ${totalSize} MB)`,
-        });
-      });
-
-      sendReq.pipe(str).pipe(file);
-    });
-
-    // close() is async, call cb after close completes
-    file.on("finish", () => file.close());
-
-    // check for request errors
-    sendReq.on("error", (err) => {
-      fs.unlink(dest, () => {
-        cb(err.message);
-      });
-    });
-
-    file.on("error", (err: any) => {
-      // Handle errors
-      fs.unlink(dest, () => {
-        cb(err.message);
-      }); // Delete the file async. (But we don't check the result)
-    });
-  };
 
   loadServerURI = async () => {
     // Try to read the default server
