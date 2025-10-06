@@ -129,6 +129,13 @@ export default class RPC {
     console.log(`fullrescan exec result: ${syncstr}`);
   }
 
+  static setProxy(enabled: boolean, url: string): string {
+    const proxyConfig = JSON.stringify({ enabled, url });
+    const result = RPC.getNative().litelib_execute("setproxy", proxyConfig);
+    console.log(`setProxy result: ${result}`);
+    return result;
+  }
+
   static doSyncStatus(): string {
     const syncstr = RPC.getNative().litelib_execute("syncstatus", "");
     console.log(`syncstatus: ${syncstr}`);

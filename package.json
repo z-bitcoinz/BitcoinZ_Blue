@@ -1,7 +1,7 @@
 {
   "name": "bitcoinz-wallet-lite",
   "productName": "BitcoinZ Wallet Lite",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "private": true,
   "description": "BitcoinZ Wallet Lite - A lightweight wallet for BitcoinZ",
   "license": "MIT",

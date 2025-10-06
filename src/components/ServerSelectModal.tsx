@@ -28,7 +28,19 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
       serveruri = custom;
     }
 
+    // Check if selected server is Tor
+    const selectedServer = servers.find(s => s.uri === serveruri);
+    const isTor = selectedServer?.isTor || serveruri.includes(".onion");
+
     ipcRenderer.invoke("saveSettings", { key: "lwd.serveruri", value: serveruri });
+
+    // Enable proxy if Tor, disable otherwise
+    if (isTor) {
+      ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: true });
+      ipcRenderer.invoke("saveSettings", { key: "proxy.url", value: "socks5://127.0.0.1:9050" });
+    } else {
+      ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: false });
+    }
 
     closeModal();
 
@@ -42,6 +54,7 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
     { name: "BitcoinZ Local", uri: "http://localhost:9067" },
     { name: "BitcoinZ Community (9067)", uri: "https://lightd.btcz.rocks:9067" },
     { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
+    { name: "BitcoinZ Tor Hidden Service", uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067", isTor: true },
   ];
 
   const modernButtonStyle = {
