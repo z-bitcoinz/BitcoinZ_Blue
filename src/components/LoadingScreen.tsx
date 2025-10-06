@@ -24,6 +24,10 @@ class LoadingScreenState {
 
   url: string;
 
+  proxyEnabled: boolean;
+
+  proxyUrl: string;
+
   walletScreen: number; // 0 -> no wallet, load existing wallet 1 -> show option 2-> create new 3 -> restore existing
 
   newWalletError: null | string; // Any errors when creating/restoring wallet
@@ -31,7 +35,7 @@ class LoadingScreenState {
   seed: string; // The new seed phrase for a newly created wallet or the seed phrase to restore from
 
   birthday: number; // Wallet birthday if we're restoring
-  
+
   walletBirthday: number; // The birthday of a newly created wallet
 
   getinfoRetryCount: number;
@@ -42,6 +46,8 @@ class LoadingScreenState {
     this.loadingDone = false;
     this.rpcConfig = null;
     this.url = "";
+    this.proxyEnabled = false;
+    this.proxyUrl = "socks5://127.0.0.1:9050";
     this.getinfoRetryCount = 0;
     this.walletScreen = 0;
     this.newWalletError = null;
@@ -90,10 +96,16 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       server = Utils.V3_LIGHTWALLETD;
     }
 
+    // Load proxy settings
+    const proxyEnabled = settings?.proxy?.enabled || false;
+    const proxyUrl = settings?.proxy?.url || "socks5://127.0.0.1:9050";
+
     const newstate = new LoadingScreenState();
     Object.assign(newstate, this.state);
 
     newstate.url = server;
+    newstate.proxyEnabled = proxyEnabled;
+    newstate.proxyUrl = proxyUrl;
     this.setState(newstate);
   };
 
@@ -144,7 +156,8 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       this.setState({ walletScreen: 1 });
     } else {
       try {
-        const result = getNativeModule().litelib_initialize_existing(url);
+        const { proxyEnabled, proxyUrl } = this.state;
+        const result = getNativeModule().litelib_initialize_existing(url, proxyEnabled, proxyUrl);
         console.log(`Intialization: ${result}`);
         if (result !== "OK") {
           this.setState({
@@ -369,8 +382,8 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   createNewWallet = () => {
-    const { url } = this.state;
-    const result = getNativeModule().litelib_initialize_new(url);
+    const { url, proxyEnabled, proxyUrl } = this.state;
+    const result = getNativeModule().litelib_initialize_new(url, proxyEnabled, proxyUrl);
 
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
@@ -409,12 +422,12 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   doRestoreWallet = () => {
-    const { seed, birthday, url } = this.state;
+    const { seed, birthday, url, proxyEnabled, proxyUrl } = this.state;
     console.log(`Restoring ${seed} with ${birthday}`);
 
     const allowOverwrite = true;
 
-    const result = getNativeModule().litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite);
+    const result = getNativeModule().litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite, proxyEnabled, proxyUrl);
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
     } else {
