@@ -10,6 +10,14 @@ type ModalProps = {
   openErrorModal: (title: string, body: string) => void;
 };
 
+// Define servers outside component to avoid re-creating on each render
+const servers = [
+  { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
+  { name: "BitcoinZ Local", uri: "http://localhost:9067" },
+  { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
+  { name: "BitcoinZ Tor Hidden Service", uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067", isTor: true },
+];
+
 export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorModal }: ModalProps) {
   const [selected, setSelected] = useState("");
   const [custom, setCustom] = useState("");
@@ -73,13 +81,6 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
       }, 500);
     }, 10);
   };
-
-  const servers = [
-    { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
-    { name: "BitcoinZ Local", uri: "http://localhost:9067" },
-    { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
-    { name: "BitcoinZ Tor Hidden Service", uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067", isTor: true },
-  ];
 
   const modernButtonStyle = {
     display: 'inline-flex',
