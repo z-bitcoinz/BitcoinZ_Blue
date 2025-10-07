@@ -8,6 +8,7 @@ use neon::prelude::JsNumber;
 use neon::prelude::JsResult;
 use neon::prelude::JsString;
 use neon::register_module;
+use zecwalletlitelib::grpc_connector::ProxyConfig;
 use zecwalletlitelib::lightclient::lightclient_config::LightClientConfig;
 use zecwalletlitelib::MainNetwork;
 
@@ -55,17 +56,20 @@ fn litelib_initialize_new(mut cx: FunctionContext) -> JsResult<JsString> {
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
-        let (mut config, latest_block_height) =
-            match LightClientConfig::create(MainNetwork, server, None) {
+
+        // Create proxy config
+        let proxy_config = ProxyConfig {
+            enabled: proxy_enabled,
+            url: proxy_url,
+        };
+
+        let (config, latest_block_height) =
+            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);
                 }
             };
-
-        // Apply proxy configuration
-        config.proxy_config.enabled = proxy_enabled;
-        config.proxy_config.url = proxy_url;
 
         let lightclient = match LightClient::new(&config, latest_block_height.saturating_sub(100)) {
             Ok(l) => l,
@@ -107,17 +111,20 @@ fn litelib_initialize_new_from_phrase(mut cx: FunctionContext) -> JsResult<JsStr
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
-        let (mut config, _latest_block_height) =
-            match LightClientConfig::create(MainNetwork, server, None) {
+
+        // Create proxy config
+        let proxy_config = ProxyConfig {
+            enabled: proxy_enabled,
+            url: proxy_url,
+        };
+
+        let (config, _latest_block_height) =
+            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);
                 }
             };
-
-        // Apply proxy configuration
-        config.proxy_config.enabled = proxy_enabled;
-        config.proxy_config.url = proxy_url;
 
         let lightclient =
             match LightClient::new_from_phrase(seed, &config, birthday as u64, overwrite) {
@@ -149,17 +156,20 @@ fn litelib_initialize_existing(mut cx: FunctionContext) -> JsResult<JsString> {
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
-        let (mut config, _latest_block_height) =
-            match LightClientConfig::create(MainNetwork, server, None) {
+
+        // Create proxy config
+        let proxy_config = ProxyConfig {
+            enabled: proxy_enabled,
+            url: proxy_url,
+        };
+
+        let (config, _latest_block_height) =
+            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);
                 }
             };
-
-        // Apply proxy configuration
-        config.proxy_config.enabled = proxy_enabled;
-        config.proxy_config.url = proxy_url;
 
         let lightclient = match LightClient::read_from_disk(&config) {
             Ok(l) => l,

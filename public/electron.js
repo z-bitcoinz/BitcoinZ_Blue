@@ -3,32 +3,26 @@ const isDev = require("electron-is-dev");
 const path = require("path");
 const fs = require("fs");
 const settings = require("electron-settings");
+const TorManager = require("./tor-manager");
 
 // Fix for native module loading in production builds
-let getNativeModule;
+let native;
 try {
   if (isDev) {
-    // In development, load from src directory
-    getNativeModule = require("../src/native-loader");
+    // In development, load from src/native.node
+    native = require(path.join(__dirname, '..', 'src', 'native.node'));
   } else {
-    // In production, the native module should be in the same directory
-    // or in the app.asar.unpacked directory
-    try {
-      // First try the bundled version
-      getNativeModule = require("./native-loader");
-    } catch (e) {
-      // If that fails, try the unpacked version
-      const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'build', 'native-loader');
-      getNativeModule = require(unpackedPath);
-    }
+    // In production, the native module should be in the unpacked directory
+    const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'native.node');
+    native = require(unpackedPath);
   }
 } catch (error) {
   console.error('Failed to load native module:', error);
-  // Create a fallback that will error when called
-  getNativeModule = () => {
-    throw new Error('Native module could not be loaded. Please ensure the application was built correctly.');
-  };
+  throw error;
 }
+
+// Expose the native module functions
+const getNativeModule = () => native;
 
 // Disable sandbox if running on Linux to avoid permission issues
 if (process.platform === 'linux') {
@@ -696,6 +690,11 @@ function createWindow() {
     }
   });
 
+  // Tor status IPC handler
+  ipcMain.handle('getTorStatus', async () => {
+    return torManager.getStatus();
+  });
+
   mainWindow.on("close", (event) => {
     // Send app-closing event first for auto-lock functionality
     if (!mainWindow.isDestroyed()) {
@@ -753,17 +752,43 @@ function createWindow() {
 
 app.commandLine.appendSwitch("in-process-gpu");
 
+// Initialize Tor manager
+const torManager = new TorManager();
+
 // Create a new browser window by invoking the createWindow
 // function once the Electron application is initialized.
 // Install REACT_DEVELOPER_TOOLS as well if isDev
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (isDev) {
     installExtension(REACT_DEVELOPER_TOOLS)
       .then((name) => console.log(`Added Extension:  ${name}`))
       .catch((error) => console.log(`An error occurred: , ${error}`));
   }
 
+  // Check if proxy is enabled in settings
+  const allSettings = await settings.get("all");
+  const proxyEnabled = allSettings?.proxy?.enabled || false;
+
+  // Start Tor if proxy is enabled
+  if (proxyEnabled) {
+    console.log("[Electron] Proxy enabled, starting Tor...");
+    try {
+      await torManager.start(app, isDev);
+      console.log("[Electron] Tor started successfully");
+    } catch (error) {
+      console.error("[Electron] Failed to start Tor:", error);
+    }
+  } else {
+    console.log("[Electron] Proxy disabled, Tor will not start");
+  }
+
   createWindow();
+});
+
+// Stop Tor when app is quitting
+app.on("before-quit", () => {
+  console.log("[Electron] App quitting, stopping Tor...");
+  torManager.stop();
 });
 
 // Add a new listener that tries to quit the application when
@@ -774,7 +799,7 @@ app.on("window-all-closed", () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send("app-closing");
   }
-  
+
   if (process.platform !== "darwin") {
     app.quit();
   }

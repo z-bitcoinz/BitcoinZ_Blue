@@ -109,25 +109,64 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
     }
 
     pub fn create(params: P, server: http::Uri, data_dir: Option<String>) -> io::Result<(LightClientConfig<P>, u64)> {
+        Self::create_with_proxy(params, server, data_dir, ProxyConfig::default())
+    }
+
+    pub fn create_with_proxy(params: P, server: http::Uri, data_dir: Option<String>, proxy_config: ProxyConfig) -> io::Result<(LightClientConfig<P>, u64)> {
         use std::net::ToSocketAddrs;
 
         let s = server.clone();
+        let proxy_for_getinfo = proxy_config.clone();
+
         if let Ok((chain_name, sapling_activation_height, block_height)) =
             Runtime::new().unwrap().block_on(async move {
-                // Test for a connection first
-                format!("{}:{}", server.host().unwrap(), server.port().unwrap())
-                    .to_socket_addrs()?
-                    .next()
-                    .ok_or(std::io::Error::new(
-                        ErrorKind::ConnectionRefused,
-                        "Couldn't resolve server!",
-                    ))?;
+                // Log the server URI for debugging
+                info!("Initializing wallet with server: {}", server);
+                info!("Proxy enabled: {}, URL: {}", proxy_for_getinfo.enabled, proxy_for_getinfo.url);
 
-                // Do a getinfo first, before opening the wallet
-                let info = GrpcConnector::get_info(server.clone())
-                    .await
-                    .map_err(|e| std::io::Error::new(ErrorKind::ConnectionRefused, e))?;
+                // Validate server URI has host and port
+                let host = server.host().ok_or_else(|| {
+                    std::io::Error::new(ErrorKind::InvalidInput,
+                        format!("Server URI missing host: {}", server))
+                })?;
 
+                let port = server.port_u16().ok_or_else(|| {
+                    std::io::Error::new(ErrorKind::InvalidInput,
+                        format!("Server URI missing port: {}", server))
+                })?;
+
+                info!("Parsed server - host: {}, port: {}", host, port);
+
+                // Skip DNS resolution for .onion addresses or when using proxy
+                if !host.ends_with(".onion") && !proxy_for_getinfo.enabled {
+                    info!("Testing DNS resolution for: {}:{}", host, port);
+                    // Test for a connection first
+                    format!("{}:{}", host, port)
+                        .to_socket_addrs()?
+                        .next()
+                        .ok_or(std::io::Error::new(
+                            ErrorKind::ConnectionRefused,
+                            "Couldn't resolve server!",
+                        ))?;
+                    info!("DNS resolution successful");
+                } else {
+                    info!("Skipping DNS resolution (.onion address or proxy enabled)");
+                }
+
+                // Do a getinfo first, before opening the wallet (with proxy support if enabled)
+                let info = if proxy_for_getinfo.enabled {
+                    info!("Using proxy for initial connection test: {}", proxy_for_getinfo.url);
+                    GrpcConnector::get_info_with_proxy(server.clone(), proxy_for_getinfo)
+                        .await
+                        .map_err(|e| std::io::Error::new(ErrorKind::ConnectionRefused, e))?
+                } else {
+                    info!("Connecting directly (no proxy)");
+                    GrpcConnector::get_info(server.clone())
+                        .await
+                        .map_err(|e| std::io::Error::new(ErrorKind::ConnectionRefused, e))?
+                };
+
+                info!("Successfully retrieved server info: {}", info.chain_name);
                 Ok::<_, std::io::Error>((info.chain_name, info.sapling_activation_height, info.block_height))
             })
         {
@@ -141,7 +180,7 @@ impl<P: consensus::Parameters> LightClientConfig<P> {
                 anchor_offset: DEFAULT_ANCHOR_OFFSET,
                 data_dir: data_dir,
                 params,
-                proxy_config: ProxyConfig::default(),
+                proxy_config,
             };
 
 

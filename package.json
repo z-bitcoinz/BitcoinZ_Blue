@@ -114,7 +114,7 @@
     "dist:win": "yarn build && electron-builder -w -c.extraMetadata.main=build/electron.js -c.npmRebuild=true --publish never",
     "dist:mac": "yarn build && electron-builder -m -c.extraMetadata.main=build/electron.js --publish never",
     "dist:linux": "yarn build && electron-builder -l -c.extraMetadata.main=build/electron.js --publish never",
-    "react-start": "cross-env node scripts/start.js",
+    "react-start": "cross-env NODE_OPTIONS=--openssl-legacy-provider node scripts/start.js",
     "neon": "node scripts/build-native.js"
   },
   "electronmon": {
@@ -185,9 +185,13 @@
       "node_modules/**/*"
     ],
     "asarUnpack": [
+      "src/native.node",
       "build/native.node",
       "build/native-*.node",
-      "build/static/js/native-*.node"
+      "build/static/js/native-*.node",
+      "resources/tor/**/*",
+      "lib/zcash-params/*",
+      "public/tor-manager.js"
     ],
     "directories": {
       "buildResources": "public"
