@@ -455,12 +455,15 @@ if (isDev) {
   REACT_DEVELOPER_TOOLS = devTools.REACT_DEVELOPER_TOOLS;
 }
 
+// Global mainWindow reference
+let mainWindow = null;
+
 function createWindow() {
   console.log(`Creating window - isDev: ${isDev}, platform: ${process.platform}`);
   console.log(`__dirname: ${__dirname}`);
   console.log(`process.resourcesPath: ${process.resourcesPath}`);
-  
-  const mainWindow = new BrowserWindow({
+
+  mainWindow = new BrowserWindow({
     width: 901,
     height: 640,
     minHeight: 450,
@@ -536,6 +539,23 @@ function createWindow() {
   // Add handler for getting app data path (replacement for remote.app.getPath)
   ipcMain.handle("get-app-data-path", async () => {
     return app.getPath("appData");
+  });
+
+  // Add handler for restarting the application
+  ipcMain.handle("restartApp", async () => {
+    console.log("[Electron] Restarting application...");
+
+    // Send signal to renderer to save wallet before restart
+    mainWindow.webContents.send("appquitting");
+
+    // Wait a bit for wallet to save
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Restart the app
+    app.relaunch();
+    app.quit();
+
+    return { success: true };
   });
 
   // Helper function to get wallet data directory
@@ -783,6 +803,9 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
+
+  // Set mainWindow reference on torManager for IPC events
+  torManager.setMainWindow(mainWindow);
 });
 
 // Stop Tor when app is quitting

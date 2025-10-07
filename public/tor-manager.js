@@ -9,6 +9,14 @@ class TorManager {
     this.status = 'stopped'; // stopped, starting, ready, error
     this.port = 9050;
     this.bootstrapProgress = 0;
+    this.mainWindow = null;
+  }
+
+  /**
+   * Set the main window for IPC communication
+   */
+  setMainWindow(mainWindow) {
+    this.mainWindow = mainWindow;
   }
 
   /**
@@ -107,6 +115,12 @@ Log notice stdout
       console.log(`[TorManager] Tor already running on port ${this.port}`);
       this.status = 'ready';
       this.bootstrapProgress = 100;
+
+      // Send ready event to renderer
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send('tor-ready');
+      }
+
       return { success: true, message: 'Tor already running' };
     }
 
@@ -145,9 +159,22 @@ Log notice stdout
           this.bootstrapProgress = parseInt(bootstrapMatch[1]);
           console.log(`[TorManager] Bootstrap progress: ${this.bootstrapProgress}%`);
 
+          // Send progress update to renderer
+          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            this.mainWindow.webContents.send('tor-bootstrap-progress', {
+              progress: this.bootstrapProgress,
+              status: this.status
+            });
+          }
+
           if (this.bootstrapProgress === 100) {
             this.status = 'ready';
             console.log('[TorManager] Tor is ready!');
+
+            // Send ready event to renderer
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+              this.mainWindow.webContents.send('tor-ready');
+            }
           }
         }
       });

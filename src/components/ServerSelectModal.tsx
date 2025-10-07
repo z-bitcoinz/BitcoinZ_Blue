@@ -63,8 +63,14 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
 
     closeModal();
 
-    setTimeout(() => {
-      openErrorModal("Restart BitcoinZ Wallet", "Please restart BitcoinZ Wallet to connect to the new server");
+    // Show brief message then restart automatically
+    setTimeout(async () => {
+      openErrorModal("Restarting Wallet", "Applying new server settings...");
+
+      // Wait a moment for message to show
+      setTimeout(async () => {
+        await ipcRenderer.invoke("restartApp");
+      }, 500);
     }, 10);
   };
 

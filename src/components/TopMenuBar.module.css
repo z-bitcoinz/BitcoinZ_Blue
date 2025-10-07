@@ -233,7 +233,7 @@
   transition: all 0.3s ease;
   border-radius: 3px;
   background: rgba(147, 51, 234, 0.25);
-  animation: torPulse 2s infinite;
+  animation: torPulse 4s infinite;
   position: relative;
 }
 
