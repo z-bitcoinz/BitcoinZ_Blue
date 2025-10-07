@@ -87,9 +87,17 @@ export class CurrencyManager {
     try {
       // Fetch all supported currencies in one API call
       const currencyCodes = Object.keys(SUPPORTED_CURRENCIES).join(',').toLowerCase();
+
+      // Add timeout to prevent freezing if API is slow/unreachable
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoinz&vs_currencies=${currencyCodes}`
+        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoinz&vs_currencies=${currencyCodes}`,
+        { signal: controller.signal }
       );
+
+      clearTimeout(timeoutId); // Clear timeout if fetch completes
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
