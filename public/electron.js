@@ -13,7 +13,7 @@ try {
     native = require(path.join(__dirname, '..', 'src', 'native.node'));
   } else {
     // In production, the native module should be in the unpacked directory
-    const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'native.node');
+    const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'build', 'native.node');
     native = require(unpackedPath);
   }
 } catch (error) {
