@@ -52,3 +52,4 @@ certificate-base64.txt
 apple-certificate-base64.txt
 *.certSigningRequest
 CertificateSigningRequest.certSigningRequest
+zecwallet-light-wallet-log*

@@ -157,6 +157,7 @@ impl GrpcConnector {
             oneshot::Sender<Vec<UnboundedReceiver<Result<RawTransaction, String>>>>,
         )>();
         let uri = self.uri.clone();
+        let proxy_config = self.proxy_config.clone();
 
         let h = tokio::spawn(async move {
             let uri = uri.clone();
@@ -174,6 +175,7 @@ impl GrpcConnector {
                         start_height,
                         end_height,
                         tx_s,
+                        proxy_config.clone(),
                     )));
                 }
 
@@ -204,15 +206,17 @@ impl GrpcConnector {
     ) {
         let (tx, mut rx) = unbounded_channel::<(TxId, oneshot::Sender<Result<Transaction, String>>)>();
         let uri = self.uri.clone();
+        let proxy_config = self.proxy_config.clone();
 
         let h = tokio::spawn(async move {
             let mut workers = FuturesUnordered::new();
             while let Some((txid, result_tx)) = rx.recv().await {
                 let uri = uri.clone();
                 let parameters = parameters.clone();
+                let proxy_config = proxy_config.clone();
                 workers.push(tokio::spawn(async move {
                     result_tx
-                        .send(Self::get_full_tx(uri.clone(), &txid, parameters).await)
+                        .send(Self::get_full_tx(uri.clone(), &txid, parameters, proxy_config).await)
                         .unwrap()
                 }));
 
@@ -285,8 +289,9 @@ impl GrpcConnector {
         uri: http::Uri,
         txid: &TxId,
         parameters: P,
+        proxy_config: ProxyConfig,
     ) -> Result<Transaction, String> {
-        let client = Arc::new(GrpcConnector::new(uri));
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
         let request = Request::new(TxFilter {
             block: None,
             index: 0,
@@ -316,8 +321,9 @@ impl GrpcConnector {
         start_height: u64,
         end_height: u64,
         txns_sender: UnboundedSender<Result<RawTransaction, String>>,
+        proxy_config: ProxyConfig,
     ) -> Result<(), String> {
-        let client = Arc::new(GrpcConnector::new(uri));
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
 
         // Make sure start_height is smaller than end_height, because the API expects it like that
         let (start_height, end_height) = if start_height < end_height {
@@ -389,8 +395,25 @@ impl GrpcConnector {
         Ok(response.into_inner())
     }
 
-    pub async fn monitor_mempool(uri: http::Uri, mempool_tx: UnboundedSender<RawTransaction>) -> Result<(), String> {
-        let client = Arc::new(GrpcConnector::new(uri));
+    pub async fn get_info_with_proxy(uri: http::Uri, proxy_config: ProxyConfig) -> Result<LightdInfo, String> {
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
+
+        let mut client = client
+            .get_client()
+            .await
+            .map_err(|e| format!("Error getting client: {:?}", e))?;
+
+        let request = Request::new(Empty {});
+
+        let response = client
+            .get_lightd_info(request)
+            .await
+            .map_err(|e| format!("Error with response: {:?}", e))?;
+        Ok(response.into_inner())
+    }
+
+    pub async fn monitor_mempool(uri: http::Uri, mempool_tx: UnboundedSender<RawTransaction>, proxy_config: ProxyConfig) -> Result<(), String> {
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
 
         let mut client = client
             .get_client()
@@ -413,6 +436,25 @@ impl GrpcConnector {
 
     pub async fn get_merkle_tree(uri: http::Uri, height: u64) -> Result<TreeState, String> {
         let client = Arc::new(GrpcConnector::new(uri));
+        let mut client = client
+            .get_client()
+            .await
+            .map_err(|e| format!("Error getting client: {:?}", e))?;
+
+        let b = BlockId {
+            height: height as u64,
+            hash: vec![],
+        };
+        let response = client
+            .get_tree_state(Request::new(b))
+            .await
+            .map_err(|e| format!("Error with response: {:?}", e))?;
+
+        Ok(response.into_inner())
+    }
+
+    pub async fn get_merkle_tree_with_proxy(uri: http::Uri, height: u64, proxy_config: ProxyConfig) -> Result<TreeState, String> {
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
         let mut client = client
             .get_client()
             .await
@@ -511,6 +553,23 @@ impl GrpcConnector {
         Ok(response.into_inner())
     }
 
+    pub async fn get_latest_block_with_proxy(uri: http::Uri, proxy_config: ProxyConfig) -> Result<BlockId, String> {
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
+        let mut client = client
+            .get_client()
+            .await
+            .map_err(|e| format!("Error getting client: {:?}", e))?;
+
+        let request = Request::new(ChainSpec {});
+
+        let response = client
+            .get_latest_block(request)
+            .await
+            .map_err(|e| format!("Error with response: {:?}", e))?;
+
+        Ok(response.into_inner())
+    }
+
     pub async fn send_transaction(uri: http::Uri, tx_bytes: Box<[u8]>) -> Result<String, String> {
         info!("Sending transaction to lightwalletd server: {}", uri);
         let client = Arc::new(GrpcConnector::new(uri));
@@ -555,7 +614,57 @@ impl GrpcConnector {
             info!("Transaction sent successfully with txid: {}", txid);
             Ok(txid)
         } else {
-            error!("Server returned error: code={}, message='{}'", 
+            error!("Server returned error: code={}, message='{}'",
+                   sendresponse.error_code, sendresponse.error_message);
+            Err(format!("Error: {:?}", sendresponse))
+        }
+    }
+
+    pub async fn send_transaction_with_proxy(uri: http::Uri, tx_bytes: Box<[u8]>, proxy_config: ProxyConfig) -> Result<String, String> {
+        info!("Sending transaction to lightwalletd server: {}", uri);
+        let client = Arc::new(GrpcConnector::new_with_proxy(uri, proxy_config));
+        let mut client = client
+            .get_client()
+            .await
+            .map_err(|e| {
+                error!("Error getting gRPC client: {:?}", e);
+                format!("Error getting client: {:?}", e)
+            })?;
+
+        let request = Request::new(RawTransaction {
+            data: tx_bytes.to_vec(),
+            height: 0,
+        });
+
+        info!("Sending transaction of {} bytes to server", tx_bytes.len());
+        let response = client
+            .send_transaction(request)
+            .await
+            .map_err(|e| {
+                error!("gRPC send_transaction error: {}", e);
+                format!("Send Error: {}", e)
+            })?;
+
+        let sendresponse = response.into_inner();
+        info!("Server response - error_code: {}, error_message: '{}'",
+              sendresponse.error_code, sendresponse.error_message);
+
+        if sendresponse.error_code == 0 {
+            let mut txid = sendresponse.error_message;
+            if txid.starts_with("\"") && txid.ends_with("\"") {
+                txid = txid[1..txid.len() - 1].to_string();
+            }
+
+            // Check if we got a valid txid or just "OK"
+            if txid == "OK" || txid.is_empty() {
+                error!("Server returned '{}' instead of a transaction ID", txid);
+                return Err(format!("Server returned '{}' instead of a valid transaction ID", txid));
+            }
+
+            info!("Transaction sent successfully with txid: {}", txid);
+            Ok(txid)
+        } else {
+            error!("Server returned error: code={}, message='{}'",
                    sendresponse.error_code, sendresponse.error_message);
             Err(format!("Error: {:?}", sendresponse))
         }

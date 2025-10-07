@@ -40,6 +40,12 @@ class LoadingScreenState {
 
   getinfoRetryCount: number;
 
+  // Tor connection state
+  torBootstrapProgress: number; // 0-100%
+  torStatus: string; // 'stopped', 'starting', 'ready', 'error'
+  torReady: boolean;
+  waitingForTor: boolean;
+
   constructor() {
     this.currentStatus = "Loading...";
     this.currentStatusIsError = false;
@@ -54,6 +60,10 @@ class LoadingScreenState {
     this.seed = "";
     this.birthday = 0;
     this.walletBirthday = 0;
+    this.torBootstrapProgress = 0;
+    this.torStatus = 'stopped';
+    this.torReady = false;
+    this.waitingForTor = false;
   }
 }
 
@@ -76,6 +86,34 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   componentDidMount() {
     const { rescanning, prevSyncId } = this.props;
 
+    // Set up Tor IPC listeners
+    ipcRenderer.on('tor-bootstrap-progress', (_event: any, data: {progress: number; status: string}) => {
+      console.log('[LoadingScreen] Tor bootstrap progress:', data);
+      this.setState({
+        torBootstrapProgress: data.progress,
+        torStatus: data.status
+      });
+    });
+
+    ipcRenderer.on('tor-ready', () => {
+      console.log('[LoadingScreen] Tor is ready!');
+      this.setState({
+        torReady: true,
+        torBootstrapProgress: 100,
+        torStatus: 'ready',
+        currentStatus: "Tor circuit establishing..."
+      });
+
+      // If we're waiting for Tor, wait 10 seconds for circuit to establish, then proceed
+      if (this.state.waitingForTor) {
+        console.log('[LoadingScreen] Waiting 10 seconds for Tor circuit to establish...');
+        setTimeout(() => {
+          console.log('[LoadingScreen] Proceeding with wallet initialization');
+          this.proceedWithWalletSetup();
+        }, 10000);
+      }
+    });
+
     if (rescanning) {
       this.runSyncStatusPoller(prevSyncId);
     } else {
@@ -84,6 +122,12 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         setTimeout(() => this.doFirstTimeSetup(), 100);
       })();
     }
+  }
+
+  componentWillUnmount() {
+    // Clean up IPC listeners
+    ipcRenderer.removeAllListeners('tor-bootstrap-progress');
+    ipcRenderer.removeAllListeners('tor-ready');
   }
 
   loadServerURI = async () => {
@@ -112,18 +156,61 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   doFirstTimeSetup = async () => {
     await this.loadServerURI();
 
+    // Check if Tor is enabled and wait for it if necessary
+    const { proxyEnabled } = this.state;
+    if (proxyEnabled) {
+      // Check current Tor status
+      const torStatus = await ipcRenderer.invoke('getTorStatus');
+      console.log('[LoadingScreen] Tor status:', torStatus);
+
+      if (torStatus.status !== 'ready') {
+        // Tor is not ready yet, wait for it
+        console.log('[LoadingScreen] Waiting for Tor to be ready...');
+        this.setState({
+          waitingForTor: true,
+          currentStatus: "Establishing anonymous Tor connection...",
+          torBootstrapProgress: torStatus.progress || 0,
+          torStatus: torStatus.status
+        });
+        return; // Exit and wait for tor-ready event
+      } else {
+        // Tor is already at 100%, but circuit needs time to establish
+        console.log('[LoadingScreen] Tor ready, waiting 10 seconds for circuit to establish...');
+        this.setState({
+          waitingForTor: true,
+          torReady: true,
+          torBootstrapProgress: 100,
+          torStatus: 'ready',
+          currentStatus: "Tor circuit establishing..."
+        });
+
+        // Wait 10 seconds for Tor circuit to fully establish (DNS resolution needs this)
+        setTimeout(() => {
+          console.log('[LoadingScreen] Proceeding with wallet initialization');
+          this.proceedWithWalletSetup();
+        }, 10000);
+
+        return; // Don't fall through - wait for setTimeout
+      }
+    }
+
+    // Proceed with wallet setup (only when Tor is disabled)
+    this.proceedWithWalletSetup();
+  };
+
+  proceedWithWalletSetup = async () => {
     // Try to load the light client
     const { url } = this.state;
 
     // First, check if Sapling parameters are set up
     this.setState({ currentStatus: "Checking privacy features..." });
-    
+
     const paramManager = ParamManager.getInstance();
     const paramsValid = await paramManager.areParamsValid();
-    
+
     if (!paramsValid) {
       this.setState({ currentStatus: "Setting up BitcoinZ privacy features (one-time download)..." });
-      
+
       try {
         await paramManager.setupParams((progress, message) => {
           this.setState({ currentStatus: message });
@@ -323,27 +410,43 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         // console.log(`Prev SyncID: ${prevSyncId}`);
 
         if (ss.sync_id > prevSyncId && !ss.in_progress) {
-          // First, save the wallet so we don't lose the just-synced data
-          if (!ss.last_error) {
-            RPC.doSave();
+          // Don't exit loading screen if sync failed - keep waiting
+          if (ss.last_error) {
+            console.log('[LoadingScreen] Sync failed, waiting for successful sync...');
+            me.setState({ currentStatus: "Connecting to network..." });
+            return;
           }
 
-          // Set the info object, so the sidebar will show
-          console.log(info);
-          setInfo(info);
+          // First, save the wallet so we don't lose the just-synced data
+          RPC.doSave();
 
-          setRescanning(false, prevSyncId);
+          // Cancel the sync status poller
+          clearInterval(poller);
 
-          // Configure the RPC, which will setup the refresh
+          // Configure the RPC immediately - this fetches correct latestBlockHeight
+          // This is critical for transaction confirmations to display correctly
           const rpcConfig = new RPCConfig();
           rpcConfig.url = url;
           setRPCConfig(rpcConfig);
 
-          // And cancel the updater
-          clearInterval(poller);
+          // Show "Loading wallet data..." message while RPC fetches balance
+          me.setState({ currentStatus: "Loading wallet data..." });
 
-          // This will cause a redirect to the dashboard screen
-          me.setState({ loadingDone: true });
+          // Wait 6 seconds for balance to fully load, THEN show Dashboard
+          // This keeps the Tor loading screen visible during balance fetch
+          setTimeout(() => {
+            console.log(info);
+
+            // Set the info object and rescanning status - this triggers Dashboard to show
+            setInfo(info);
+            setRescanning(false, prevSyncId);
+
+            // This will cause a redirect to the dashboard screen
+            me.setState({
+              loadingDone: true,
+              waitingForTor: false  // Hide Tor UI now that we're completely done
+            });
+          }, 6000);
         } else {
           // Still syncing, grab the status and update the status
           let progress_blocks = (ss.synced_blocks + ss.trial_decryptions_blocks + ss.txn_scan_blocks) / 3;
@@ -437,7 +540,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   render() {
-    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday } =
+    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday, waitingForTor, torBootstrapProgress } =
       this.state;
 
     const { openServerSelectModal } = this.props;
@@ -456,7 +559,144 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
           color: 'white'
         }}>
-          {walletScreen === 0 && (
+          {waitingForTor && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: '500px',
+              width: '100%'
+            }}>
+              {/* Tor Icon */}
+              <div style={{ marginBottom: '32px' }}>
+                <i className="fas fa-user-secret" style={{
+                  fontSize: '80px',
+                  color: '#C084FC',
+                  textShadow: '0 0 20px rgba(192, 132, 252, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5)',
+                  animation: 'pulse 2s infinite'
+                }} />
+              </div>
+
+              {/* Title */}
+              <h2 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                marginBottom: '16px',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                letterSpacing: '0.5px'
+              }}>
+                Establishing Anonymous Connection
+              </h2>
+
+              {/* Status Message */}
+              <div style={{
+                fontSize: '16px',
+                lineHeight: '1.6',
+                marginBottom: '32px',
+                color: 'rgba(255, 255, 255, 0.9)'
+              }}>
+                {torBootstrapProgress === 100 && currentStatus ? currentStatus :
+                 torBootstrapProgress < 25 ? 'Initializing Tor network...' :
+                 torBootstrapProgress < 50 ? 'Building encrypted circuit...' :
+                 torBootstrapProgress < 75 ? 'Establishing anonymous connection...' :
+                 torBootstrapProgress < 100 ? 'Securing your privacy...' :
+                 'Connection secured!'}
+              </div>
+
+              {/* Progress Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '16px',
+                padding: '32px',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                width: '100%',
+                maxWidth: '450px'
+              }}>
+                {/* Progress Bar */}
+                <div style={{
+                  width: '100%',
+                  height: '8px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{
+                    width: torBootstrapProgress === 100 ? '100%' : `${torBootstrapProgress}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #C084FC 0%, #7C3AED 100%)',
+                    borderRadius: '4px',
+                    transition: 'width 0.3s ease',
+                    boxShadow: '0 0 10px rgba(192, 132, 252, 0.5)',
+                    animation: torBootstrapProgress === 100 ? 'shimmer 2s ease-in-out infinite' : 'none'
+                  }} />
+                </div>
+
+                {/* Progress Text */}
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#C084FC',
+                  marginBottom: '24px'
+                }}>
+                  {torBootstrapProgress === 100 ? (
+                    <span style={{animation: 'pulse 2s ease-in-out infinite'}}>Loading...</span>
+                  ) : `${torBootstrapProgress}% Connected`}
+                </div>
+
+                {/* Privacy Features */}
+                <div style={{
+                  textAlign: 'left',
+                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.8)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <i className="fas fa-shield-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                    <span>IP address hidden</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <i className="fas fa-lock" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                    <span>Multi-layer encryption</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <i className="fas fa-map-marker-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                    <span>Location protected</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <i className="fas fa-eye-slash" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                    <span>Untraceable activity</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Message */}
+              <p style={{
+                fontSize: '12px',
+                marginTop: '24px',
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontStyle: 'italic'
+              }}>
+                Your connection is being routed through the Tor network for maximum privacy
+              </p>
+
+              <style>{`
+                @keyframes pulse {
+                  0%, 100% { transform: scale(1); }
+                  50% { transform: scale(1.05); }
+                }
+                @keyframes shimmer {
+                  0% { opacity: 0.6; }
+                  50% { opacity: 1; }
+                  100% { opacity: 0.6; }
+                }
+              `}</style>
+            </div>
+          )}
+          {!waitingForTor && walletScreen === 0 && (
             <div style={{
               display: 'flex',
               flexDirection: 'column',

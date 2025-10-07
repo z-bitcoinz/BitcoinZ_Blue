@@ -13,16 +13,32 @@ type ModalProps = {
 export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorModal }: ModalProps) {
   const [selected, setSelected] = useState("");
   const [custom, setCustom] = useState("");
+  const [currentServer, setCurrentServer] = useState("");
+  const [torStatus, setTorStatus] = useState<{status: string, progress: number, port: number}>({ status: 'stopped', progress: 0, port: 9050 });
 
   useEffect(() => {
     (async () => {
       const settings = await ipcRenderer.invoke("loadSettings");
       const server = settings?.lwd?.serveruri || "";
       setCustom(server);
-    })();
-  }, []);
+      setCurrentServer(server);
 
-  const switchServer = () => {
+      // Pre-select the matching radio button
+      const matchingServer = servers.find(s => s.uri === server);
+      if (matchingServer) {
+        setSelected(server);
+      } else if (server) {
+        // Custom server
+        setSelected("custom");
+      }
+
+      // Fetch Tor status
+      const status = await ipcRenderer.invoke("getTorStatus");
+      setTorStatus(status);
+    })();
+  }, [modalIsOpen]);
+
+  const switchServer = async () => {
     let serveruri = selected;
     if (serveruri === "custom") {
       serveruri = custom;
@@ -32,27 +48,35 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
     const selectedServer = servers.find(s => s.uri === serveruri);
     const isTor = selectedServer?.isTor || serveruri.includes(".onion");
 
-    ipcRenderer.invoke("saveSettings", { key: "lwd.serveruri", value: serveruri });
+    // Await all settings to ensure they're saved before closing modal
+    await ipcRenderer.invoke("saveSettings", { key: "lwd.serveruri", value: serveruri });
 
     // Enable proxy if Tor, disable otherwise
     if (isTor) {
-      ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: true });
-      ipcRenderer.invoke("saveSettings", { key: "proxy.url", value: "socks5://127.0.0.1:9050" });
+      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: true });
+      await ipcRenderer.invoke("saveSettings", { key: "proxy.url", value: "socks5://127.0.0.1:9050" });
     } else {
-      ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: false });
+      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: false });
     }
+
+    console.log("[ServerSelect] Settings saved:", { serveruri, isTor, proxyEnabled: isTor });
 
     closeModal();
 
-    setTimeout(() => {
-      openErrorModal("Restart BitcoinZ Wallet", "Please restart BitcoinZ Wallet to connect to the new server");
+    // Show brief message then restart automatically
+    setTimeout(async () => {
+      openErrorModal("Restarting Wallet", "Applying new server settings...");
+
+      // Wait a moment for message to show
+      setTimeout(async () => {
+        await ipcRenderer.invoke("restartApp");
+      }, 500);
     }, 10);
   };
 
   const servers = [
     { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
     { name: "BitcoinZ Local", uri: "http://localhost:9067" },
-    { name: "BitcoinZ Community (9067)", uri: "https://lightd.btcz.rocks:9067" },
     { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
     { name: "BitcoinZ Tor Hidden Service", uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067", isTor: true },
   ];
@@ -64,7 +88,9 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
     padding: '12px 20px',
     background: 'rgba(255, 255, 255, 0.15)',
     backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: '8px',
     color: 'white',
     fontSize: '14px',
@@ -131,9 +157,39 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
           Switch LightwalletD Server
         </div>
 
+        {/* Tor Status Indicator */}
+        <div style={{
+          background: torStatus.status === 'ready' ? 'rgba(76, 175, 80, 0.2)' : torStatus.status === 'starting' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(158, 158, 158, 0.2)',
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: torStatus.status === 'ready' ? 'rgba(76, 175, 80, 0.5)' : torStatus.status === 'starting' ? 'rgba(255, 193, 7, 0.5)' : 'rgba(158, 158, 158, 0.3)',
+          borderRadius: '6px',
+          padding: '10px 16px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: torStatus.status === 'ready' ? '#4CAF50' : torStatus.status === 'starting' ? '#FFC107' : '#9E9E9E'
+          }} />
+          <span style={{
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '600'
+          }}>
+            Tor: {torStatus.status === 'ready' ? 'Ready ✓' : torStatus.status === 'starting' ? `Starting... ${torStatus.progress}%` : 'Not Running'}
+          </span>
+        </div>
+
         <div style={{
           background: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
           borderRadius: '8px',
           padding: '20px',
           display: 'flex',
@@ -152,10 +208,25 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
                 type="radio"
                 name="server"
                 value={s.uri}
-                onClick={(e) => setSelected(e.currentTarget.value)}
+                checked={selected === s.uri}
+                onChange={(e) => setSelected(e.currentTarget.value)}
                 style={{ marginRight: '8px' }}
               />
-              <span style={{ fontWeight: '600' }}>{s.name}</span>
+              <span style={{ fontWeight: '600' }}>
+                {s.name}
+                {currentServer === s.uri && (
+                  <span style={{
+                    marginLeft: '8px',
+                    fontSize: '11px',
+                    background: 'rgba(76, 175, 80, 0.3)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    color: '#4CAF50'
+                  }}>
+                    ACTIVE
+                  </span>
+                )}
+              </span>
               <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}>- {s.uri}</span>
             </div>
           ))}
@@ -171,7 +242,8 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
               type="radio"
               name="server"
               value="custom"
-              onClick={(e) => setSelected(e.currentTarget.value)}
+              checked={selected === "custom"}
+              onChange={(e) => setSelected(e.currentTarget.value)}
               style={{ marginRight: '8px' }}
             />
             <span style={{ fontWeight: '600' }}>Custom Server:</span>
@@ -183,7 +255,9 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
               style={{
                 flex: 1,
                 background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
                 borderRadius: '6px',
                 padding: '8px 12px',
                 color: 'white',
@@ -199,7 +273,9 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
           justifyContent: 'center',
           gap: '12px',
           paddingTop: '20px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderTopWidth: '1px',
+          borderTopStyle: 'solid',
+          borderTopColor: 'rgba(255, 255, 255, 0.1)',
           marginTop: '16px'
         }}>
           <button

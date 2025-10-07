@@ -209,24 +209,26 @@ export function litelib_wallet_exists(chain_name: string): boolean {
   return native.litelib_wallet_exists(chain_name);
 }
 
-export function litelib_initialize_new(server_uri: string): string {
+export function litelib_initialize_new(server_uri: string, proxy_enabled: boolean, proxy_url: string): string {
   const native = loadNativeModule();
-  return native.litelib_initialize_new(server_uri);
+  return native.litelib_initialize_new(server_uri, proxy_enabled, proxy_url);
 }
 
 export function litelib_initialize_new_from_phrase(
   server_uri: string,
   seed: string,
   birthday: number,
-  overwrite: boolean
+  overwrite: boolean,
+  proxy_enabled: boolean,
+  proxy_url: string
 ): string {
   const native = loadNativeModule();
-  return native.litelib_initialize_new_from_phrase(server_uri, seed, birthday, overwrite);
+  return native.litelib_initialize_new_from_phrase(server_uri, seed, birthday, overwrite, proxy_enabled, proxy_url);
 }
 
-export function litelib_initialize_existing(server_uri: string): string {
+export function litelib_initialize_existing(server_uri: string, proxy_enabled: boolean, proxy_url: string): string {
   const native = loadNativeModule();
-  return native.litelib_initialize_existing(server_uri);
+  return native.litelib_initialize_existing(server_uri, proxy_enabled, proxy_url);
 }
 
 export function litelib_deinitialize(): string {
