@@ -85,20 +85,4 @@ if (!fs.existsSync(nativeLoaderPath)) {
   console.log('Post-build: Created native-loader.js wrapper in build directory');
 }
 
-// Strip existing signature from Tor binary on macOS to avoid code signing conflicts
-if (process.platform === 'darwin') {
-  const { execSync } = require('child_process');
-  const torBinary = path.join(__dirname, '..', 'resources', 'tor', 'darwin', 'tor');
-
-  if (fs.existsSync(torBinary)) {
-    try {
-      console.log('Post-build: Stripping signature from Tor binary...');
-      execSync(`codesign --remove-signature "${torBinary}"`, { stdio: 'inherit' });
-      console.log('Post-build: Successfully stripped Tor binary signature');
-    } catch (error) {
-      console.warn('Post-build: Warning - could not strip Tor signature:', error.message);
-    }
-  }
-}
-
 console.log('Post-build: Complete');

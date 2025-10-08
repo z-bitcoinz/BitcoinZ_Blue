@@ -178,8 +178,7 @@
   "build": {
     "productName": "BitcoinZ Blue",
     "appId": "com.bitcoinz.blue",
-    "afterPack": "./scripts/electron-hooks.js",
-    "afterSign": "./scripts/electron-hooks.js",
+    "afterSign": "./afterSignHook.js",
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
