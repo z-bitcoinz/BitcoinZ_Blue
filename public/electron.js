@@ -10,11 +10,14 @@ const os = require("os");
 const logFilePath = path.join(os.homedir(), 'BitcoinZ-Wallet-Tor.log');
 const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
 
-function logToFile(message) {
+function logToFile(...args) {
   const timestamp = new Date().toISOString();
+  const message = args.map(arg =>
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+  ).join(' ');
   const logMessage = `[${timestamp}] ${message}\n`;
   logStream.write(logMessage);
-  console.log(message); // Also log to console
+  console.log(...args); // Also log to console
 }
 
 logToFile('='.repeat(80));
