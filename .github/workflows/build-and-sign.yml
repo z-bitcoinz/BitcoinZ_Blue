@@ -96,6 +96,16 @@ jobs:
           cargo build --release --features embed_params
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
+      - name: Build Tor from source
+        run: |
+          echo "🔨 Building Tor from source for bundling..."
+          chmod +x scripts/build-tor.sh
+
+          # Build Tor (will be signed later if certificate available)
+          ./scripts/build-tor.sh
+
+          echo "✅ Tor build complete"
+
       - name: Import Apple Developer Certificate
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         env:
@@ -107,7 +117,7 @@ jobs:
             echo "⚠️  No Apple certificate provided, will use ad-hoc signing"
             exit 0
           fi
-          
+
           echo "🔐 Importing Apple Developer Certificate..."
           
           # Create variables
@@ -141,7 +151,33 @@ jobs:
             echo "❌ Failed to find Developer ID Application certificate"
             exit 1
           fi
-          
+
+      - name: Sign Tor binary
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          # Find the certificate identity
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+
+          if [ -n "$IDENTITY" ]; then
+            echo "🔐 Signing Tor binary with Developer ID..."
+
+            # Ensure keychain is unlocked
+            security unlock-keychain -p "mysecretpassword" build.keychain
+
+            # Sign Tor binary
+            codesign --force \
+              --sign "$IDENTITY" \
+              --options runtime \
+              --timestamp \
+              resources/tor/darwin/tor
+
+            # Verify signature
+            echo "✅ Tor binary signed successfully"
+            codesign -dv resources/tor/darwin/tor 2>&1 | grep -E "Authority|Signature|Runtime"
+          else
+            echo "⚠️  No Developer ID found, Tor binary will remain unsigned"
+          fi
+
       - name: Build macOS app with proper signing
         env:
           # Provide certificate for electron-builder
@@ -330,13 +366,13 @@ jobs:
               # Check if notarization failed
               if echo "$NOTARIZE_OUTPUT" | grep -q "status: Invalid"; then
                 echo "❌ Notarization failed! Fetching detailed log..."
-                
+
                 # Get the detailed error log
                 xcrun notarytool log "$SUBMISSION_ID" \
                   --apple-id "$APPLE_ID" \
                   --password "$APPLE_ID_PASSWORD" \
                   --team-id "$APPLE_TEAM_ID" || true
-                
+
                 echo "❌ Notarization was marked as Invalid by Apple"
                 echo "Common issues:"
                 echo "- Components signed with ad-hoc instead of Developer ID"
