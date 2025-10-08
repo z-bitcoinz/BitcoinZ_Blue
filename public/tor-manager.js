@@ -39,9 +39,9 @@ class TorManager {
       return torBinary;
     }
 
-    // Production: use bundled Tor from unpacked resources
+    // Production: use bundled Tor from extraResources
     const resourcesPath = process.resourcesPath;
-    const torPath = path.join(resourcesPath, 'app.asar.unpacked', 'resources', 'tor', platform, torBinary);
+    const torPath = path.join(resourcesPath, 'tor', platform, torBinary);
 
     return torPath;
   }

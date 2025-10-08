@@ -182,15 +182,19 @@
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
-      "node_modules/**/*",
-      "resources/**/*"
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/tor",
+        "to": "tor"
+      }
     ],
     "asarUnpack": [
       "src/native.node",
       "build/native.node",
       "build/native-*.node",
       "build/static/js/native-*.node",
-      "resources/tor/**/*",
       "lib/zcash-params/*",
       "public/tor-manager.js"
     ],
