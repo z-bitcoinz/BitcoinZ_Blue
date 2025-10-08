@@ -789,7 +789,13 @@ app.whenReady().then(async () => {
   const allSettings = await settings.get("all");
   const proxyEnabled = allSettings?.proxy?.enabled || false;
 
-  // Start Tor if proxy is enabled
+  // Create window FIRST
+  createWindow();
+
+  // Set mainWindow reference on torManager for IPC events
+  torManager.setMainWindow(mainWindow);
+
+  // Start Tor AFTER window is created and mainWindow is set
   if (proxyEnabled) {
     console.log("[Electron] Proxy enabled, starting Tor...");
     try {
@@ -801,11 +807,6 @@ app.whenReady().then(async () => {
   } else {
     console.log("[Electron] Proxy disabled, Tor will not start");
   }
-
-  createWindow();
-
-  // Set mainWindow reference on torManager for IPC events
-  torManager.setMainWindow(mainWindow);
 });
 
 // Stop Tor when app is quitting
