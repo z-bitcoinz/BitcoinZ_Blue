@@ -199,45 +199,51 @@ Log notice stdout
       // Handle Tor output to track bootstrap progress
       this.torProcess.stdout.on('data', (data) => {
         const output = data.toString();
-        console.log('[Tor]', output.trim());
+        log('[Tor]', output.trim());
 
         // Parse bootstrap progress
         const bootstrapMatch = output.match(/Bootstrapped (\d+)%/);
         if (bootstrapMatch) {
           this.bootstrapProgress = parseInt(bootstrapMatch[1]);
-          console.log(`[TorManager] Bootstrap progress: ${this.bootstrapProgress}%`);
+          log(`[TorManager] Bootstrap progress: ${this.bootstrapProgress}%`);
 
           // Send progress update to renderer
           if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            log('[TorManager] Sending tor-bootstrap-progress to renderer:', this.bootstrapProgress);
             this.mainWindow.webContents.send('tor-bootstrap-progress', {
               progress: this.bootstrapProgress,
               status: this.status
             });
+          } else {
+            log('[TorManager] WARNING: Cannot send progress - mainWindow null or destroyed');
           }
 
           if (this.bootstrapProgress === 100) {
             this.status = 'ready';
-            console.log('[TorManager] Tor is ready!');
+            log('[TorManager] Tor is ready!');
 
             // Send ready event to renderer
             if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+              log('[TorManager] Sending tor-ready to renderer');
               this.mainWindow.webContents.send('tor-ready');
+            } else {
+              log('[TorManager] WARNING: Cannot send tor-ready - mainWindow null or destroyed');
             }
           }
         }
       });
 
       this.torProcess.stderr.on('data', (data) => {
-        console.error('[Tor Error]', data.toString().trim());
+        log('[Tor Error]', data.toString().trim());
       });
 
       this.torProcess.on('error', (err) => {
-        console.error('[TorManager] Failed to start Tor:', err.message);
+        log('[TorManager] Failed to start Tor:', err.message);
         this.status = 'error';
       });
 
       this.torProcess.on('exit', (code) => {
-        console.log(`[TorManager] Tor process exited with code ${code}`);
+        log(`[TorManager] Tor process exited with code ${code}`);
         this.status = 'stopped';
         this.torProcess = null;
       });
