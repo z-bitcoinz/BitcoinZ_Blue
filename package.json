@@ -182,7 +182,8 @@
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "resources/**/*"
     ],
     "asarUnpack": [
       "src/native.node",
