@@ -178,7 +178,8 @@
   "build": {
     "productName": "BitcoinZ Blue",
     "appId": "com.bitcoinz.blue",
-    "afterSign": "./afterSignHook.js",
+    "afterPack": "./scripts/electron-hooks.js",
+    "afterSign": "./scripts/electron-hooks.js",
     "afterAllArtifactBuild": "./afterSignHook.js",
     "files": [
       "build/**/*",
@@ -235,10 +236,7 @@
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.minimal.plist",
       "entitlementsInherit": "./configs/entitlements.mac.minimal.plist",
-      "notarize": false,
-      "binaries": [
-        "!Contents/Resources/tor/**/*"
-      ]
+      "notarize": false
     },
     "dmg": {
       "sign": false,
