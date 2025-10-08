@@ -235,7 +235,10 @@
       "gatekeeperAssess": false,
       "entitlements": "./configs/entitlements.mac.minimal.plist",
       "entitlementsInherit": "./configs/entitlements.mac.minimal.plist",
-      "notarize": false
+      "notarize": false,
+      "binaries": [
+        "!Contents/Resources/tor/**/*"
+      ]
     },
     "dmg": {
       "sign": false,
