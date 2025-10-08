@@ -34,14 +34,58 @@ class TorManager {
       torBinary = 'tor';
     }
 
+    if (this.logToFile) {
+      this.logToFile(`[TorManager] getTorPath - isDev: ${isDev}, platform: ${platform}`);
+    }
+
     if (isDev) {
       // Development: use system Tor if available
+      if (this.logToFile) {
+        this.logToFile(`[TorManager] Using system Tor: ${torBinary}`);
+      }
       return torBinary;
     }
 
     // Production: use bundled Tor from extraResources
     const resourcesPath = process.resourcesPath;
     const torPath = path.join(resourcesPath, 'tor', platform, torBinary);
+
+    if (this.logToFile) {
+      this.logToFile(`[TorManager] Production Tor path: ${torPath}`);
+
+      // Check if file exists
+      const fs = require('fs');
+      const exists = fs.existsSync(torPath);
+      this.logToFile(`[TorManager] Tor binary exists: ${exists}`);
+
+      if (exists) {
+        const stats = fs.statSync(torPath);
+        this.logToFile(`[TorManager] Tor binary size: ${stats.size} bytes`);
+        this.logToFile(`[TorManager] Tor binary executable: ${(stats.mode & 0o111) !== 0}`);
+      } else {
+        // List what's actually in the directory
+        const torDir = path.join(resourcesPath, 'tor');
+        try {
+          if (fs.existsSync(torDir)) {
+            const files = fs.readdirSync(torDir);
+            this.logToFile(`[TorManager] Contents of tor directory: ${JSON.stringify(files)}`);
+
+            const platformDir = path.join(torDir, platform);
+            if (fs.existsSync(platformDir)) {
+              const platformFiles = fs.readdirSync(platformDir);
+              this.logToFile(`[TorManager] Contents of tor/${platform}: ${JSON.stringify(platformFiles)}`);
+            } else {
+              this.logToFile(`[TorManager] Platform directory does not exist: ${platformDir}`);
+            }
+          } else {
+            this.logToFile(`[TorManager] Tor directory does not exist: ${torDir}`);
+            this.logToFile(`[TorManager] Resources path contents: ${JSON.stringify(fs.readdirSync(resourcesPath))}`);
+          }
+        } catch (err) {
+          this.logToFile(`[TorManager] Error listing directories: ${err.message}`);
+        }
+      }
+    }
 
     return torPath;
   }
@@ -107,18 +151,22 @@ Log notice stdout
    * Start the bundled Tor process
    */
   async start(app, isDev = false) {
-    console.log('[TorManager] Starting Tor...');
+    const log = this.logToFile || console.log;
+    log('[TorManager] Starting Tor...');
 
     // Check if Tor is already running
     const alreadyRunning = await this.isTorRunning();
     if (alreadyRunning) {
-      console.log(`[TorManager] Tor already running on port ${this.port}`);
+      log(`[TorManager] Tor already running on port ${this.port}`);
       this.status = 'ready';
       this.bootstrapProgress = 100;
 
       // Send ready event to renderer
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        log('[TorManager] Sending tor-ready event to renderer');
         this.mainWindow.webContents.send('tor-ready');
+      } else {
+        log('[TorManager] WARNING: mainWindow is null or destroyed, cannot send tor-ready event');
       }
 
       return { success: true, message: 'Tor already running' };
@@ -129,13 +177,13 @@ Log notice stdout
       const torDataDir = this.getTorDataDir(app);
       const torrcPath = this.createTorrc(torDataDir);
 
-      console.log('[TorManager] Tor binary:', torPath);
-      console.log('[TorManager] Tor data dir:', torDataDir);
-      console.log('[TorManager] Torrc:', torrcPath);
+      log('[TorManager] Tor binary:', torPath);
+      log('[TorManager] Tor data dir:', torDataDir);
+      log('[TorManager] Torrc:', torrcPath);
 
       // Check if Tor binary exists (in production)
       if (!isDev && !fs.existsSync(torPath)) {
-        console.error('[TorManager] Tor binary not found:', torPath);
+        log('[TorManager] ERROR: Tor binary not found:', torPath);
         this.status = 'error';
         return { success: false, message: 'Tor binary not found' };
       }

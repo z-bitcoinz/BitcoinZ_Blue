@@ -4,6 +4,25 @@ const path = require("path");
 const fs = require("fs");
 const settings = require("electron-settings");
 const TorManager = require("./tor-manager");
+const os = require("os");
+
+// File logging setup for debugging production builds
+const logFilePath = path.join(os.homedir(), 'BitcoinZ-Wallet-Tor.log');
+const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+
+function logToFile(message) {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}\n`;
+  logStream.write(logMessage);
+  console.log(message); // Also log to console
+}
+
+logToFile('='.repeat(80));
+logToFile('BitcoinZ Wallet Starting');
+logToFile(`isDev: ${isDev}`);
+logToFile(`Platform: ${process.platform}`);
+logToFile(`App Path: ${app.getAppPath()}`);
+logToFile(`Log file: ${logFilePath}`);
 
 // Fix for native module loading in production builds
 let native;
@@ -459,9 +478,9 @@ if (isDev) {
 let mainWindow = null;
 
 function createWindow() {
-  console.log(`Creating window - isDev: ${isDev}, platform: ${process.platform}`);
-  console.log(`__dirname: ${__dirname}`);
-  console.log(`process.resourcesPath: ${process.resourcesPath}`);
+  logToFile(`Creating window - isDev: ${isDev}, platform: ${process.platform}`);
+  logToFile(`__dirname: ${__dirname}`);
+  logToFile(`process.resourcesPath: ${process.resourcesPath}`);
 
   mainWindow = new BrowserWindow({
     width: 901,
@@ -477,14 +496,27 @@ function createWindow() {
     },
   });
 
+  // Open DevTools in production for debugging (Cmd+Option+I)
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.meta && input.alt && input.key.toLowerCase() === 'i') {
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
+
+  // Auto-open DevTools in production builds for debugging
+  if (!isDev) {
+    logToFile('Opening DevTools for production debugging');
+    mainWindow.webContents.openDevTools();
+  }
+
   // Load from localhost if in development
   // Otherwise load index.html file
   const indexPath = isDev ? "http://localhost:3000" : `file://${path.join(__dirname, "index.html")}`;
-  console.log(`Loading from: ${indexPath}`);
-  
+  logToFile(`Loading from: ${indexPath}`);
+
   // Show window when ready (fixes Linux visibility issue)
   mainWindow.once('ready-to-show', () => {
-    console.log('Window ready to show');
+    logToFile('Window ready to show');
     mainWindow.show();
     mainWindow.focus();
   });
@@ -788,24 +820,31 @@ app.whenReady().then(async () => {
   // Check if proxy is enabled in settings
   const allSettings = await settings.get("all");
   const proxyEnabled = allSettings?.proxy?.enabled || false;
+  logToFile(`Proxy enabled: ${proxyEnabled}`);
+  logToFile(`Settings: ${JSON.stringify(allSettings?.proxy || {})}`);
 
   // Create window FIRST
   createWindow();
 
   // Set mainWindow reference on torManager for IPC events
   torManager.setMainWindow(mainWindow);
+  logToFile('mainWindow set on torManager');
+
+  // Expose logToFile to torManager
+  torManager.logToFile = logToFile;
 
   // Start Tor AFTER window is created and mainWindow is set
   if (proxyEnabled) {
-    console.log("[Electron] Proxy enabled, starting Tor...");
+    logToFile("[Electron] Proxy enabled, starting Tor...");
     try {
       await torManager.start(app, isDev);
-      console.log("[Electron] Tor started successfully");
+      logToFile("[Electron] Tor started successfully");
     } catch (error) {
-      console.error("[Electron] Failed to start Tor:", error);
+      logToFile(`[Electron] Failed to start Tor: ${error.message}`);
+      logToFile(`Stack: ${error.stack}`);
     }
   } else {
-    console.log("[Electron] Proxy disabled, Tor will not start");
+    logToFile("[Electron] Proxy disabled, Tor will not start");
   }
 });
 
