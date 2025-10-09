@@ -12,10 +12,28 @@ type ModalProps = {
 
 // Define servers outside component to avoid re-creating on each render
 const servers = [
-  { name: "BitcoinZ (Default)", uri: Utils.V3_LIGHTWALLETD },
-  { name: "BitcoinZ Local", uri: "http://localhost:9067" },
-  { name: "BitcoinZ Community (443)", uri: "https://lightd.btcz.rocks:443" },
-  { name: "BitcoinZ Tor Hidden Service", uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067", isTor: true },
+  {
+    name: "BitcoinZ Official (Default)",
+    uri: Utils.V3_LIGHTWALLETD,
+    description: "Official BitcoinZ server - Fast and reliable",
+    privacyNote: "⚠️ Your ISP can see you're connecting to BitcoinZ",
+    icon: "fa-server"
+  },
+  {
+    name: "BitcoinZ Tor Network",
+    uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067",
+    isTor: true,
+    description: "Maximum privacy through Tor network",
+    privacyNote: "✓ Complete anonymity - Hidden IP and location",
+    icon: "fa-user-secret"
+  },
+  {
+    name: "Local Server",
+    uri: "http://localhost:9067",
+    description: "Connect to your own lightwalletd server",
+    privacyNote: "💡 For advanced users running their own node",
+    icon: "fa-home"
+  },
 ];
 
 export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorModal }: ModalProps) {
@@ -195,40 +213,76 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px'
+          gap: '16px'
         }}>
           {servers.map((s) => (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '14px'
-            }} key={s.uri}>
-              <input
-                type="radio"
-                name="server"
-                value={s.uri}
-                checked={selected === s.uri}
-                onChange={(e) => setSelected(e.currentTarget.value)}
-                style={{ marginRight: '8px' }}
-              />
-              <span style={{ fontWeight: '600' }}>
-                {s.name}
-                {currentServer === s.uri && (
-                  <span style={{
-                    marginLeft: '8px',
-                    fontSize: '11px',
-                    background: 'rgba(76, 175, 80, 0.3)',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    color: '#4CAF50'
+            <div
+              key={s.uri}
+              style={{
+                background: selected === s.uri ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: selected === s.uri ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                padding: '16px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onClick={() => setSelected(s.uri)}
+              onMouseEnter={(e) => {
+                if (selected !== s.uri) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selected !== s.uri) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                }
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <input
+                  type="radio"
+                  name="server"
+                  value={s.uri}
+                  checked={selected === s.uri}
+                  onChange={(e) => setSelected(e.currentTarget.value)}
+                  style={{ marginTop: '4px', cursor: 'pointer' }}
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <i className={`fas ${s.icon}`} style={{ color: '#86EFAC', fontSize: '16px' }} />
+                    <span style={{ fontWeight: '700', fontSize: '15px', color: 'white' }}>
+                      {s.name}
+                    </span>
+                    {currentServer === s.uri && (
+                      <span style={{
+                        fontSize: '10px',
+                        background: 'rgba(76, 175, 80, 0.3)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        color: '#4CAF50',
+                        fontWeight: '600'
+                      }}>
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '6px' }}>
+                    {s.description}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '6px', fontStyle: 'italic' }}>
+                    {s.uri}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: s.privacyNote.startsWith('✓') ? '#86EFAC' : s.privacyNote.startsWith('⚠️') ? '#FFC107' : '#64B5F6',
+                    fontWeight: '500'
                   }}>
-                    ACTIVE
-                  </span>
-                )}
-              </span>
-              <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}>- {s.uri}</span>
+                    {s.privacyNote}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
 
