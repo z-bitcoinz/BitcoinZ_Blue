@@ -590,7 +590,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   render() {
-    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday, waitingForTor, torBootstrapProgress } =
+    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday, waitingForTor, torBootstrapProgress, showFirstTimeServerSetup } =
       this.state;
 
     const { openServerSelectModal } = this.props;
