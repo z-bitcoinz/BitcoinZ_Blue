@@ -108,7 +108,7 @@
 }
 
 .sectionTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: white;
   margin: 0 0 16px 0;
@@ -592,11 +592,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  margin-bottom: 12px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -618,7 +618,7 @@
 .securityLabel {
   font-weight: 600;
   color: white;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .securityDescription {
@@ -631,21 +631,22 @@
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .setupButton, .changeButton, .removeButton {
-  padding: 12px 20px;
-  border-radius: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: 13px;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 100px;
+  min-width: 80px;
   text-align: center;
 }
 
@@ -657,13 +658,13 @@
 
 .setupButton:hover {
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
   border-color: rgba(34, 197, 94, 0.5);
 }
 
 .setupButton:active {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(0);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
@@ -675,13 +676,13 @@
 
 .changeButton:hover {
   background: linear-gradient(135deg, #357abd 0%, #2563eb 100%);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
   border-color: rgba(74, 144, 226, 0.5);
 }
 
 .changeButton:active {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(0);
   box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
 }
 
@@ -693,13 +694,13 @@
 
 .removeButton:hover {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
   border-color: rgba(239, 68, 68, 0.5);
 }
 
 .removeButton:active {
-  transform: translateY(-1px) scale(1.01);
+  transform: translateY(0);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 

@@ -207,12 +207,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className={styles.securityInfo}>
                   <span className={styles.securityLabel}>Lightwalletd Server</span>
                   <span className={styles.securityDescription}>
-                    Change your connection server (Official, Tor, or Local)
+                    Change your connection server
                   </span>
                 </div>
                 <div className={styles.securityActions}>
                   <button
-                    className={styles.setupButton}
+                    className={styles.changeButton}
                     onClick={() => {
                       openServerSelectModal();
                     }}
