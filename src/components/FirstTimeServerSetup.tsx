@@ -62,7 +62,8 @@ const servers = [
 
 export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: Props) {
   const [selected, setSelected] = useState(Utils.V3_LIGHTWALLETD);
-  const [torStatus, setTorStatus] = useState<{status: string, progress: number}>({ status: 'stopped', progress: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_torStatus, setTorStatus] = useState<{status: string, progress: number}>({ status: 'stopped', progress: 0 });
 
   useEffect(() => {
     if (modalIsOpen) {
