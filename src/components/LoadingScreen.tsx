@@ -10,6 +10,7 @@ import RPC from "../rpc";
 import Logo from "../assets/img/logobig.png";
 import Utils from "../utils/utils";
 import { ParamManager } from "../utils/paramManager";
+import FirstTimeServerSetup from "./FirstTimeServerSetup";
 
 const { ipcRenderer } = window.require("electron");
 
@@ -46,6 +47,9 @@ class LoadingScreenState {
   torReady: boolean;
   waitingForTor: boolean;
 
+  // First-time server setup
+  showFirstTimeServerSetup: boolean;
+
   constructor() {
     this.currentStatus = "Loading...";
     this.currentStatusIsError = false;
@@ -64,6 +68,7 @@ class LoadingScreenState {
     this.torStatus = 'stopped';
     this.torReady = false;
     this.waitingForTor = false;
+    this.showFirstTimeServerSetup = false;
   }
 }
 
@@ -177,6 +182,17 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   doFirstTimeSetup = async () => {
+    // Check if user has selected a server before
+    const settings = await ipcRenderer.invoke("loadSettings");
+    const hasSelectedServer = settings?.hasSelectedServer || false;
+
+    // If this is first time and no server selected, show server selection modal
+    if (!hasSelectedServer) {
+      console.log('[LoadingScreen] First time setup - showing server selection');
+      this.setState({ showFirstTimeServerSetup: true });
+      return;
+    }
+
     await this.loadServerURI();
 
     // Check if Tor is enabled and wait for it if necessary
@@ -221,6 +237,15 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
 
     // Proceed with wallet setup (only when Tor is disabled)
     this.proceedWithWalletSetup();
+  };
+
+  handleFirstTimeServerSelected = async (serverUri: string) => {
+    console.log('[LoadingScreen] Server selected:', serverUri);
+    this.setState({ showFirstTimeServerSetup: false });
+
+    // Now continue with the normal setup flow
+    await this.loadServerURI();
+    await this.doFirstTimeSetup();
   };
 
   proceedWithWalletSetup = async () => {
@@ -1384,6 +1409,12 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               </div>
             </div>
           )}
+
+          {/* First-Time Server Setup Modal */}
+          <FirstTimeServerSetup
+            modalIsOpen={showFirstTimeServerSetup}
+            onServerSelected={this.handleFirstTimeServerSelected}
+          />
         </div>
       );
     }

@@ -19,9 +19,10 @@ type TopMenuBarProps = {
   onWalletSettingsChange?: (settings: WalletSettings) => void;
   addressBook?: AddressBookEntry[];
   addAddressBookEntry?: (label: string, address: string) => void;
+  openServerSelectModal?: () => void;
 };
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry, openServerSelectModal }) => {
   const history = useHistory();
   const { hasPin, isLocked, lock } = useLock();
   const [showSettings, setShowSettings] = useState(false);
@@ -177,6 +178,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
           onWalletSettingsChange={onWalletSettingsChange}
           addressBook={addressBook}
           addAddressBookEntry={addAddressBookEntry}
+          openServerSelectModal={openServerSelectModal}
         />
       )}
       <Modal

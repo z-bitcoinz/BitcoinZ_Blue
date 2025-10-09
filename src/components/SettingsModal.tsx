@@ -14,6 +14,7 @@ type SettingsModalProps = {
   onWalletSettingsChange: (settings: WalletSettings) => void;
   addressBook?: AddressBookEntry[];
   addAddressBookEntry?: (label: string, address: string) => void;
+  openServerSelectModal?: () => void;
 };
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -23,7 +24,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   walletSettings,
   onWalletSettingsChange,
   addressBook,
-  addAddressBookEntry
+  addAddressBookEntry,
+  openServerSelectModal
 }) => {
   const { hasPin, getSettings, updateSettings, setPin, removePin } = useLock();
 
@@ -194,6 +196,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
 
         <div className={styles.tabContent}>
+          {/* Network Settings Section */}
+          {openServerSelectModal && (
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>
+                <i className="fas fa-network-wired" /> Network Settings
+              </h3>
+
+              <div className={styles.securityItem}>
+                <div className={styles.securityInfo}>
+                  <span className={styles.securityLabel}>Lightwalletd Server</span>
+                  <span className={styles.securityDescription}>
+                    Change your connection server (Official, Tor, or Local)
+                  </span>
+                </div>
+                <div className={styles.securityActions}>
+                  <button
+                    className={styles.setupButton}
+                    onClick={() => {
+                      openServerSelectModal();
+                    }}
+                  >
+                    <i className="fas fa-server" /> Switch Server
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Wallet Security Section */}
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>

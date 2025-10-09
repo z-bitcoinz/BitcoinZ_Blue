@@ -569,13 +569,14 @@ export default class RouteApp extends React.Component<Props, AppState> {
         <div style={{ overflow: "hidden" }}>
           {/* Top Menu Bar - Always visible when wallet is loaded */}
           {hasLatestBlock && (
-            <TopMenuBarWithLocation 
-              info={info} 
+            <TopMenuBarWithLocation
+              info={info}
               onCurrencyChange={this.handleCurrencyChange}
               walletSettings={walletSettings}
               onWalletSettingsChange={this.setWalletSettings}
               addressBook={addressBook}
               addAddressBookEntry={this.addAddressBookEntry}
+              openServerSelectModal={this.openServerSelectModal}
             />
           )}
 
@@ -691,14 +692,15 @@ export default class RouteApp extends React.Component<Props, AppState> {
 }
 
 // Helper component to get current location and pass page title
-const TopMenuBarWithLocation: React.FC<{ 
-  info: Info; 
+const TopMenuBarWithLocation: React.FC<{
+  info: Info;
   onCurrencyChange?: (currency: string) => void;
   walletSettings?: WalletSettings;
   onWalletSettingsChange?: (settings: WalletSettings) => void;
   addressBook?: AddressBookEntry[];
   addAddressBookEntry?: (label: string, address: string) => void;
-}> = ({ info, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry }) => {
+  openServerSelectModal?: () => void;
+}> = ({ info, onCurrencyChange, walletSettings, onWalletSettingsChange, addressBook, addAddressBookEntry, openServerSelectModal }) => {
   const location = useLocation();
 
   const getPageTitle = (pathname: string): string | undefined => {
@@ -723,14 +725,15 @@ const TopMenuBarWithLocation: React.FC<{
   };
 
   return (
-    <TopMenuBar 
-      info={info} 
-      pageTitle={getPageTitle(location.pathname)} 
+    <TopMenuBar
+      info={info}
+      pageTitle={getPageTitle(location.pathname)}
       onCurrencyChange={onCurrencyChange}
       walletSettings={walletSettings}
       onWalletSettingsChange={onWalletSettingsChange}
       addressBook={addressBook}
       addAddressBookEntry={addAddressBookEntry}
+      openServerSelectModal={openServerSelectModal}
     />
   );
 };
