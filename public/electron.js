@@ -506,11 +506,6 @@ function createWindow() {
     }
   });
 
-  // Auto-open DevTools in production builds for debugging
-  if (!isDev) {
-    logToFile('Opening DevTools for production debugging');
-    mainWindow.webContents.openDevTools();
-  }
 
   // Load from localhost if in development
   // Otherwise load index.html file
