@@ -39,7 +39,7 @@ const servers = [
       "Untraceable network activity"
     ],
     privacyLevel: "Maximum Privacy",
-    privacyDetails: "Your connection is routed through the Tor network. No one can see your IP address, location, or that you're using BitcoinZ.",
+    privacyDetails: "Your connection is routed through the Tor network. Wallet will start Tor automatically (10-20 seconds on first launch).",
     technicalNote: "Slightly slower due to Tor routing"
   },
   {
@@ -55,7 +55,7 @@ const servers = [
       "Maximum decentralization"
     ],
     privacyLevel: "Self-Hosted",
-    privacyDetails: "Connect to your own lightwalletd server running on this computer. You must have already set up and running your own node.",
+    privacyDetails: "Connect to your own lightwalletd server (e.g., http://localhost:9067). You must have already set up and running your own node.",
     technicalNote: "Requires technical knowledge"
   }
 ];
@@ -100,7 +100,7 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
     borderStyle: 'solid',
     borderColor: selected === serverUri ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.15)',
     borderRadius: '10px',
-    padding: '16px',
+    padding: '12px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     position: 'relative' as const,
@@ -121,7 +121,7 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backgroundColor: 'transparent',
           zIndex: 10000
         },
         content: {
@@ -132,10 +132,10 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
           borderRadius: '12px',
-          padding: '24px',
-          maxWidth: '950px',
-          width: '92%',
-          maxHeight: '85vh',
+          padding: '20px',
+          maxWidth: '1000px',
+          width: '95%',
+          maxHeight: '78vh',
           overflow: 'auto',
           zIndex: 10001,
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
@@ -144,11 +144,11 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
     >
       <div style={{ color: 'white' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '6px', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>
             Choose Your Connection Type
           </h2>
-          <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.5', maxWidth: '650px', margin: '0 auto' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.4', maxWidth: '650px', margin: '0 auto' }}>
             Select how you want to connect to the BitcoinZ network
           </p>
         </div>
@@ -156,9 +156,9 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
         {/* Server Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '12px',
-          marginBottom: '20px'
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '10px',
+          marginBottom: '16px'
         }}>
           {servers.map((server) => (
             <div
@@ -213,23 +213,20 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               </div>
 
               {/* Icon and Title */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ marginBottom: '8px' }}>
-                  <i className={`fas ${server.icon}`} style={{ fontSize: '36px', color: server.iconColor }} />
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <i className={`fas ${server.icon}`} style={{ fontSize: '28px', color: server.iconColor }} />
                 </div>
-                <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '3px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '0px' }}>
                   {server.name}
                 </h3>
-                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', fontStyle: 'italic' }}>
-                  {server.title}
-                </p>
               </div>
 
-              {/* Benefits */}
-              <div style={{ marginBottom: '10px', flex: 1 }}>
-                {server.benefits.map((benefit, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', fontSize: '13px' }}>
-                    <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '8px', fontSize: '12px' }} />
+              {/* Benefits - Show only first 2 */}
+              <div style={{ marginBottom: '8px', flex: 1 }}>
+                {server.benefits.slice(0, 2).map((benefit, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', fontSize: '12px' }}>
+                    <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '6px', fontSize: '11px' }} />
                     <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{benefit}</span>
                   </div>
                 ))}
@@ -238,21 +235,15 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               {/* Privacy Level */}
               <div style={{
                 background: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '6px',
-                padding: '8px 10px',
-                marginBottom: '8px'
+                borderRadius: '5px',
+                padding: '6px 8px'
               }}>
-                <div style={{ fontSize: '10px', color: '#86EFAC', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: '9px', color: '#86EFAC', fontWeight: '700', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {server.privacyLevel}
                 </div>
-                <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.3' }}>
+                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.2' }}>
                   {server.privacyDetails}
                 </div>
-              </div>
-
-              {/* Technical Note */}
-              <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
-                💡 {server.technicalNote}
               </div>
 
               {/* Selection Indicator */}
@@ -277,38 +268,12 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           ))}
         </div>
 
-        {/* Tor Warning */}
-        {servers.find(s => s.uri === selected)?.isTor && torStatus.status !== 'ready' && (
-          <div style={{
-            background: 'rgba(255, 193, 7, 0.2)',
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            borderColor: 'rgba(255, 193, 7, 0.5)',
-            borderRadius: '6px',
-            padding: '12px',
-            marginBottom: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <i className="fas fa-exclamation-triangle" style={{ color: '#FFC107', fontSize: '18px' }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: '600', marginBottom: '3px', fontSize: '13px' }}>Tor Network Required</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.3' }}>
-                The wallet will automatically start Tor when you continue. This may take 10-20 seconds on first launch.
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Footer */}
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          paddingTop: '16px',
-          borderTopWidth: '1px',
-          borderTopStyle: 'solid',
-          borderTopColor: 'rgba(255, 255, 255, 0.1)'
+          paddingTop: '16px'
         }}>
           <button
             type="button"
