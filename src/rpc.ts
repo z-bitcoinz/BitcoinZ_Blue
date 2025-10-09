@@ -79,7 +79,7 @@ export default class RPC {
     this.rpcConfig = rpcConfig;
 
     if (!this.refreshTimerID) {
-      this.refreshTimerID = setInterval(() => this.refresh(false), 60 * 1000); // 1 min
+      this.refreshTimerID = setInterval(() => this.refresh(false), 20 * 1000); // 20 sec - faster confirmation updates
     }
 
     if (!this.updateTimerId) {
@@ -145,6 +145,12 @@ export default class RPC {
   static doSave() {
     const savestr = RPC.getNative().litelib_execute("save", "");
     console.log(`Save status: ${savestr}`);
+  }
+
+  static doShield(address?: string): { txid?: string; error?: string } {
+    const shieldStr = RPC.getNative().litelib_execute("shield", address || "");
+    console.log(`Shield exec result: ${shieldStr}`);
+    return JSON.parse(shieldStr);
   }
 
   static deinitialize() {

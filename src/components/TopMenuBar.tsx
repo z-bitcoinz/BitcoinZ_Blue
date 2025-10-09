@@ -118,11 +118,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ info, pageTitle, onCurrencyChan
     <>
       <div className={styles.topMenuBar}>
         <div className={styles.statusContainer}>
-          {pageTitle && (
-            <div className={styles.pageTitle}>
-              {pageTitle}
-            </div>
-          )}
+          <div className={styles.pageTitle}>
+            {pageTitle || '\u00A0'}
+          </div>
           <div className={styles.rightSection}>
             {showPriceInHeader && formatPrice() && (
               <div className={styles.priceDisplay}>

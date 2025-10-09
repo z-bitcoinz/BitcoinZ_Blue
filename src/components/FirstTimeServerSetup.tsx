@@ -39,7 +39,7 @@ const servers = [
       "Untraceable network activity"
     ],
     privacyLevel: "Maximum Privacy",
-    privacyDetails: "Your connection is routed through the Tor network. No one can see your IP address, location, or that you're using BitcoinZ.",
+    privacyDetails: "Your connection is routed through the Tor network. Wallet will start Tor automatically (10-20 seconds on first launch).",
     technicalNote: "Slightly slower due to Tor routing"
   },
   {
@@ -55,14 +55,15 @@ const servers = [
       "Maximum decentralization"
     ],
     privacyLevel: "Self-Hosted",
-    privacyDetails: "Connect to your own lightwalletd server running on this computer. You must have already set up and running your own node.",
+    privacyDetails: "Connect to your own lightwalletd server (e.g., http://localhost:9067). You must have already set up and running your own node.",
     technicalNote: "Requires technical knowledge"
   }
 ];
 
 export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: Props) {
   const [selected, setSelected] = useState(Utils.V3_LIGHTWALLETD);
-  const [torStatus, setTorStatus] = useState<{status: string, progress: number}>({ status: 'stopped', progress: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_torStatus, setTorStatus] = useState<{status: string, progress: number}>({ status: 'stopped', progress: 0 });
 
   useEffect(() => {
     if (modalIsOpen) {
@@ -99,8 +100,8 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
     borderWidth: '2px',
     borderStyle: 'solid',
     borderColor: selected === serverUri ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.15)',
-    borderRadius: '12px',
-    padding: '24px',
+    borderRadius: '10px',
+    padding: '12px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     position: 'relative' as const,
@@ -121,7 +122,7 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backgroundColor: 'transparent',
           zIndex: 10000
         },
         content: {
@@ -131,11 +132,11 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           transform: 'translate(-50%, -50%)',
           background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '16px',
-          padding: '32px',
-          maxWidth: '1100px',
+          borderRadius: '12px',
+          padding: '20px',
+          maxWidth: '1000px',
           width: '95%',
-          maxHeight: '90vh',
+          maxHeight: '78vh',
           overflow: 'auto',
           zIndex: 10001,
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
@@ -144,24 +145,21 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
     >
       <div style={{ color: 'white' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '32px', marginBottom: '16px' }}>
-            <i className="fas fa-network-wired" style={{ color: '#86EFAC' }} />
-          </div>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '12px', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '6px', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>
             Choose Your Connection Type
           </h2>
-          <p style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.6', maxWidth: '700px', margin: '0 auto' }}>
-            BitcoinZ Wallet needs to connect to a lightwalletd server to access the blockchain. Choose the option that best fits your needs.
+          <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.4', maxWidth: '650px', margin: '0 auto' }}>
+            Select how you want to connect to the BitcoinZ network
           </p>
         </div>
 
         {/* Server Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '20px',
-          marginBottom: '32px'
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '10px',
+          marginBottom: '16px'
         }}>
           {servers.map((server) => (
             <div
@@ -184,14 +182,14 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               }}
             >
               {/* Badges */}
-              <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
+              <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
                 {server.recommended && (
                   <span style={{
                     background: 'rgba(76, 175, 80, 0.3)',
                     color: '#4CAF50',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '10px',
+                    fontSize: '10px',
                     fontWeight: '700',
                     textTransform: 'uppercase',
                     border: '1px solid rgba(76, 175, 80, 0.5)'
@@ -203,9 +201,9 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
                   <span style={{
                     background: 'rgba(255, 152, 0, 0.3)',
                     color: '#FFA726',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '10px',
+                    fontSize: '10px',
                     fontWeight: '700',
                     textTransform: 'uppercase',
                     border: '1px solid rgba(255, 152, 0, 0.5)'
@@ -216,23 +214,20 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               </div>
 
               {/* Icon and Title */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <i className={`fas ${server.icon}`} style={{ fontSize: '48px', color: server.iconColor }} />
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <i className={`fas ${server.icon}`} style={{ fontSize: '28px', color: server.iconColor }} />
                 </div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '0px' }}>
                   {server.name}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.7)', fontStyle: 'italic' }}>
-                  {server.title}
-                </p>
               </div>
 
-              {/* Benefits */}
-              <div style={{ marginBottom: '16px', flex: 1 }}>
-                {server.benefits.map((benefit, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
-                    <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+              {/* Benefits - Show only first 2 */}
+              <div style={{ marginBottom: '8px', flex: 1 }}>
+                {server.benefits.slice(0, 2).map((benefit, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', fontSize: '12px' }}>
+                    <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '6px', fontSize: '11px' }} />
                     <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{benefit}</span>
                   </div>
                 ))}
@@ -241,77 +236,45 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               {/* Privacy Level */}
               <div style={{
                 background: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '8px',
-                padding: '12px',
-                marginBottom: '12px'
+                borderRadius: '5px',
+                padding: '6px 8px'
               }}>
-                <div style={{ fontSize: '12px', color: '#86EFAC', fontWeight: '700', marginBottom: '6px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '9px', color: '#86EFAC', fontWeight: '700', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {server.privacyLevel}
                 </div>
-                <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.4' }}>
+                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.2' }}>
                   {server.privacyDetails}
                 </div>
-              </div>
-
-              {/* Technical Note */}
-              <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
-                💡 {server.technicalNote}
               </div>
 
               {/* Selection Indicator */}
               {selected === server.uri && (
                 <div style={{
                   position: 'absolute',
-                  bottom: '12px',
-                  right: '12px',
+                  bottom: '10px',
+                  right: '10px',
                   background: 'rgba(76, 175, 80, 0.3)',
                   borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
+                  width: '26px',
+                  height: '26px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: '2px solid #4CAF50'
                 }}>
-                  <i className="fas fa-check" style={{ color: '#4CAF50', fontSize: '16px' }} />
+                  <i className="fas fa-check" style={{ color: '#4CAF50', fontSize: '13px' }} />
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Tor Warning */}
-        {servers.find(s => s.uri === selected)?.isTor && torStatus.status !== 'ready' && (
-          <div style={{
-            background: 'rgba(255, 193, 7, 0.2)',
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            borderColor: 'rgba(255, 193, 7, 0.5)',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <i className="fas fa-exclamation-triangle" style={{ color: '#FFC107', fontSize: '24px' }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: '600', marginBottom: '4px' }}>Tor Network Required</div>
-              <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.9)' }}>
-                The wallet will automatically start Tor when you continue. This may take 10-20 seconds on first launch.
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Footer */}
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          paddingTop: '24px',
-          borderTopWidth: '1px',
-          borderTopStyle: 'solid',
-          borderTopColor: 'rgba(255, 255, 255, 0.1)'
+          paddingTop: '16px'
         }}>
           <button
             type="button"
@@ -319,8 +282,8 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '16px 48px',
+              gap: '8px',
+              padding: '12px 36px',
               background: 'rgba(76, 175, 80, 0.3)',
               backdropFilter: 'blur(10px)',
               borderWidth: '2px',
@@ -328,13 +291,13 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
               borderColor: 'rgba(76, 175, 80, 0.6)',
               borderRadius: '8px',
               color: 'white',
-              fontSize: '16px',
+              fontSize: '14px',
               fontWeight: '700',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-              minWidth: '200px',
+              minWidth: '180px',
               justifyContent: 'center'
             }}
             onMouseEnter={(e) => {
@@ -357,7 +320,7 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
           </button>
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
+        <p style={{ textAlign: 'center', marginTop: '12px', fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
           You can change this later in Settings → Switch Server
         </p>
       </div>

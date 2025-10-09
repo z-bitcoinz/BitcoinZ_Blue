@@ -75,16 +75,6 @@ const PinEntry: React.FC<PinEntryProps> = ({
   return (
     <div className={styles.pinEntryOverlay}>
       <div className={styles.pinEntryModal}>
-        <div className={styles.header}>
-          <div className={styles.logo}>
-            <div className={styles.lockIcon}>🔒</div>
-            <h2>BitcoinZ Blue</h2>
-          </div>
-          {onCancel && (
-            <button className={styles.closeButton} onClick={onCancel}>×</button>
-          )}
-        </div>
-
         <div className={styles.content}>
           <div className={styles.title}>Wallet Locked</div>
           <div className={styles.subtitle}>
