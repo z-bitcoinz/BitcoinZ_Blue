@@ -99,19 +99,21 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       console.log('[LoadingScreen] Tor is ready!');
       this.setState({
         torReady: true,
-        torBootstrapProgress: 100,
         torStatus: 'ready',
         currentStatus: "Tor circuit establishing..."
       });
 
-      // If we're waiting for Tor, wait 10 seconds for circuit to establish, then proceed
-      if (this.state.waitingForTor) {
-        console.log('[LoadingScreen] Waiting 10 seconds for Tor circuit to establish...');
-        setTimeout(() => {
-          console.log('[LoadingScreen] Proceeding with wallet initialization');
-          this.proceedWithWalletSetup();
-        }, 10000);
-      }
+      // Animate progress bar for visual feedback
+      this.animateTorProgress(() => {
+        // If we're waiting for Tor, wait 5 seconds for circuit to establish, then proceed
+        if (this.state.waitingForTor) {
+          console.log('[LoadingScreen] Waiting 5 seconds for Tor circuit to establish...');
+          setTimeout(() => {
+            console.log('[LoadingScreen] Proceeding with wallet initialization');
+            this.proceedWithWalletSetup();
+          }, 5000);
+        }
+      });
     });
 
     if (rescanning) {
@@ -129,6 +131,27 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     ipcRenderer.removeAllListeners('tor-bootstrap-progress');
     ipcRenderer.removeAllListeners('tor-ready');
   }
+
+  animateTorProgress = (onComplete?: () => void) => {
+    // Animate progress through stages for visual feedback
+    const stages = [0, 20, 40, 60, 80, 100];
+    let currentStage = 0;
+
+    const updateProgress = () => {
+      if (currentStage < stages.length) {
+        this.setState({ torBootstrapProgress: stages[currentStage] });
+        currentStage++;
+
+        if (currentStage < stages.length) {
+          setTimeout(updateProgress, 1000); // 1000ms between stages (5 seconds total)
+        } else if (onComplete) {
+          onComplete();
+        }
+      }
+    };
+
+    updateProgress();
+  };
 
   loadServerURI = async () => {
     // Try to read the default server
@@ -174,23 +197,25 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         });
         return; // Exit and wait for tor-ready event
       } else {
-        // Tor is already at 100%, but circuit needs time to establish
-        console.log('[LoadingScreen] Tor ready, waiting 10 seconds for circuit to establish...');
+        // Tor is already ready, but animate progress for visual feedback
+        console.log('[LoadingScreen] Tor ready, animating progress and waiting for circuit to establish...');
         this.setState({
           waitingForTor: true,
           torReady: true,
-          torBootstrapProgress: 100,
           torStatus: 'ready',
           currentStatus: "Tor circuit establishing..."
         });
 
-        // Wait 10 seconds for Tor circuit to fully establish (DNS resolution needs this)
-        setTimeout(() => {
-          console.log('[LoadingScreen] Proceeding with wallet initialization');
-          this.proceedWithWalletSetup();
-        }, 10000);
+        // Animate progress bar, then wait for circuit establishment
+        this.animateTorProgress(() => {
+          // Wait 5 seconds for Tor circuit to fully establish (DNS resolution needs this)
+          setTimeout(() => {
+            console.log('[LoadingScreen] Proceeding with wallet initialization');
+            this.proceedWithWalletSetup();
+          }, 5000);
+        });
 
-        return; // Don't fall through - wait for setTimeout
+        return; // Don't fall through - wait for animation and setTimeout
       }
     }
 
@@ -432,7 +457,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           // Show "Loading wallet data..." message while RPC fetches balance
           me.setState({ currentStatus: "Loading wallet data..." });
 
-          // Wait 6 seconds for balance to fully load, THEN show Dashboard
+          // Wait 2 seconds for balance to fully load, THEN show Dashboard
           // This keeps the Tor loading screen visible during balance fetch
           setTimeout(() => {
             console.log(info);
@@ -446,7 +471,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               loadingDone: true,
               waitingForTor: false  // Hide Tor UI now that we're completely done
             });
-          }, 6000);
+          }, 2000);
         } else {
           // Still syncing, grab the status and update the status
           let progress_blocks = (ss.synced_blocks + ss.trial_decryptions_blocks + ss.txn_scan_blocks) / 3;
@@ -628,11 +653,16 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                   <div style={{
                     width: torBootstrapProgress === 100 ? '100%' : `${torBootstrapProgress}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, #C084FC 0%, #7C3AED 100%)',
+                    background: 'linear-gradient(90deg, #C084FC 0%, #7C3AED 50%, #C084FC 100%)',
+                    backgroundSize: '200% 100%',
                     borderRadius: '4px',
-                    transition: 'width 0.3s ease',
-                    boxShadow: '0 0 10px rgba(192, 132, 252, 0.5)',
-                    animation: torBootstrapProgress === 100 ? 'shimmer 2s ease-in-out infinite' : 'none'
+                    transition: 'width 1.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                    boxShadow: '0 0 15px rgba(192, 132, 252, 0.6)',
+                    animation: torBootstrapProgress === 100
+                      ? 'shimmer 2s ease-in-out infinite'
+                      : 'progressPulse 1.5s ease-in-out infinite, gradientMove 3s linear infinite',
+                    transform: torBootstrapProgress < 100 ? 'scaleY(1.1)' : 'scaleY(1)',
+                    transformOrigin: 'left center'
                   }} />
                 </div>
 
@@ -648,27 +678,53 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                   ) : `${torBootstrapProgress}% Connected`}
                 </div>
 
-                {/* Privacy Features */}
+                {/* Privacy Features - 2 Columns */}
                 <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '20px',
                   textAlign: 'left',
                   fontSize: '13px',
                   color: 'rgba(255, 255, 255, 0.8)'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <i className="fas fa-shield-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                    <span>IP address hidden</span>
+                  {/* Left Column - Network Privacy (Tor) */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-shield-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>IP address hidden</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-lock" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Multi-layer encryption</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-map-marker-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Location protected</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <i className="fas fa-eye-slash" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Untraceable activity</span>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <i className="fas fa-lock" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                    <span>Multi-layer encryption</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <i className="fas fa-map-marker-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                    <span>Location protected</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <i className="fas fa-eye-slash" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                    <span>Untraceable activity</span>
+
+                  {/* Right Column - Transaction Privacy (BitcoinZ) */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-coins" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Balance kept private</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-user-secret" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Payments fully encrypted</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <i className="fas fa-mask" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>Wallet identity hidden</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
+                      <span>No transaction history</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -680,7 +736,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                 color: 'rgba(255, 255, 255, 0.7)',
                 fontStyle: 'italic'
               }}>
-                Your connection is being routed through the Tor network for maximum privacy
+                Double privacy: Hidden network connection + Fully encrypted transactions
               </p>
 
               <style>{`
@@ -692,6 +748,20 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                   0% { opacity: 0.6; }
                   50% { opacity: 1; }
                   100% { opacity: 0.6; }
+                }
+                @keyframes progressPulse {
+                  0%, 100% {
+                    box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
+                    filter: brightness(1);
+                  }
+                  50% {
+                    box-shadow: 0 0 25px rgba(192, 132, 252, 0.9), 0 0 40px rgba(192, 132, 252, 0.4);
+                    filter: brightness(1.2);
+                  }
+                }
+                @keyframes gradientMove {
+                  0% { background-position: 0% 50%; }
+                  100% { background-position: 200% 50%; }
                 }
               `}</style>
             </div>

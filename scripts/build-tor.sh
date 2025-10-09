@@ -57,6 +57,16 @@ if ! brew list zlib &>/dev/null; then
   brew install zlib
 fi
 
+if ! brew list xz &>/dev/null; then
+  echo "📦 Installing xz (liblzma)..."
+  brew install xz
+fi
+
+if ! brew list zstd &>/dev/null; then
+  echo "📦 Installing zstd..."
+  brew install zstd
+fi
+
 # Build Tor with static linking
 echo "🔨 Configuring Tor build..."
 cd "${TOR_SRC_DIR}"
@@ -65,6 +75,12 @@ cd "${TOR_SRC_DIR}"
 LIBEVENT_PREFIX=$(brew --prefix libevent)
 OPENSSL_PREFIX=$(brew --prefix openssl@3)
 ZLIB_PREFIX=$(brew --prefix zlib)
+XZ_PREFIX=$(brew --prefix xz)
+ZSTD_PREFIX=$(brew --prefix zstd)
+
+# Set up LDFLAGS and CPPFLAGS for static linking
+export LDFLAGS="-L${LIBEVENT_PREFIX}/lib -L${OPENSSL_PREFIX}/lib -L${ZLIB_PREFIX}/lib -L${XZ_PREFIX}/lib -L${ZSTD_PREFIX}/lib"
+export CPPFLAGS="-I${LIBEVENT_PREFIX}/include -I${OPENSSL_PREFIX}/include -I${ZLIB_PREFIX}/include -I${XZ_PREFIX}/include -I${ZSTD_PREFIX}/include"
 
 # Configure with static linking where possible
 # Note: Full static linking is difficult on macOS, but we minimize dynamic deps
@@ -96,21 +112,60 @@ if [ -f "${TOR_BINARY}" ]; then
   cp "${TOR_BINARY}" "${OUTPUT_DIR}/tor"
   chmod +x "${OUTPUT_DIR}/tor"
 
-  echo "📋 Checking dependencies..."
+  echo "📋 Checking dependencies before fixup..."
+  otool -L "${OUTPUT_DIR}/tor"
+
+  # Fix dynamic library paths to use @executable_path
+  echo "🔧 Fixing dynamic library paths..."
+
+  # Get list of non-system dynamic libraries
+  DYLIBS=$(otool -L "${OUTPUT_DIR}/tor" | grep -v ":" | grep -E "(liblzma|libzstd)" | awk '{print $1}')
+
+  for dylib in $DYLIBS; do
+    lib_name=$(basename "$dylib")
+    echo "  Fixing: $lib_name"
+
+    # Copy the library to output directory
+    if [ -f "$dylib" ]; then
+      cp "$dylib" "${OUTPUT_DIR}/${lib_name}"
+      chmod 644 "${OUTPUT_DIR}/${lib_name}"
+
+      # Change the reference in tor binary to use @executable_path
+      install_name_tool -change "$dylib" "@executable_path/${lib_name}" "${OUTPUT_DIR}/tor"
+
+      # Also fix the library's own ID
+      install_name_tool -id "@executable_path/${lib_name}" "${OUTPUT_DIR}/${lib_name}"
+    fi
+  done
+
+  echo "📋 Checking dependencies after fixup..."
   otool -L "${OUTPUT_DIR}/tor"
 
   # Code signing (if certificate available)
   if [ -n "${APPLE_SIGNING_IDENTITY}" ] || [ -n "${CODESIGN_IDENTITY}" ]; then
     IDENTITY="${APPLE_SIGNING_IDENTITY:-$CODESIGN_IDENTITY}"
-    echo "🔐 Signing Tor binary with identity: ${IDENTITY}"
+    echo "🔐 Signing Tor binary and libraries with identity: ${IDENTITY}"
 
+    # Sign all bundled libraries first
+    for lib in "${OUTPUT_DIR}"/*.dylib; do
+      if [ -f "$lib" ]; then
+        echo "  Signing: $(basename "$lib")"
+        codesign --force \
+          --sign "${IDENTITY}" \
+          --options runtime \
+          --timestamp \
+          "$lib"
+      fi
+    done
+
+    # Sign the tor binary last
     codesign --force \
       --sign "${IDENTITY}" \
       --options runtime \
       --timestamp \
       "${OUTPUT_DIR}/tor"
 
-    echo "✅ Tor binary signed successfully"
+    echo "✅ Tor binary and libraries signed successfully"
     codesign -dv "${OUTPUT_DIR}/tor" 2>&1 | grep -E "Authority|Signature|Runtime"
   else
     echo "⚠️  No signing identity found, skipping code signing"
