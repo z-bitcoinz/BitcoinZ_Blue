@@ -439,8 +439,6 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     const { setRPCConfig, setInfo, setRescanning } = this.props;
     const { url } = this.state;
 
-    const info = RPC.getInfoObject();
-
     // And after a while, check the sync status.
     const poller = setInterval(() => {
       const syncstatus = RPC.doSyncStatus();
@@ -485,6 +483,8 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           // Wait 2 seconds for balance to fully load, THEN show Dashboard
           // This keeps the Tor loading screen visible during balance fetch
           setTimeout(() => {
+            // Get fresh info after network connection is established
+            const info = RPC.getInfoObject();
             console.log(info);
 
             // Set the info object and rescanning status - this triggers Dashboard to show
