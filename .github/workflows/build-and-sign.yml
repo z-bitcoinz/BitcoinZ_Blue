@@ -479,6 +479,29 @@ jobs:
           & "$protocPath\protoc.exe" --version
         shell: powershell
 
+      - name: Download Tor for Windows
+        run: |
+          echo "🔨 Downloading Tor Expert Bundle for Windows..."
+
+          # Make script executable and run it
+          bash scripts/build-tor-windows.sh
+
+          echo "✅ Tor download complete"
+
+          # Verify Tor binary was downloaded
+          if (Test-Path "resources/tor/win32/tor.exe") {
+            $torSize = (Get-Item "resources/tor/win32/tor.exe").Length
+            echo "SUCCESS: Tor binary ready: $torSize bytes"
+
+            # List all files
+            echo "Tor package contents:"
+            Get-ChildItem resources/tor/win32 | Format-Table Name, Length
+          } else {
+            echo "ERROR: Tor binary not found"
+            exit 1
+          }
+        shell: powershell
+
       - name: Build native module for Windows
         run: |
           echo "Building native Rust module for Windows..."
@@ -962,6 +985,25 @@ jobs:
           sudo apt-get install -y protobuf-compiler
           echo "PROTOC=$(which protoc)" >> $GITHUB_ENV
           protoc --version
+
+      - name: Build Tor from source for Linux
+        run: |
+          echo "🔨 Building Tor from source for Linux..."
+          chmod +x scripts/build-tor-linux.sh
+
+          # Build Tor (dependencies will be installed by script)
+          ./scripts/build-tor-linux.sh
+
+          echo "✅ Tor build complete"
+
+          # Verify Tor binary was built
+          if [ -f "resources/tor/linux/tor" ]; then
+            echo "SUCCESS: Tor binary ready: $(du -h resources/tor/linux/tor | awk '{print $1}')"
+            ls -lh resources/tor/linux/
+          else
+            echo "ERROR: Tor binary not found"
+            exit 1
+          fi
 
       - name: Build Linux app
         run: |
