@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build Tor from source for Linux with static linking
+# Build Tor from source for Linux
 # This script downloads, builds, and packages Tor for bundling with the app
 
 set -e  # Exit on error
@@ -53,16 +53,13 @@ sudo apt-get install -y \
   libzstd-dev \
   pkg-config
 
-# Build Tor with static linking
+# Build Tor
 echo "🔨 Configuring Tor build..."
 cd "${TOR_SRC_DIR}"
 
-# Configure with static linking where possible
+# Configure build (simplified to avoid static linking issues)
 ./configure \
   --prefix="${BUILD_DIR}/tor-install" \
-  --enable-static-libevent \
-  --enable-static-openssl \
-  --enable-static-zlib \
   --disable-asciidoc \
   --disable-systemd \
   --disable-libscrypt

@@ -481,23 +481,23 @@ jobs:
 
       - name: Download Tor for Windows
         run: |
-          echo "🔨 Downloading Tor Expert Bundle for Windows..."
+          Write-Host "Downloading Tor Expert Bundle for Windows..."
 
           # Make script executable and run it
           bash scripts/build-tor-windows.sh
 
-          echo "✅ Tor download complete"
+          Write-Host "Tor download complete"
 
           # Verify Tor binary was downloaded
           if (Test-Path "resources/tor/win32/tor.exe") {
             $torSize = (Get-Item "resources/tor/win32/tor.exe").Length
-            echo "SUCCESS: Tor binary ready: $torSize bytes"
+            Write-Host "SUCCESS: Tor binary ready: $torSize bytes"
 
             # List all files
-            echo "Tor package contents:"
+            Write-Host "Tor package contents:"
             Get-ChildItem resources/tor/win32 | Format-Table Name, Length
           } else {
-            echo "ERROR: Tor binary not found"
+            Write-Host "ERROR: Tor binary not found"
             exit 1
           }
         shell: powershell
