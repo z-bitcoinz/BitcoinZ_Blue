@@ -8,7 +8,8 @@ set -e  # Exit on error
 
 # Configuration
 TOR_VERSION="0.4.8.13"  # Latest stable as of 2024
-TOR_EXPERT_BUNDLE_URL="https://dist.torproject.org/torbrowser/13.5.7/tor-expert-bundle-windows-x86_64-13.5.7.tar.gz"
+# Use Tor Browser 14.0.3 (latest stable) for Tor Expert Bundle
+TOR_EXPERT_BUNDLE_URL="https://archive.torproject.org/tor-package-archive/torbrowser/14.0.3/tor-expert-bundle-windows-x86_64-14.0.3.tar.gz"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="${PROJECT_ROOT}/tor-build-windows"
@@ -27,6 +28,21 @@ TOR_BUNDLE="${BUILD_DIR}/tor-expert-bundle.tar.gz"
 if [ ! -f "${TOR_BUNDLE}" ]; then
   echo "📥 Downloading Tor Expert Bundle..."
   curl -L "${TOR_EXPERT_BUNDLE_URL}" -o "${TOR_BUNDLE}"
+
+  # Verify download was successful
+  if [ ! -f "${TOR_BUNDLE}" ] || [ ! -s "${TOR_BUNDLE}" ]; then
+    echo "❌ Download failed or file is empty"
+    exit 1
+  fi
+
+  # Check if it's a valid gzip file
+  if ! file "${TOR_BUNDLE}" | grep -q "gzip compressed"; then
+    echo "❌ Downloaded file is not a valid gzip archive"
+    echo "File type: $(file "${TOR_BUNDLE}")"
+    echo "File contents (first 500 bytes):"
+    head -c 500 "${TOR_BUNDLE}"
+    exit 1
+  fi
 else
   echo "✅ Tor Expert Bundle already downloaded"
 fi
