@@ -465,8 +465,11 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
             return;
           }
 
+          console.log('[LoadingScreen] Sync complete! Saving wallet state...');
+
           // First, save the wallet so we don't lose the just-synced data
           RPC.doSave();
+          console.log('[LoadingScreen] Wallet saved successfully');
 
           // Cancel the sync status poller
           clearInterval(poller);
@@ -480,23 +483,37 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           // Show "Loading wallet data..." message while RPC fetches balance
           me.setState({ currentStatus: "Loading wallet data..." });
 
-          // Wait 2 seconds for balance to fully load, THEN show Dashboard
+          // Determine wait time based on whether we're using Tor
+          // Tor connections are slower and need more time for balance to fully load
+          const { proxyEnabled } = me.state;
+          const waitTime = proxyEnabled ? 8000 : 2000; // 8 seconds for Tor, 2 seconds for normal
+          console.log(`[LoadingScreen] Waiting ${waitTime}ms for balance to load (Tor: ${proxyEnabled})...`);
+
+          // Wait for balance to fully load, THEN show Dashboard
           // This keeps the Tor loading screen visible during balance fetch
           setTimeout(() => {
+            console.log('[LoadingScreen] Balance load wait complete, fetching wallet info...');
+
             // Get fresh info after network connection is established
             const info = RPC.getInfoObject();
-            console.log(info);
+            console.log('[LoadingScreen] Wallet info retrieved:', {
+              latestBlock: info.latestBlock,
+              walletHeight: info.walletHeight,
+              connections: info.connections
+            });
 
             // Set the info object and rescanning status - this triggers Dashboard to show
             setInfo(info);
             setRescanning(false, prevSyncId);
+
+            console.log('[LoadingScreen] Transitioning to Dashboard...');
 
             // This will cause a redirect to the dashboard screen
             me.setState({
               loadingDone: true,
               waitingForTor: false  // Hide Tor UI now that we're completely done
             });
-          }, 2000);
+          }, waitTime);
         } else {
           // Still syncing, grab the status and update the status
           let progress_blocks = (ss.synced_blocks + ss.trial_decryptions_blocks + ss.txn_scan_blocks) / 3;
