@@ -1,6 +1,7 @@
 use std::cmp;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use crate::compact_formats::compact_tx_streamer_client::CompactTxStreamerClient;
 use crate::compact_formats::{
@@ -106,10 +107,15 @@ impl GrpcConnector {
             connector: http_connector,
         };
 
-        // Build endpoint and connect using custom connector
-        let endpoint = Endpoint::from(self.uri.clone());
+        // Build endpoint with timeout and keep-alive configuration for Tor
+        // Tor connections need longer timeouts due to circuit building and slower network
+        let endpoint = Endpoint::from(self.uri.clone())
+            .timeout(Duration::from_secs(120))        // 2 min request timeout (Tor is slow)
+            .connect_timeout(Duration::from_secs(60)) // 1 min connect timeout (circuit building)
+            .http2_keep_alive_interval(Duration::from_secs(30)) // Keep-alive every 30s
+            .keep_alive_while_idle(true);             // Maintain connection when idle
 
-        info!("Connecting to {} via SOCKS5 proxy", self.uri);
+        info!("Connecting to {} via SOCKS5 proxy with timeouts configured", self.uri);
         let channel = endpoint
             .connect_with_connector(socks)
             .await
