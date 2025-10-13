@@ -34,6 +34,9 @@ export default class RPC {
 
   lastBlockHeight: number;
 
+  // Track proxy status for conditional timeouts
+  private static proxyEnabled: boolean = false;
+
   // Helper method to get native module with error handling
   private static getNative() {
     return getNativeModule();
@@ -133,6 +136,11 @@ export default class RPC {
     const proxyConfig = JSON.stringify({ enabled, url });
     const result = RPC.getNative().litelib_execute("setproxy", proxyConfig);
     console.log(`setProxy result: ${result}`);
+
+    // Track proxy status for conditional timeouts
+    RPC.proxyEnabled = enabled;
+    console.log(`[RPC] Proxy status updated: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+
     return result;
   }
 
@@ -222,14 +230,27 @@ export default class RPC {
       // We need to wait for the sync to finish. The way we know the sync is done is
       // if the height matches the latestBlockHeight
       let retryCount = 0;
+
+      // Tor connections are slower and need more time to sync
+      // Use 5 minutes (300 retries) for Tor, 30 seconds (30 retries) for normal
+      const maxRetries = RPC.proxyEnabled ? 300 : 30;
+      const timeoutSeconds = RPC.proxyEnabled ? 300 : 30;
+
+      console.log(`[RPC] Sync timeout: ${timeoutSeconds}s (Tor: ${RPC.proxyEnabled})`);
+
       const pollerID = setInterval(async () => {
         const walletHeight = RPC.fetchWalletHeight();
         retryCount += 1;
 
-        // Wait a max of 30 retries (30 secs)
-        if (walletHeight >= latestBlockHeight || retryCount > 30) {
+        // Wait for sync to complete or timeout
+        if (walletHeight >= latestBlockHeight || retryCount > maxRetries) {
           // We are synced. Cancel the poll timer
           clearInterval(pollerID);
+
+          // Check if we timed out before sync completed
+          if (walletHeight < latestBlockHeight) {
+            console.warn(`⚠️ Sync timeout after ${timeoutSeconds}s - wallet at ${walletHeight}, network at ${latestBlockHeight}`);
+          }
 
           // And fetch the rest of the data.
           this.fetchTotalBalance();
@@ -238,13 +259,13 @@ export default class RPC {
 
           this.lastBlockHeight = latestBlockHeight;
 
-          // Save the wallet
+          // Save the wallet - this is critical for persistence
           RPC.doSave();
 
           this.updateDataLock = false;
 
           // All done
-          console.log(`Finished full refresh at ${latestBlockHeight}`);
+          console.log(`✅ Finished full refresh at ${latestBlockHeight} (took ${retryCount}s)`);
         }
       }, 1000);
     } else {
