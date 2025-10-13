@@ -219,53 +219,87 @@ export default class RPC {
   }
 
   async refresh(fullRefresh: boolean) {
-    const latestBlockHeight = await this.fetchInfo();
+    // Fetch initial height to know if we need to sync
+    const initialLatestBlockHeight = await this.fetchInfo();
 
-    if (fullRefresh || !this.lastBlockHeight || this.lastBlockHeight < latestBlockHeight) {
+    if (fullRefresh || !this.lastBlockHeight || this.lastBlockHeight < initialLatestBlockHeight) {
       this.updateDataLock = true;
 
-      // If the latest block height has changed, make sure to sync. This will happen in a new thread
+      // Start sync in background
       RPC.doSync();
 
-      // We need to wait for the sync to finish. The way we know the sync is done is
-      // if the height matches the latestBlockHeight
       let retryCount = 0;
-
-      // Tor connections are slower and need more time to sync
-      // Use 5 minutes (300 retries) for Tor, 30 seconds (30 retries) for normal
       const maxRetries = RPC.proxyEnabled ? 300 : 30;
       const timeoutSeconds = RPC.proxyEnabled ? 300 : 30;
 
       console.log(`[RPC] Sync timeout: ${timeoutSeconds}s (Tor: ${RPC.proxyEnabled})`);
+      console.log(`[RPC] Starting sync - network at block ${initialLatestBlockHeight}`);
 
       const pollerID = setInterval(async () => {
         const walletHeight = RPC.fetchWalletHeight();
         retryCount += 1;
 
-        // Wait for sync to complete or timeout
-        if (walletHeight >= latestBlockHeight || retryCount > maxRetries) {
-          // We are synced. Cancel the poll timer
+        // Log progress every 30 seconds on Tor
+        if (RPC.proxyEnabled && retryCount % 30 === 0) {
+          console.log(`[RPC] Sync progress: wallet at ${walletHeight}, elapsed ${retryCount}s`);
+        }
+
+        // Check if timeout reached
+        if (retryCount > maxRetries) {
           clearInterval(pollerID);
 
-          // Check if we timed out before sync completed
-          if (walletHeight < latestBlockHeight) {
-            console.warn(`⚠️ Sync timeout after ${timeoutSeconds}s - wallet at ${walletHeight}, network at ${latestBlockHeight}`);
-          }
+          // Re-fetch current network height to see how far we are
+          const currentNetworkHeight = await this.fetchInfo();
 
-          // And fetch the rest of the data.
-          this.fetchTotalBalance();
-          this.fetchTandZTransactions(latestBlockHeight);
-          this.getZecPrice();
+          console.error(`❌ SYNC TIMEOUT after ${timeoutSeconds}s`);
+          console.error(`   Wallet height: ${walletHeight}`);
+          console.error(`   Network height: ${currentNetworkHeight}`);
+          console.error(`   Blocks behind: ${currentNetworkHeight - walletHeight}`);
+          console.error(`   Initial network height: ${initialLatestBlockHeight}`);
+          console.error(`   Network advanced: ${currentNetworkHeight - initialLatestBlockHeight} blocks during sync`);
 
-          this.lastBlockHeight = latestBlockHeight;
-
-          // Save the wallet - this is critical for persistence
-          RPC.doSave();
+          // DO NOT SAVE if we're still behind - this would lock us at outdated height
+          // The next refresh cycle will try again
 
           this.updateDataLock = false;
+          return;
+        }
 
-          // All done
-          console.log(`✅ Finished full refresh at ${latestBlockHeight} (took ${retryCount}s)`);
+        // Check if wallet caught up to INITIAL target
+        // But only check for completion every 5 seconds to reduce load
+        if (walletHeight >= initialLatestBlockHeight && retryCount % 5 === 0) {
+          // Wallet reached the initial target, but network may have moved forward
+          // Re-fetch CURRENT network height to see where we actually are
+          const currentNetworkHeight = await this.fetchInfo();
+
+          console.log(`[RPC] Checking sync completion:`);
+          console.log(`   Wallet height: ${walletHeight}`);
+          console.log(`   Current network height: ${currentNetworkHeight}`);
+          console.log(`   Initial target: ${initialLatestBlockHeight}`);
+
+          if (walletHeight >= currentNetworkHeight) {
+            // Truly synced to current network tip!
+            clearInterval(pollerID);
+
+            console.log(`✅ Sync COMPLETE after ${retryCount}s`);
+            console.log(`   Wallet: ${walletHeight}, Network: ${currentNetworkHeight}`);
+
+            // Fetch data using current network height for confirmations
+            this.fetchTotalBalance();
+            this.fetchTandZTransactions(currentNetworkHeight);
+            this.getZecPrice();
+
+            // Save with current network height
+            this.lastBlockHeight = currentNetworkHeight;
+            RPC.doSave();
+
+            this.updateDataLock = false;
+          } else {
+            // Network moved forward, need to sync more
+            const blocksBehind = currentNetworkHeight - walletHeight;
+            console.log(`⏳ Network advanced: still ${blocksBehind} blocks behind, continuing sync...`);
+            // Continue polling
+          }
         }
       }, 1000);
     } else {
