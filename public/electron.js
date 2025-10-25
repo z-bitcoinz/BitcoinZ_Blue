@@ -3,11 +3,10 @@ const isDev = require("electron-is-dev");
 const path = require("path");
 const fs = require("fs");
 const settings = require("electron-settings");
-const TorManager = require("./tor-manager");
 const os = require("os");
 
 // File logging setup for debugging production builds
-const logFilePath = path.join(os.homedir(), 'BitcoinZ-Wallet-Tor.log');
+const logFilePath = path.join(os.homedir(), 'BitcoinZ-Wallet.log');
 const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
 
 function logToFile(...args) {
@@ -301,6 +300,12 @@ class MenuBuilder {
           },
         },
         {
+          label: "Change LightwalletD Server",
+          click: () => {
+            this.mainWindow.webContents.send("changeServer");
+          },
+        },
+        {
           label: "Server info",
           click: () => {
             this.mainWindow.webContents.send("zcashd");
@@ -417,6 +422,12 @@ class MenuBuilder {
             label: "Wallet Settings",
             click: () => {
               this.mainWindow.webContents.send("walletSettings");
+            },
+          },
+          {
+            label: "Change LightwalletD Server",
+            click: () => {
+              this.mainWindow.webContents.send("changeServer");
             },
           },
           {
@@ -740,11 +751,6 @@ function createWindow() {
     }
   });
 
-  // Tor status IPC handler
-  ipcMain.handle('getTorStatus', async () => {
-    return torManager.getStatus();
-  });
-
   mainWindow.on("close", (event) => {
     // Send app-closing event first for auto-lock functionality
     if (!mainWindow.isDestroyed()) {
@@ -802,9 +808,6 @@ function createWindow() {
 
 app.commandLine.appendSwitch("in-process-gpu");
 
-// Initialize Tor manager
-const torManager = new TorManager();
-
 // Create a new browser window by invoking the createWindow
 // function once the Electron application is initialized.
 // Install REACT_DEVELOPER_TOOLS as well if isDev
@@ -815,41 +818,7 @@ app.whenReady().then(async () => {
       .catch((error) => console.log(`An error occurred: , ${error}`));
   }
 
-  // Check if proxy is enabled in settings
-  const allSettings = await settings.get("all");
-  const proxyEnabled = allSettings?.proxy?.enabled || false;
-  logToFile(`Proxy enabled: ${proxyEnabled}`);
-  logToFile(`Settings: ${JSON.stringify(allSettings?.proxy || {})}`);
-
-  // Create window FIRST
   createWindow();
-
-  // Set mainWindow reference on torManager for IPC events
-  torManager.setMainWindow(mainWindow);
-  logToFile('mainWindow set on torManager');
-
-  // Expose logToFile to torManager
-  torManager.logToFile = logToFile;
-
-  // Start Tor AFTER window is created and mainWindow is set
-  if (proxyEnabled) {
-    logToFile("[Electron] Proxy enabled, starting Tor...");
-    try {
-      await torManager.start(app, isDev);
-      logToFile("[Electron] Tor started successfully");
-    } catch (error) {
-      logToFile(`[Electron] Failed to start Tor: ${error.message}`);
-      logToFile(`Stack: ${error.stack}`);
-    }
-  } else {
-    logToFile("[Electron] Proxy disabled, Tor will not start");
-  }
-});
-
-// Stop Tor when app is quitting
-app.on("before-quit", () => {
-  console.log("[Electron] App quitting, stopping Tor...");
-  torManager.stop();
 });
 
 // Add a new listener that tries to quit the application when

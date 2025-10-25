@@ -184,19 +184,12 @@
       "build/**/*",
       "node_modules/**/*"
     ],
-    "extraResources": [
-      {
-        "from": "resources/tor",
-        "to": "tor"
-      }
-    ],
     "asarUnpack": [
       "src/native.node",
       "build/native.node",
       "build/native-*.node",
       "build/static/js/native-*.node",
-      "lib/zcash-params/*",
-      "public/tor-manager.js"
+      "lib/zcash-params/*"
     ],
     "directories": {
       "buildResources": "public"

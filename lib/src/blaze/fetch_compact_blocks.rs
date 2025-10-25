@@ -24,14 +24,7 @@ impl<P: consensus::Parameters> FetchCompactBlocks<P> {
         spam_filter_threshold: i64,
     ) -> Result<(), String> {
         let grpc_client = Arc::new(
-            if self.config.proxy_config.enabled {
-                GrpcConnector::new_with_proxy(
-                    self.config.server.clone(),
-                    self.config.proxy_config.clone()
-                )
-            } else {
-                GrpcConnector::new(self.config.server.clone())
-            }
+            GrpcConnector::new(self.config.server.clone())
         );
         const STEP: u64 = 1_000;
 

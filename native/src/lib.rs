@@ -8,7 +8,6 @@ use neon::prelude::JsNumber;
 use neon::prelude::JsResult;
 use neon::prelude::JsString;
 use neon::register_module;
-use zecwalletlitelib::grpc_connector::ProxyConfig;
 use zecwalletlitelib::lightclient::lightclient_config::LightClientConfig;
 use zecwalletlitelib::MainNetwork;
 
@@ -51,20 +50,12 @@ fn litelib_wallet_exists(mut cx: FunctionContext) -> JsResult<JsBoolean> {
 /// Create a new wallet and return the seed for the newly created wallet.
 fn litelib_initialize_new(mut cx: FunctionContext) -> JsResult<JsString> {
     let server_uri = cx.argument::<JsString>(0)?.value(&mut cx);
-    let proxy_enabled = cx.argument::<JsBoolean>(1)?.value(&mut cx);
-    let proxy_url = cx.argument::<JsString>(2)?.value(&mut cx);
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
 
-        // Create proxy config
-        let proxy_config = ProxyConfig {
-            enabled: proxy_enabled,
-            url: proxy_url,
-        };
-
         let (config, latest_block_height) =
-            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
+            match LightClientConfig::create(MainNetwork, server, None) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);
@@ -106,20 +97,12 @@ fn litelib_initialize_new_from_phrase(mut cx: FunctionContext) -> JsResult<JsStr
     let seed = cx.argument::<JsString>(1)?.value(&mut cx);
     let birthday = cx.argument::<JsNumber>(2)?.value(&mut cx);
     let overwrite = cx.argument::<JsBoolean>(3)?.value(&mut cx);
-    let proxy_enabled = cx.argument::<JsBoolean>(4)?.value(&mut cx);
-    let proxy_url = cx.argument::<JsString>(5)?.value(&mut cx);
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
 
-        // Create proxy config
-        let proxy_config = ProxyConfig {
-            enabled: proxy_enabled,
-            url: proxy_url,
-        };
-
         let (config, _latest_block_height) =
-            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
+            match LightClientConfig::create(MainNetwork, server, None) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);
@@ -151,20 +134,12 @@ fn litelib_initialize_new_from_phrase(mut cx: FunctionContext) -> JsResult<JsStr
 // Initialize a new lightclient and store its value
 fn litelib_initialize_existing(mut cx: FunctionContext) -> JsResult<JsString> {
     let server_uri = cx.argument::<JsString>(0)?.value(&mut cx);
-    let proxy_enabled = cx.argument::<JsBoolean>(1)?.value(&mut cx);
-    let proxy_url = cx.argument::<JsString>(2)?.value(&mut cx);
 
     let resp = || {
         let server = LightClientConfig::<MainNetwork>::get_server_or_default(Some(server_uri));
 
-        // Create proxy config
-        let proxy_config = ProxyConfig {
-            enabled: proxy_enabled,
-            url: proxy_url,
-        };
-
         let (config, _latest_block_height) =
-            match LightClientConfig::create_with_proxy(MainNetwork, server, None, proxy_config) {
+            match LightClientConfig::create(MainNetwork, server, None) {
                 Ok((c, h)) => (c, h),
                 Err(e) => {
                     return format!("Error: {}", e);

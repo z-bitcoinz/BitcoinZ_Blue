@@ -73,31 +73,15 @@ pub struct LightClient<P> {
 }
 
 impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
-    /// Helper method to create GrpcConnector with proxy support
+    /// Helper method to create GrpcConnector
     fn create_grpc_connector(&self) -> GrpcConnector {
         use crate::grpc_connector::GrpcConnector;
-        if self.config.proxy_config.enabled {
-            info!("Creating GrpcConnector with proxy: {}", self.config.proxy_config.url);
-            GrpcConnector::new_with_proxy(
-                self.config.server.clone(),
-                self.config.proxy_config.clone()
-            )
-        } else {
-            GrpcConnector::new(self.config.server.clone())
-        }
+        GrpcConnector::new(self.config.server.clone())
     }
 
-    /// Helper method to send transaction with optional proxy support
+    /// Helper method to send transaction
     async fn send_tx_bytes(&self, txbytes: Box<[u8]>) -> Result<String, String> {
-        if self.config.proxy_config.enabled {
-            GrpcConnector::send_transaction_with_proxy(
-                self.get_server_uri(),
-                txbytes,
-                self.config.proxy_config.clone()
-            ).await
-        } else {
-            GrpcConnector::send_transaction(self.get_server_uri(), txbytes).await
-        }
+        GrpcConnector::send_transaction(self.get_server_uri(), txbytes).await
     }
 
     /// Method to create a test-only version of the LightClient
@@ -633,14 +617,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
     }
 
     pub async fn do_info(&self) -> String {
-        let result = if self.config.proxy_config.enabled {
-            GrpcConnector::get_info_with_proxy(
-                self.get_server_uri(),
-                self.config.proxy_config.clone()
-            ).await
-        } else {
-            GrpcConnector::get_info(self.get_server_uri()).await
-        };
+        let result = GrpcConnector::get_info(self.get_server_uri()).await;
 
         match result {
             Ok(i) => {
@@ -1341,7 +1318,6 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         let config = lc.config.clone();
         let parameters = config.get_params();
         let uri = config.server.clone();
-        let proxy_config = config.proxy_config.clone();
         let lci = lc.clone();
 
         info!("Mempool monitoring starting");
@@ -1384,7 +1360,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
                 let h2 = tokio::spawn(async move {
                     loop {
                         //info!("Monitoring mempool");
-                        let r = GrpcConnector::monitor_mempool(uri.clone(), mempool_tx.clone(), proxy_config.clone()).await;
+                        let r = GrpcConnector::monitor_mempool(uri.clone(), mempool_tx.clone()).await;
 
                         if r.is_err() {
                             warn!("Mempool monitor returned {:?}, will restart listening", r);
@@ -1459,11 +1435,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
         let last_scanned_height = self.wallet.last_scanned_height().await;
 
         let uri = self.config.server.clone();
-        let latest_blockid = if self.config.proxy_config.enabled {
-            GrpcConnector::get_latest_block_with_proxy(uri.clone(), self.config.proxy_config.clone()).await?
-        } else {
-            GrpcConnector::get_latest_block(uri.clone()).await?
-        };
+        let latest_blockid = GrpcConnector::get_latest_block(uri.clone()).await?;
         if latest_blockid.height < last_scanned_height {
             let w = format!(
                 "Server's latest block({}) is behind ours({})",
@@ -1569,16 +1541,9 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
                 info!("Attempting to get orchard tree from block {}", last_scanned_height);
 
                 // Populate the orchard witnesses from the previous block's frontier
-                let orchard_tree = if self.config.proxy_config.enabled {
-                    match GrpcConnector::get_merkle_tree_with_proxy(uri.clone(), last_scanned_height, self.config.proxy_config.clone()).await {
-                        Ok(tree_state) => hex::decode(tree_state.orchard_tree).unwrap(),
-                        Err(_) => vec![],
-                    }
-                } else {
-                    match GrpcConnector::get_merkle_tree(uri.clone(), last_scanned_height).await {
-                        Ok(tree_state) => hex::decode(tree_state.orchard_tree).unwrap(),
-                        Err(_) => vec![],
-                    }
+                let orchard_tree = match GrpcConnector::get_merkle_tree(uri.clone(), last_scanned_height).await {
+                    Ok(tree_state) => hex::decode(tree_state.orchard_tree).unwrap(),
+                    Err(_) => vec![],
                 };
 
                 let witnesses = if orchard_tree.len() > 0 {
@@ -1797,21 +1762,12 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
             let prover = LocalTxProver::from_bytes(&sapling_spend, &sapling_output);
 
             let server_uri = self.get_server_uri();
-            let proxy_config = self.config.proxy_config.clone();
 
-            if proxy_config.enabled {
-                self.wallet
-                    .send_to_address(prover, true, vec![(&addr, tbal - fee, None)], |txbytes| {
-                        GrpcConnector::send_transaction_with_proxy(server_uri.clone(), txbytes, proxy_config.clone())
-                    })
-                    .await
-            } else {
-                self.wallet
-                    .send_to_address(prover, true, vec![(&addr, tbal - fee, None)], |txbytes| {
-                        GrpcConnector::send_transaction(server_uri.clone(), txbytes)
-                    })
-                    .await
-            }
+            self.wallet
+                .send_to_address(prover, true, vec![(&addr, tbal - fee, None)], |txbytes| {
+                    GrpcConnector::send_transaction(server_uri.clone(), txbytes)
+                })
+                .await
         };
 
         result.map(|(txid, _)| txid)
@@ -1829,21 +1785,12 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
             let prover = LocalTxProver::from_bytes(&sapling_spend, &sapling_output);
 
             let server_uri = self.get_server_uri();
-            let proxy_config = self.config.proxy_config.clone();
 
-            if proxy_config.enabled {
-                self.wallet
-                    .send_to_address(prover, false, addrs, |txbytes| {
-                        GrpcConnector::send_transaction_with_proxy(server_uri.clone(), txbytes, proxy_config.clone())
-                    })
-                    .await
-            } else {
-                self.wallet
-                    .send_to_address(prover, false, addrs, |txbytes| {
-                        GrpcConnector::send_transaction(server_uri.clone(), txbytes)
-                    })
-                    .await
-            }
+            self.wallet
+                .send_to_address(prover, false, addrs, |txbytes| {
+                    GrpcConnector::send_transaction(server_uri.clone(), txbytes)
+                })
+                .await
         };
 
         result.map(|(txid, _)| txid)
@@ -1858,21 +1805,12 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
             let prover = crate::blaze::test_utils::FakeTxProver {};
 
             let server_uri = self.get_server_uri();
-            let proxy_config = self.config.proxy_config.clone();
 
-            if proxy_config.enabled {
-                self.wallet
-                    .send_to_address(prover, false, addrs, |txbytes| {
-                        GrpcConnector::send_transaction_with_proxy(server_uri.clone(), txbytes, proxy_config.clone())
-                    })
-                    .await
-            } else {
-                self.wallet
-                    .send_to_address(prover, false, addrs, |txbytes| {
-                        GrpcConnector::send_transaction(server_uri.clone(), txbytes)
-                    })
-                    .await
-            }
+            self.wallet
+                .send_to_address(prover, false, addrs, |txbytes| {
+                    GrpcConnector::send_transaction(server_uri.clone(), txbytes)
+                })
+                .await
         };
 
         result.map(|(txid, _)| txid)

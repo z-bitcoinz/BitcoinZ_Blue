@@ -17,6 +17,7 @@ import Utils from "../utils/utils";
 import RPC from "../rpc";
 import { parseBitcoinzURI, BitcoinzURITarget } from "../utils/uris";
 import WalletSettingsModal from "./WalletSettingsModal";
+import ServerSelectModal from "./ServerSelectModal";
 
 const { ipcRenderer, remote } = window.require("electron");
 const fs = window.require("fs");
@@ -771,6 +772,7 @@ type State = {
   exportPrivKeysModalIsOpen: boolean;
   exportedPrivKeys: string[];
   walletSettingsModalIsOpen: boolean;
+  serverSelectModalIsOpen: boolean;
 };
 
 class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
@@ -784,6 +786,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       exportedPrivKeys: [],
       privKeyInputValue: null,
       walletSettingsModalIsOpen: false,
+      serverSelectModalIsOpen: false,
     };
   }
 
@@ -811,6 +814,7 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     ipcRenderer.removeAllListeners("exportall");
     ipcRenderer.removeAllListeners("zcashd");
     ipcRenderer.removeAllListeners("walletSettings");
+    ipcRenderer.removeAllListeners("changeServer");
     ipcRenderer.removeAllListeners("connectmobile");
   }
 
@@ -1110,6 +1114,11 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
       this.setState({ walletSettingsModalIsOpen: true });
     });
 
+    // Change Server
+    ipcRenderer.on("changeServer", () => {
+      this.setState({ serverSelectModalIsOpen: true });
+    });
+
     // Connect mobile app
     ipcRenderer.on("connectmobile", () => {
       history.push(routes.CONNECTMOBILE);
@@ -1259,6 +1268,10 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
     this.setState({ walletSettingsModalIsOpen: false });
   };
 
+  closeServerSelectModal = () => {
+    this.setState({ serverSelectModalIsOpen: false });
+  };
+
   setWalletSpamFilterThreshold = async (threshold: number) => {
     // Call the RPC to set the threshold as an option
     await RPC.setWalletSettingOption("spam_filter_threshold", threshold.toString());
@@ -1353,6 +1366,12 @@ class Sidebar extends PureComponent<Props & RouteComponentProps, State> {
           closeModal={this.closeWalletSettingsModal}
           walletSettings={walletSettings}
           setWalletSpamFilterThreshold={this.setWalletSpamFilterThreshold}
+        />
+
+        <ServerSelectModal
+          modalIsOpen={this.state.serverSelectModalIsOpen}
+          closeModal={this.closeServerSelectModal}
+          openErrorModal={this.props.openErrorModal}
         />
 
         {/* Hide the logo section and sidebar menu since we use top menu bar and bottom navigation now */}

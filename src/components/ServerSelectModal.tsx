@@ -20,14 +20,6 @@ const servers = [
     icon: "fa-server"
   },
   {
-    name: "BitcoinZ Tor Network",
-    uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067",
-    isTor: true,
-    description: "Maximum privacy through Tor network",
-    privacyNote: "✓ Complete anonymity - Hidden IP and location",
-    icon: "fa-user-secret"
-  },
-  {
     name: "Local Server",
     uri: "http://localhost:9067",
     description: "Connect to your own lightwalletd server",
@@ -40,7 +32,6 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
   const [selected, setSelected] = useState("");
   const [custom, setCustom] = useState("");
   const [currentServer, setCurrentServer] = useState("");
-  const [torStatus, setTorStatus] = useState<{status: string, progress: number, port: number}>({ status: 'stopped', progress: 0, port: 9050 });
 
   useEffect(() => {
     (async () => {
@@ -57,10 +48,6 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
         // Custom server
         setSelected("custom");
       }
-
-      // Fetch Tor status
-      const status = await ipcRenderer.invoke("getTorStatus");
-      setTorStatus(status);
     })();
   }, [modalIsOpen]);
 
@@ -70,22 +57,10 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
       serveruri = custom;
     }
 
-    // Check if selected server is Tor
-    const selectedServer = servers.find(s => s.uri === serveruri);
-    const isTor = selectedServer?.isTor || serveruri.includes(".onion");
-
-    // Await all settings to ensure they're saved before closing modal
+    // Save server settings
     await ipcRenderer.invoke("saveSettings", { key: "lwd.serveruri", value: serveruri });
 
-    // Enable proxy if Tor, disable otherwise
-    if (isTor) {
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: true });
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.url", value: "socks5://127.0.0.1:9050" });
-    } else {
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: false });
-    }
-
-    console.log("[ServerSelect] Settings saved:", { serveruri, isTor, proxyEnabled: isTor });
+    console.log("[ServerSelect] Settings saved:", { serveruri });
 
     closeModal();
 
@@ -174,34 +149,6 @@ export default function ServerSelectModal({ modalIsOpen, closeModal, openErrorMo
           marginLeft: 0
         }}>
           Switch LightwalletD Server
-        </div>
-
-        {/* Tor Status Indicator */}
-        <div style={{
-          background: torStatus.status === 'ready' ? 'rgba(76, 175, 80, 0.2)' : torStatus.status === 'starting' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(158, 158, 158, 0.2)',
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          borderColor: torStatus.status === 'ready' ? 'rgba(76, 175, 80, 0.5)' : torStatus.status === 'starting' ? 'rgba(255, 193, 7, 0.5)' : 'rgba(158, 158, 158, 0.3)',
-          borderRadius: '6px',
-          padding: '10px 16px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <div style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: torStatus.status === 'ready' ? '#4CAF50' : torStatus.status === 'starting' ? '#FFC107' : '#9E9E9E'
-          }} />
-          <span style={{
-            color: 'white',
-            fontSize: '13px',
-            fontWeight: '600'
-          }}>
-            Tor: {torStatus.status === 'ready' ? 'Ready ✓' : torStatus.status === 'starting' ? `Starting... ${torStatus.progress}%` : 'Not Running'}
-          </span>
         </div>
 
         <div style={{

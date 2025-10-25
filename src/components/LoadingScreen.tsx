@@ -25,10 +25,6 @@ class LoadingScreenState {
 
   url: string;
 
-  proxyEnabled: boolean;
-
-  proxyUrl: string;
-
   walletScreen: number; // 0 -> no wallet, load existing wallet 1 -> show option 2-> create new 3 -> restore existing
 
   newWalletError: null | string; // Any errors when creating/restoring wallet
@@ -41,14 +37,12 @@ class LoadingScreenState {
 
   getinfoRetryCount: number;
 
-  // Tor connection state
-  torBootstrapProgress: number; // 0-100%
-  torStatus: string; // 'stopped', 'starting', 'ready', 'error'
-  torReady: boolean;
-  waitingForTor: boolean;
-
   // First-time server setup
   showFirstTimeServerSetup: boolean;
+
+  // Cumulative sync progress tracking (across multiple sync rounds)
+  initialWalletHeight: number | null;
+  targetNetworkHeight: number | null;
 
   constructor() {
     this.currentStatus = "Loading...";
@@ -56,19 +50,15 @@ class LoadingScreenState {
     this.loadingDone = false;
     this.rpcConfig = null;
     this.url = "";
-    this.proxyEnabled = false;
-    this.proxyUrl = "socks5://127.0.0.1:9050";
     this.getinfoRetryCount = 0;
     this.walletScreen = 0;
     this.newWalletError = null;
     this.seed = "";
     this.birthday = 0;
     this.walletBirthday = 0;
-    this.torBootstrapProgress = 0;
-    this.torStatus = 'stopped';
-    this.torReady = false;
-    this.waitingForTor = false;
     this.showFirstTimeServerSetup = false;
+    this.initialWalletHeight = null;
+    this.targetNetworkHeight = null;
   }
 }
 
@@ -91,36 +81,6 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   componentDidMount() {
     const { rescanning, prevSyncId } = this.props;
 
-    // Set up Tor IPC listeners
-    ipcRenderer.on('tor-bootstrap-progress', (_event: any, data: {progress: number; status: string}) => {
-      console.log('[LoadingScreen] Tor bootstrap progress:', data);
-      this.setState({
-        torBootstrapProgress: data.progress,
-        torStatus: data.status
-      });
-    });
-
-    ipcRenderer.on('tor-ready', () => {
-      console.log('[LoadingScreen] Tor is ready!');
-      this.setState({
-        torReady: true,
-        torStatus: 'ready',
-        currentStatus: "Tor circuit establishing..."
-      });
-
-      // Animate progress bar for visual feedback
-      this.animateTorProgress(() => {
-        // If we're waiting for Tor, wait 5 seconds for circuit to establish, then proceed
-        if (this.state.waitingForTor) {
-          console.log('[LoadingScreen] Waiting 5 seconds for Tor circuit to establish...');
-          setTimeout(() => {
-            console.log('[LoadingScreen] Proceeding with wallet initialization');
-            this.proceedWithWalletSetup();
-          }, 5000);
-        }
-      });
-    });
-
     if (rescanning) {
       this.runSyncStatusPoller(prevSyncId);
     } else {
@@ -130,33 +90,6 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       })();
     }
   }
-
-  componentWillUnmount() {
-    // Clean up IPC listeners
-    ipcRenderer.removeAllListeners('tor-bootstrap-progress');
-    ipcRenderer.removeAllListeners('tor-ready');
-  }
-
-  animateTorProgress = (onComplete?: () => void) => {
-    // Animate progress through stages for visual feedback
-    const stages = [0, 20, 40, 60, 80, 100];
-    let currentStage = 0;
-
-    const updateProgress = () => {
-      if (currentStage < stages.length) {
-        this.setState({ torBootstrapProgress: stages[currentStage] });
-        currentStage++;
-
-        if (currentStage < stages.length) {
-          setTimeout(updateProgress, 1000); // 1000ms between stages (5 seconds total)
-        } else if (onComplete) {
-          onComplete();
-        }
-      }
-    };
-
-    updateProgress();
-  };
 
   loadServerURI = async () => {
     // Try to read the default server
@@ -168,16 +101,10 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       server = Utils.V3_LIGHTWALLETD;
     }
 
-    // Load proxy settings
-    const proxyEnabled = settings?.proxy?.enabled || false;
-    const proxyUrl = settings?.proxy?.url || "socks5://127.0.0.1:9050";
-
     const newstate = new LoadingScreenState();
     Object.assign(newstate, this.state);
 
     newstate.url = server;
-    newstate.proxyEnabled = proxyEnabled;
-    newstate.proxyUrl = proxyUrl;
     this.setState(newstate);
   };
 
@@ -195,47 +122,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
 
     await this.loadServerURI();
 
-    // Check if Tor is enabled and wait for it if necessary
-    const { proxyEnabled } = this.state;
-    if (proxyEnabled) {
-      // Check current Tor status
-      const torStatus = await ipcRenderer.invoke('getTorStatus');
-      console.log('[LoadingScreen] Tor status:', torStatus);
-
-      if (torStatus.status !== 'ready') {
-        // Tor is not ready yet, wait for it
-        console.log('[LoadingScreen] Waiting for Tor to be ready...');
-        this.setState({
-          waitingForTor: true,
-          currentStatus: "Establishing anonymous Tor connection...",
-          torBootstrapProgress: torStatus.progress || 0,
-          torStatus: torStatus.status
-        });
-        return; // Exit and wait for tor-ready event
-      } else {
-        // Tor is already ready, but animate progress for visual feedback
-        console.log('[LoadingScreen] Tor ready, animating progress and waiting for circuit to establish...');
-        this.setState({
-          waitingForTor: true,
-          torReady: true,
-          torStatus: 'ready',
-          currentStatus: "Tor circuit establishing..."
-        });
-
-        // Animate progress bar, then wait for circuit establishment
-        this.animateTorProgress(() => {
-          // Wait 5 seconds for Tor circuit to fully establish (DNS resolution needs this)
-          setTimeout(() => {
-            console.log('[LoadingScreen] Proceeding with wallet initialization');
-            this.proceedWithWalletSetup();
-          }, 5000);
-        });
-
-        return; // Don't fall through - wait for animation and setTimeout
-      }
-    }
-
-    // Proceed with wallet setup (only when Tor is disabled)
+    // Proceed with wallet setup
     this.proceedWithWalletSetup();
   };
 
@@ -293,8 +180,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
       this.setState({ walletScreen: 1 });
     } else {
       try {
-        const { proxyEnabled, proxyUrl } = this.state;
-        const result = getNativeModule().litelib_initialize_existing(url, proxyEnabled, proxyUrl);
+        const result = getNativeModule().litelib_initialize_existing(url);
         console.log(`Intialization: ${result}`);
         if (result !== "OK") {
           this.setState({
@@ -433,7 +319,14 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     }
   }
 
-  runSyncStatusPoller = (prevSyncId: number) => {
+  runSyncStatusPoller = (initialPrevSyncId: number) => {
+    // Make prevSyncId mutable so we can update it when starting new sync rounds
+    let prevSyncId = initialPrevSyncId;
+
+    // Track which sync IDs we've actually seen running (in_progress: true)
+    // This prevents false-positive completion detection for queued-but-not-started syncs
+    let lastSyncIdStarted = initialPrevSyncId;
+
     const me = this;
 
     const { setRPCConfig, setInfo, setRescanning } = this.props;
@@ -457,7 +350,33 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         console.log(ss);
         // console.log(`Prev SyncID: ${prevSyncId}`);
 
-        if (ss.sync_id > prevSyncId && !ss.in_progress) {
+        // Track when we see a sync actually running (in_progress: true)
+        // This helps us distinguish between completed syncs and queued-but-not-started syncs
+        if (ss.in_progress && ss.sync_id > lastSyncIdStarted) {
+          lastSyncIdStarted = ss.sync_id;
+          console.log(`[LoadingScreen] 🔄 Sync ${ss.sync_id} has started (in_progress: true)`);
+        }
+
+        // Capture initial heights when first sync starts (for cumulative progress tracking)
+        if (ss.in_progress && me.state.initialWalletHeight === null) {
+          const initialHeight = RPC.fetchWalletHeight();
+          const networkInfo = RPC.getInfoObject();
+          const targetHeight = networkInfo.latestBlock;
+
+          console.log('[LoadingScreen] 📊 Capturing initial sync state:');
+          console.log(`   Initial wallet height: ${initialHeight}`);
+          console.log(`   Target network height: ${targetHeight}`);
+          console.log(`   Total blocks to sync: ${targetHeight - initialHeight}`);
+
+          me.setState({
+            initialWalletHeight: initialHeight,
+            targetNetworkHeight: targetHeight
+          });
+        }
+
+        // Only process "sync complete" for syncs we've actually seen running
+        // This prevents false-positives when a new sync is queued but hasn't started yet
+        if (ss.sync_id > prevSyncId && !ss.in_progress && ss.sync_id <= lastSyncIdStarted) {
           // Don't exit loading screen if sync failed - keep waiting
           if (ss.last_error) {
             console.log('[LoadingScreen] Sync failed, waiting for successful sync...');
@@ -465,95 +384,154 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
             return;
           }
 
-          console.log('[LoadingScreen] Sync complete! Saving wallet state...');
-
-          // First, save the wallet so we don't lose the just-synced data
+          //  ✅ CRITICAL: Save wallet state immediately after sync completes
+          // This ensures the synced blocks are persisted to disk
+          console.log('[LoadingScreen] 💾 Saving wallet state after sync completion...');
           RPC.doSave();
-          console.log('[LoadingScreen] Wallet saved successfully');
+          console.log('[LoadingScreen] ✅ Wallet saved - waiting for state to update...');
 
-          // Cancel the sync status poller
-          clearInterval(poller);
-
-          // Configure the RPC immediately - this fetches correct latestBlockHeight
-          // This is critical for transaction confirmations to display correctly
-          const rpcConfig = new RPCConfig();
-          rpcConfig.url = url;
-          setRPCConfig(rpcConfig);
-
-          // Show "Loading wallet data..." message while RPC fetches balance
-          me.setState({ currentStatus: "Loading wallet data..." });
-
-          // Determine wait time based on whether we're using Tor
-          // Tor connections are slower and need more time for balance to fully load
-          const { proxyEnabled } = me.state;
-          const waitTime = proxyEnabled ? 8000 : 2000; // 8 seconds for Tor, 2 seconds for normal
-          console.log(`[LoadingScreen] Waiting ${waitTime}ms for balance to load (Tor: ${proxyEnabled})...`);
-
-          // Wait for balance to fully load, THEN show Dashboard
-          // This keeps the Tor loading screen visible during balance fetch
+          // Wait a moment for the wallet to update its internal state after save
+          // This prevents race conditions where we check height before it's updated
           setTimeout(() => {
-            console.log('[LoadingScreen] Balance load wait complete, fetching wallet info...');
+            // Now fetch fresh wallet info and check if we're caught up
+            const walletHeight = RPC.fetchWalletHeight();
+            const networkInfo = RPC.getInfoObject();
+            const networkHeight = networkInfo.latestBlock;
+            const blocksBehind = networkHeight - walletHeight;
 
-            // Get fresh info after network connection is established
-            const info = RPC.getInfoObject();
-            console.log('[LoadingScreen] Wallet info retrieved:', {
-              latestBlock: info.latestBlock,
-              walletHeight: info.walletHeight,
-              connections: info.connections
-            });
+            console.log('[LoadingScreen] Sync batch complete. Checking if caught up...');
+            console.log(`   Wallet: ${walletHeight}, Network: ${networkHeight}, Behind: ${blocksBehind}`);
 
-            // Set the info object and rescanning status - this triggers Dashboard to show
-            setInfo(info);
-            setRescanning(false, prevSyncId);
+            if (blocksBehind > 0) {
+              // ❌ Still behind - start another sync round
+              console.log(`[LoadingScreen] ⏳ Still ${blocksBehind} blocks behind. Starting next sync round...`);
 
-            console.log('[LoadingScreen] Transitioning to Dashboard...');
+              me.setState({ currentStatus: `Syncing blockchain (${blocksBehind} blocks remaining)...` });
 
-            // This will cause a redirect to the dashboard screen
-            me.setState({
-              loadingDone: true,
-              waitingForTor: false  // Hide Tor UI now that we're completely done
-            });
-          }, waitTime);
-        } else {
-          // Still syncing, grab the status and update the status
-          let progress_blocks = (ss.synced_blocks + ss.trial_decryptions_blocks + ss.txn_scan_blocks) / 3;
+              // Update prevSyncId in parent to track next sync
+              setRescanning(true, ss.sync_id);
 
-          let progress = progress_blocks;
-          if (ss.total_blocks) {
-            progress = (progress_blocks * 100) / ss.total_blocks;
-          }
+              // ✅ CRITICAL: Update LOCAL prevSyncId to prevent re-entering this block
+              // while waiting for the new sync to start in the background thread
+              prevSyncId = ss.sync_id;
+              console.log(`[LoadingScreen] Updated prevSyncId to ${ss.sync_id} for next sync round`);
 
-          let base = 0;
-          if (ss.batch_total) {
-            base = (ss.batch_num * 100) / ss.batch_total;
-            progress = base + progress / ss.batch_total;
-          }
+              // Start another sync
+              RPC.doSync();
 
-          if (!isNaN(progress_blocks)) {
-            let batch_progress = (progress_blocks * 100) / ss.total_blocks;
-            if (isNaN(batch_progress)) {
-              batch_progress = 0;
+              // Continue polling (don't clear interval, don't transition to Dashboard)
+              return;
             }
-            const currentStatus = (
-              <div>
-                Syncing batch {ss.batch_num} of {ss.batch_total}
-                <br />
-                Batch Progress: {batch_progress.toFixed(2)}%. Total progress: {progress.toFixed(2)}%.
-                <br />
-                <br />
-                Light wallet sync in progress... Usually takes just a few minutes
-              </div>
-            );
-            me.setState({ currentStatus });
+
+            // ✅ If we get here, we're fully synced to network tip!
+            console.log('[LoadingScreen] ✅ Fully synced! Transitioning to Dashboard...');
+
+            // Cancel the sync status poller
+            clearInterval(poller);
+
+            // Configure the RPC immediately - this fetches correct latestBlockHeight
+            // This is critical for transaction confirmations to display correctly
+            const rpcConfig = new RPCConfig();
+            rpcConfig.url = url;
+            setRPCConfig(rpcConfig);
+
+            // Show "Loading wallet data..." message while RPC fetches balance
+            me.setState({ currentStatus: "Loading wallet data..." });
+
+            // Wait for balance to fully load, THEN show Dashboard
+            const waitTime = 2000;
+            console.log(`[LoadingScreen] Waiting ${waitTime}ms for balance to load...`);
+
+            setTimeout(() => {
+              console.log('[LoadingScreen] Balance load wait complete, fetching wallet info...');
+
+              // Get fresh info after network connection is established
+              const info = RPC.getInfoObject();
+              console.log('[LoadingScreen] Wallet info retrieved:', {
+                latestBlock: info.latestBlock,
+                walletHeight: info.walletHeight,
+                connections: info.connections
+              });
+
+              // Set the info object and rescanning status - this triggers Dashboard to show
+              setInfo(info);
+              setRescanning(false, prevSyncId);
+
+              console.log('[LoadingScreen] Transitioning to Dashboard...');
+
+              // This will cause a redirect to the dashboard screen
+              me.setState({
+                loadingDone: true
+              });
+            }, waitTime);
+          }, 1500); // Wait 1.5 seconds for wallet state to update
+
+          // Exit early - the setTimeout will handle both cases (still behind or fully synced)
+          return;
+        } else {
+          // Still syncing - show batch progress using sync status data
+          // Only display progress if sync is actually running (has required fields)
+          if (!ss.in_progress || !ss.start_block || !ss.end_block) {
+            // Sync is queued but not started yet - show connecting message
+            me.setState({ currentStatus: "Connecting to network..." });
+            return;
           }
+
+          const { initialWalletHeight, targetNetworkHeight } = me.state;
+
+          // Calculate display values
+          let currentHeightFormatted, targetHeightFormatted, syncedBlocksFormatted, totalBlocksFormatted;
+          let progress;
+
+          if (initialWalletHeight !== null && targetNetworkHeight !== null) {
+            // We know the overall sync range - show cumulative progress across all sync rounds
+            const currentBatchStart = ss.end_block; // Syncing backwards: end_block is where we start
+            const totalBlocksToSync = targetNetworkHeight - initialWalletHeight;
+            const blocksSyncedSoFar = targetNetworkHeight - currentBatchStart;
+
+            // Calculate overall cumulative progress (not just current batch)
+            progress = (blocksSyncedSoFar * 100) / totalBlocksToSync;
+
+            currentHeightFormatted = currentBatchStart.toLocaleString();
+            targetHeightFormatted = targetNetworkHeight.toLocaleString();
+            syncedBlocksFormatted = ss.synced_blocks.toLocaleString();
+            totalBlocksFormatted = ss.total_blocks.toLocaleString();
+          } else {
+            // No initial heights captured - show batch info only
+            // Use batch progress from sync status (this updates in real-time during sync)
+            let progress_blocks = (ss.synced_blocks + ss.trial_decryptions_blocks + ss.txn_scan_blocks) / 3;
+            progress = progress_blocks;
+            if (ss.total_blocks) {
+              progress = (progress_blocks * 100) / ss.total_blocks;
+            }
+
+            currentHeightFormatted = ss.end_block.toLocaleString();
+            targetHeightFormatted = ss.start_block.toLocaleString();
+            syncedBlocksFormatted = ss.synced_blocks.toLocaleString();
+            totalBlocksFormatted = ss.total_blocks.toLocaleString();
+          }
+
+          const currentStatus = (
+            <div>
+              Syncing blockchain...
+              <br />
+              {currentHeightFormatted} / {targetHeightFormatted} blocks ({progress.toFixed(1)}%)
+              <br />
+              {syncedBlocksFormatted} of {totalBlocksFormatted} blocks synced
+              <br />
+              <br />
+              Light wallet sync in progress... Usually takes just a few minutes
+            </div>
+          );
+          me.setState({ currentStatus });
         }
       }
     }, 1000);
   };
 
   createNewWallet = () => {
-    const { url, proxyEnabled, proxyUrl } = this.state;
-    const result = getNativeModule().litelib_initialize_new(url, proxyEnabled, proxyUrl);
+    const { url } = this.state;
+    const result = getNativeModule().litelib_initialize_new(url);
 
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
@@ -592,12 +570,12 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   doRestoreWallet = () => {
-    const { seed, birthday, url, proxyEnabled, proxyUrl } = this.state;
+    const { seed, birthday, url } = this.state;
     console.log(`Restoring ${seed} with ${birthday}`);
 
     const allowOverwrite = true;
 
-    const result = getNativeModule().litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite, proxyEnabled, proxyUrl);
+    const result = getNativeModule().litelib_initialize_new_from_phrase(url, seed, birthday, allowOverwrite);
     if (result.startsWith("Error")) {
       this.setState({ newWalletError: result });
     } else {
@@ -607,7 +585,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
   };
 
   render() {
-    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday, waitingForTor, torBootstrapProgress, showFirstTimeServerSetup } =
+    const { loadingDone, currentStatus, currentStatusIsError, walletScreen, newWalletError, seed, birthday, walletBirthday, showFirstTimeServerSetup } =
       this.state;
 
     const { openServerSelectModal } = this.props;
@@ -626,189 +604,7 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           background: 'linear-gradient(135deg, #4A90E2 0%, #2E5BBA 50%, #1E3A8A 100%)',
           color: 'white'
         }}>
-          {waitingForTor && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              maxWidth: '500px',
-              width: '100%'
-            }}>
-              {/* Tor Icon */}
-              <div style={{ marginBottom: '32px' }}>
-                <i className="fas fa-user-secret" style={{
-                  fontSize: '80px',
-                  color: '#C084FC',
-                  textShadow: '0 0 20px rgba(192, 132, 252, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5)',
-                  animation: 'pulse 2s infinite'
-                }} />
-              </div>
-
-              {/* Title */}
-              <h2 style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                marginBottom: '16px',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                letterSpacing: '0.5px'
-              }}>
-                Establishing Anonymous Connection
-              </h2>
-
-              {/* Status Message */}
-              <div style={{
-                fontSize: '16px',
-                lineHeight: '1.6',
-                marginBottom: '32px',
-                color: 'rgba(255, 255, 255, 0.9)'
-              }}>
-                {torBootstrapProgress === 100 && currentStatus ? currentStatus :
-                 torBootstrapProgress < 25 ? 'Initializing Tor network...' :
-                 torBootstrapProgress < 50 ? 'Building encrypted circuit...' :
-                 torBootstrapProgress < 75 ? 'Establishing anonymous connection...' :
-                 torBootstrapProgress < 100 ? 'Securing your privacy...' :
-                 'Connection secured!'}
-              </div>
-
-              {/* Progress Card */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '16px',
-                padding: '32px',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-                width: '100%',
-                maxWidth: '450px'
-              }}>
-                {/* Progress Bar */}
-                <div style={{
-                  width: '100%',
-                  height: '8px',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  marginBottom: '16px'
-                }}>
-                  <div style={{
-                    width: torBootstrapProgress === 100 ? '100%' : `${torBootstrapProgress}%`,
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #C084FC 0%, #7C3AED 50%, #C084FC 100%)',
-                    backgroundSize: '200% 100%',
-                    borderRadius: '4px',
-                    transition: 'width 1.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
-                    boxShadow: '0 0 15px rgba(192, 132, 252, 0.6)',
-                    animation: torBootstrapProgress === 100
-                      ? 'shimmer 2s ease-in-out infinite'
-                      : 'progressPulse 1.5s ease-in-out infinite, gradientMove 3s linear infinite',
-                    transform: torBootstrapProgress < 100 ? 'scaleY(1.1)' : 'scaleY(1)',
-                    transformOrigin: 'left center'
-                  }} />
-                </div>
-
-                {/* Progress Text */}
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#C084FC',
-                  marginBottom: '24px'
-                }}>
-                  {torBootstrapProgress === 100 ? (
-                    <span style={{animation: 'pulse 2s ease-in-out infinite'}}>Loading...</span>
-                  ) : `${torBootstrapProgress}% Connected`}
-                </div>
-
-                {/* Privacy Features - 2 Columns */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '20px',
-                  textAlign: 'left',
-                  fontSize: '13px',
-                  color: 'rgba(255, 255, 255, 0.8)'
-                }}>
-                  {/* Left Column - Network Privacy (Tor) */}
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-shield-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>IP address hidden</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-lock" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Multi-layer encryption</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-map-marker-alt" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Location protected</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <i className="fas fa-eye-slash" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Untraceable activity</span>
-                    </div>
-                  </div>
-
-                  {/* Right Column - Transaction Privacy (BitcoinZ) */}
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-coins" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Balance kept private</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-user-secret" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Payments fully encrypted</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                      <i className="fas fa-mask" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>Wallet identity hidden</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <i className="fas fa-check-circle" style={{ color: '#86EFAC', marginRight: '10px', fontSize: '14px' }} />
-                      <span>No transaction history</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Message */}
-              <p style={{
-                fontSize: '12px',
-                marginTop: '24px',
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontStyle: 'italic'
-              }}>
-                Double privacy: Hidden network connection + Fully encrypted transactions
-              </p>
-
-              <style>{`
-                @keyframes pulse {
-                  0%, 100% { transform: scale(1); }
-                  50% { transform: scale(1.05); }
-                }
-                @keyframes shimmer {
-                  0% { opacity: 0.6; }
-                  50% { opacity: 1; }
-                  100% { opacity: 0.6; }
-                }
-                @keyframes progressPulse {
-                  0%, 100% {
-                    box-shadow: 0 0 15px rgba(192, 132, 252, 0.6);
-                    filter: brightness(1);
-                  }
-                  50% {
-                    box-shadow: 0 0 25px rgba(192, 132, 252, 0.9), 0 0 40px rgba(192, 132, 252, 0.4);
-                    filter: brightness(1.2);
-                  }
-                }
-                @keyframes gradientMove {
-                  0% { background-position: 0% 50%; }
-                  100% { background-position: 200% 50%; }
-                }
-              `}</style>
-            </div>
-          )}
-          {!waitingForTor && walletScreen === 0 && (
+          {walletScreen === 0 && (
             <div style={{
               display: 'flex',
               flexDirection: 'column',

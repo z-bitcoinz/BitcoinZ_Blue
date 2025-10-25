@@ -34,9 +34,6 @@ export default class RPC {
 
   lastBlockHeight: number;
 
-  // Track proxy status for conditional timeouts
-  private static proxyEnabled: boolean = false;
-
   // Helper method to get native module with error handling
   private static getNative() {
     return getNativeModule();
@@ -132,18 +129,6 @@ export default class RPC {
     console.log(`fullrescan exec result: ${syncstr}`);
   }
 
-  static setProxy(enabled: boolean, url: string): string {
-    const proxyConfig = JSON.stringify({ enabled, url });
-    const result = RPC.getNative().litelib_execute("setproxy", proxyConfig);
-    console.log(`setProxy result: ${result}`);
-
-    // Track proxy status for conditional timeouts
-    RPC.proxyEnabled = enabled;
-    console.log(`[RPC] Proxy status updated: ${enabled ? 'ENABLED' : 'DISABLED'}`);
-
-    return result;
-  }
-
   static doSyncStatus(): string {
     const syncstr = RPC.getNative().litelib_execute("syncstatus", "");
     console.log(`syncstatus: ${syncstr}`);
@@ -223,89 +208,89 @@ export default class RPC {
     const initialLatestBlockHeight = await this.fetchInfo();
 
     if (fullRefresh || !this.lastBlockHeight || this.lastBlockHeight < initialLatestBlockHeight) {
-      this.updateDataLock = true;
-
-      // Start sync in background
-      RPC.doSync();
-
-      let retryCount = 0;
-      const maxRetries = RPC.proxyEnabled ? 300 : 30;
-      const timeoutSeconds = RPC.proxyEnabled ? 300 : 30;
-
-      console.log(`[RPC] Sync timeout: ${timeoutSeconds}s (Tor: ${RPC.proxyEnabled})`);
-      console.log(`[RPC] Starting sync - network at block ${initialLatestBlockHeight}`);
-
-      const pollerID = setInterval(async () => {
-        const walletHeight = RPC.fetchWalletHeight();
-        retryCount += 1;
-
-        // Log progress every 30 seconds on Tor
-        if (RPC.proxyEnabled && retryCount % 30 === 0) {
-          console.log(`[RPC] Sync progress: wallet at ${walletHeight}, elapsed ${retryCount}s`);
-        }
-
-        // Check if timeout reached
-        if (retryCount > maxRetries) {
-          clearInterval(pollerID);
-
-          // Re-fetch current network height to see how far we are
-          const currentNetworkHeight = await this.fetchInfo();
-
-          console.error(`❌ SYNC TIMEOUT after ${timeoutSeconds}s`);
-          console.error(`   Wallet height: ${walletHeight}`);
-          console.error(`   Network height: ${currentNetworkHeight}`);
-          console.error(`   Blocks behind: ${currentNetworkHeight - walletHeight}`);
-          console.error(`   Initial network height: ${initialLatestBlockHeight}`);
-          console.error(`   Network advanced: ${currentNetworkHeight - initialLatestBlockHeight} blocks during sync`);
-
-          // DO NOT SAVE if we're still behind - this would lock us at outdated height
-          // The next refresh cycle will try again
-
-          this.updateDataLock = false;
-          return;
-        }
-
-        // Check if wallet caught up to INITIAL target
-        // But only check for completion every 5 seconds to reduce load
-        if (walletHeight >= initialLatestBlockHeight && retryCount % 5 === 0) {
-          // Wallet reached the initial target, but network may have moved forward
-          // Re-fetch CURRENT network height to see where we actually are
-          const currentNetworkHeight = await this.fetchInfo();
-
-          console.log(`[RPC] Checking sync completion:`);
-          console.log(`   Wallet height: ${walletHeight}`);
-          console.log(`   Current network height: ${currentNetworkHeight}`);
-          console.log(`   Initial target: ${initialLatestBlockHeight}`);
-
-          if (walletHeight >= currentNetworkHeight) {
-            // Truly synced to current network tip!
-            clearInterval(pollerID);
-
-            console.log(`✅ Sync COMPLETE after ${retryCount}s`);
-            console.log(`   Wallet: ${walletHeight}, Network: ${currentNetworkHeight}`);
-
-            // Fetch data using current network height for confirmations
-            this.fetchTotalBalance();
-            this.fetchTandZTransactions(currentNetworkHeight);
-            this.getZecPrice();
-
-            // Save with current network height
-            this.lastBlockHeight = currentNetworkHeight;
-            RPC.doSave();
-
-            this.updateDataLock = false;
-          } else {
-            // Network moved forward, need to sync more
-            const blocksBehind = currentNetworkHeight - walletHeight;
-            console.log(`⏳ Network advanced: still ${blocksBehind} blocks behind, continuing sync...`);
-            // Continue polling
-          }
-        }
-      }, 1000);
+      // Start the sync loop in background (don't await - let it run async)
+      // This allows updateData() to continue detecting balance changes during sync
+      this.syncLoop(initialLatestBlockHeight);
     } else {
       // Already at the latest block
       console.log("Already have latest block, waiting for next refresh");
     }
+  }
+
+  // Helper function that runs sync loops until wallet catches up to current network height
+  private async syncLoop(targetHeight: number, syncRound: number = 1): Promise<void> {
+    const maxSyncRounds = 10; // Prevent infinite loops
+
+    if (syncRound > maxSyncRounds) {
+      console.error(`❌ Maximum sync rounds (${maxSyncRounds}) reached, stopping`);
+      return;
+    }
+
+    // Start sync in background
+    console.log(`\n🔄 SYNC ROUND ${syncRound}`);
+    console.log(`   Target network height: ${targetHeight}`);
+
+    RPC.doSync();
+
+    return new Promise((resolve) => {
+      let elapsedSeconds = 0;
+
+      const pollerID = setInterval(async () => {
+        const walletHeight = RPC.fetchWalletHeight();
+        elapsedSeconds += 1;
+
+        // Log progress every 30 seconds
+        if (elapsedSeconds % 30 === 0) {
+          console.log(`[Round ${syncRound}] Wallet at ${walletHeight}, elapsed ${elapsedSeconds}s`);
+        }
+
+        // Check if wallet caught up to target height
+        // Only check every 5 seconds to reduce load
+        if (walletHeight >= targetHeight && elapsedSeconds % 5 === 0) {
+          // Wallet reached the target, now check CURRENT network height
+          const currentNetworkHeight = await this.fetchInfo();
+
+          console.log(`[Round ${syncRound}] Checking sync status:`);
+          console.log(`   Wallet: ${walletHeight}, Network: ${currentNetworkHeight}`);
+
+          if (walletHeight >= currentNetworkHeight) {
+            // ✅ Truly synced to current network tip!
+            clearInterval(pollerID);
+
+            console.log(`✅ SYNC COMPLETE (Round ${syncRound}) after ${elapsedSeconds}s`);
+            console.log(`   Fully synced at block ${currentNetworkHeight}`);
+
+            // Briefly lock to prevent updateData() from fetching simultaneously
+            this.updateDataLock = true;
+
+            // Fetch final data
+            this.fetchTotalBalance();
+            this.fetchTandZTransactions(currentNetworkHeight);
+            this.getZecPrice();
+
+            // Save wallet
+            this.lastBlockHeight = currentNetworkHeight;
+            RPC.doSave();
+
+            // Release lock
+            this.updateDataLock = false;
+
+            resolve(); // Sync complete!
+          } else {
+            // Network moved forward during sync - need another sync round
+            clearInterval(pollerID);
+
+            const blocksBehind = currentNetworkHeight - walletHeight;
+            console.log(`⏳ Network advanced during sync - ${blocksBehind} blocks behind`);
+            console.log(`   Starting new sync round to catch up...`);
+
+            // Recursively start another sync round with new target
+            await this.syncLoop(currentNetworkHeight, syncRound + 1);
+            resolve(); // Recursive sync will handle completion
+          }
+        }
+      }, 1000);
+    });
   }
 
   // Special method to get the Info object. This is used both internally and by the Loading screen

@@ -1,5 +1,5 @@
 import Modal from "react-modal";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import cstyles from "./Common.module.css";
 import Utils from "../utils/utils";
 const { ipcRenderer } = window.require("electron");
@@ -27,22 +27,6 @@ const servers = [
     technicalNote: "Best balance of speed and convenience"
   },
   {
-    name: "Tor Network (Anonymous)",
-    uri: "http://e4lxxtpwqfhbkdio6uq7lwcovwmoh624xj3itzjmctfm7hiartadd7qd.onion:9067",
-    isTor: true,
-    icon: "fa-user-secret",
-    iconColor: "#C084FC",
-    title: "Maximum Privacy",
-    benefits: [
-      "Complete IP anonymity",
-      "Location cannot be traced",
-      "Untraceable network activity"
-    ],
-    privacyLevel: "Maximum Privacy",
-    privacyDetails: "Your connection is routed through the Tor network. Wallet will start Tor automatically (10-20 seconds on first launch).",
-    technicalNote: "Slightly slower due to Tor routing"
-  },
-  {
     name: "Local Server",
     uri: "http://localhost:9067",
     icon: "fa-home",
@@ -62,32 +46,10 @@ const servers = [
 
 export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: Props) {
   const [selected, setSelected] = useState(Utils.V3_LIGHTWALLETD);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_torStatus, setTorStatus] = useState<{status: string, progress: number}>({ status: 'stopped', progress: 0 });
-
-  useEffect(() => {
-    if (modalIsOpen) {
-      (async () => {
-        const status = await ipcRenderer.invoke("getTorStatus");
-        setTorStatus(status);
-      })();
-    }
-  }, [modalIsOpen]);
 
   const handleContinue = async () => {
     // Save the selected server
-    const selectedServer = servers.find(s => s.uri === selected);
-    const isTor = selectedServer?.isTor || false;
-
     await ipcRenderer.invoke("saveSettings", { key: "lwd.serveruri", value: selected });
-
-    // Enable proxy if Tor, disable otherwise
-    if (isTor) {
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: true });
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.url", value: "socks5://127.0.0.1:9050" });
-    } else {
-      await ipcRenderer.invoke("saveSettings", { key: "proxy.enabled", value: false });
-    }
 
     // Mark that server has been selected
     await ipcRenderer.invoke("saveSettings", { key: "hasSelectedServer", value: true });
@@ -157,7 +119,7 @@ export default function FirstTimeServerSetup({ modalIsOpen, onServerSelected }: 
         {/* Server Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '10px',
           marginBottom: '16px'
         }}>

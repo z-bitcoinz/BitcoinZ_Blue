@@ -31,7 +31,6 @@ ring = "0.16.20"
 dirs = "3.0.2"
 json = "0.12.4"
 webpki-roots = "0.21.0"
-hyper-socks2 = "0.8"
 tower = "0.4"
 hyper = "0.14"
 
