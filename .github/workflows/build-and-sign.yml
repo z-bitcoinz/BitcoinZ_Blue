@@ -24,10 +24,10 @@ jobs:
           node-version: '18'
           # cache: 'yarn'  # Disabled to ensure fresh build with parameter fixes
           
-      - name: Setup Rust 1.81
+      - name: Setup Rust (latest stable)
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: 1.81
+          toolchain: stable
           override: true
 
       - name: Verify Rust version
@@ -36,7 +36,7 @@ jobs:
           which cargo
           rustc --version
           cargo --version
-          echo "✅ Rust 1.81 confirmed"
+          echo "✅ Rust toolchain confirmed"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -402,10 +402,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Rust 1.81
+      - name: Setup Rust (latest stable)
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: 1.81
+          toolchain: stable
           override: true
 
       - name: Setup Node.js
@@ -901,10 +901,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Rust 1.81
+      - name: Setup Rust (latest stable)
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: 1.81
+          toolchain: stable
           override: true
 
       - name: Setup Node.js
