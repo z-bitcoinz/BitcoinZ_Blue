@@ -296,7 +296,6 @@ jobs:
       
       - name: Notarize macOS Apps
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-        continue-on-error: true
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -307,28 +306,68 @@ jobs:
             echo "⚠️  Notarization credentials not provided, skipping notarization"
             exit 0
           fi
-          
+
           echo "🔐 Starting notarization process..."
-          
+
+          # First, validate app signatures before submitting
+          echo "🔍 Validating app signatures before notarization..."
+          for dmg in dist/*.dmg; do
+            if [ -f "$dmg" ]; then
+              echo "Checking DMG: $dmg"
+              codesign -dvv "$dmg" 2>&1 || true
+
+              # Mount DMG and check app bundle signature
+              echo "Mounting DMG to check app bundle..."
+              MOUNT_POINT=$(hdiutil attach "$dmg" -nobrowse | grep '/Volumes/' | awk '{print $3}')
+              if [ -n "$MOUNT_POINT" ]; then
+                echo "Mounted at: $MOUNT_POINT"
+                APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 1 | head -1)
+                if [ -n "$APP_PATH" ]; then
+                  echo "Checking app bundle: $APP_PATH"
+                  codesign -dvvv --deep "$APP_PATH" 2>&1 | head -30
+                  echo "Checking native module..."
+                  find "$APP_PATH" -name "*.node" -exec codesign -dvv {} \; 2>&1 || true
+                fi
+                hdiutil detach "$MOUNT_POINT" -quiet || true
+              fi
+              echo "---"
+            fi
+          done
+
           # Notarize each DMG
           for dmg in dist/*.dmg; do
             if [ -f "$dmg" ]; then
               echo "📤 Submitting for notarization: $dmg"
-              
-              # Submit for notarization and capture the output
+
+              # Submit for notarization with verbose output
+              echo "🔍 Running: xcrun notarytool submit (verbose mode)..."
               NOTARIZE_OUTPUT=$(xcrun notarytool submit "$dmg" \
                 --apple-id "$APPLE_ID" \
                 --password "$APPLE_ID_PASSWORD" \
                 --team-id "$APPLE_TEAM_ID" \
+                --verbose \
                 --wait \
                 --timeout 30m 2>&1)
               
               echo "$NOTARIZE_OUTPUT"
-              
+
+              # Check if submission failed (exit code 1)
+              SUBMIT_EXIT_CODE=$?
+              if [ $SUBMIT_EXIT_CODE -ne 0 ]; then
+                echo "❌ ERROR: notarytool submit command failed with exit code $SUBMIT_EXIT_CODE"
+                echo "This usually means:"
+                echo "  1. Apple rejected the submission (invalid format/signing)"
+                echo "  2. Authentication failed"
+                echo "  3. Network/server error"
+                echo ""
+                echo "Full output above. Please check for specific error messages."
+                exit 1
+              fi
+
               # Extract submission ID for logging
               SUBMISSION_ID=$(echo "$NOTARIZE_OUTPUT" | grep -E "id: [a-f0-9-]+" | head -1 | awk '{print $2}')
-              
-              # Check if notarization failed
+
+              # Check if notarization failed during processing
               if echo "$NOTARIZE_OUTPUT" | grep -q "status: Invalid"; then
                 echo "❌ Notarization failed! Fetching detailed log..."
 
@@ -343,6 +382,7 @@ jobs:
                 echo "- Components signed with ad-hoc instead of Developer ID"
                 echo "- Missing hardened runtime"
                 echo "- Unsigned frameworks or helpers"
+                echo "- Native modules (.node files) not properly signed"
                 exit 1
               fi
               
