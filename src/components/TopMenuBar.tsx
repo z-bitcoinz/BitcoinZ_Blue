@@ -7,8 +7,6 @@ import { SettingsModal } from "./SettingsModal";
 import { currencyManager } from "../utils/currencyManager";
 import { useLock } from "../contexts/LockContext";
 
-const { ipcRenderer } = window.require("electron");
-
 type TopMenuBarProps = {
   info: Info;
   pageTitle?: string;
