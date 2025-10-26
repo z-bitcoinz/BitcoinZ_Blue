@@ -96,16 +96,6 @@ jobs:
           cargo build --release --features embed_params
           cp target/release/libbitcoinz_wallet_lite.dylib ../src/native.node
           
-      - name: Build Tor from source
-        run: |
-          echo "🔨 Building Tor from source for bundling..."
-          chmod +x scripts/build-tor.sh
-
-          # Build Tor (will be signed later if certificate available)
-          ./scripts/build-tor.sh
-
-          echo "✅ Tor build complete"
-
       - name: Import Apple Developer Certificate
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         env:
@@ -150,32 +140,6 @@ jobs:
           else
             echo "❌ Failed to find Developer ID Application certificate"
             exit 1
-          fi
-
-      - name: Sign Tor binary
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-        run: |
-          # Find the certificate identity
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
-
-          if [ -n "$IDENTITY" ]; then
-            echo "🔐 Signing Tor binary with Developer ID..."
-
-            # Ensure keychain is unlocked
-            security unlock-keychain -p "mysecretpassword" build.keychain
-
-            # Sign Tor binary
-            codesign --force \
-              --sign "$IDENTITY" \
-              --options runtime \
-              --timestamp \
-              resources/tor/darwin/tor
-
-            # Verify signature
-            echo "✅ Tor binary signed successfully"
-            codesign -dv resources/tor/darwin/tor 2>&1 | grep -E "Authority|Signature|Runtime"
-          else
-            echo "⚠️  No Developer ID found, Tor binary will remain unsigned"
           fi
 
       - name: Build macOS app with proper signing
@@ -477,29 +441,6 @@ jobs:
 
           # Verify installation
           & "$protocPath\protoc.exe" --version
-        shell: powershell
-
-      - name: Download Tor for Windows
-        run: |
-          Write-Host "Downloading Tor Expert Bundle for Windows..."
-
-          # Make script executable and run it
-          bash scripts/build-tor-windows.sh
-
-          Write-Host "Tor download complete"
-
-          # Verify Tor binary was downloaded
-          if (Test-Path "resources/tor/win32/tor.exe") {
-            $torSize = (Get-Item "resources/tor/win32/tor.exe").Length
-            Write-Host "SUCCESS: Tor binary ready: $torSize bytes"
-
-            # List all files
-            Write-Host "Tor package contents:"
-            Get-ChildItem resources/tor/win32 | Format-Table Name, Length
-          } else {
-            Write-Host "ERROR: Tor binary not found"
-            exit 1
-          }
         shell: powershell
 
       - name: Build native module for Windows
@@ -985,25 +926,6 @@ jobs:
           sudo apt-get install -y protobuf-compiler
           echo "PROTOC=$(which protoc)" >> $GITHUB_ENV
           protoc --version
-
-      - name: Build Tor from source for Linux
-        run: |
-          echo "🔨 Building Tor from source for Linux..."
-          chmod +x scripts/build-tor-linux.sh
-
-          # Build Tor (dependencies will be installed by script)
-          ./scripts/build-tor-linux.sh
-
-          echo "✅ Tor build complete"
-
-          # Verify Tor binary was built
-          if [ -f "resources/tor/linux/tor" ]; then
-            echo "SUCCESS: Tor binary ready: $(du -h resources/tor/linux/tor | awk '{print $1}')"
-            ls -lh resources/tor/linux/
-          else
-            echo "ERROR: Tor binary not found"
-            exit 1
-          fi
 
       - name: Build Linux app
         run: |
