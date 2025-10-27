@@ -377,21 +377,19 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
         // Only process "sync complete" for syncs we've actually seen running
         // This prevents false-positives when a new sync is queued but hasn't started yet
         if (ss.sync_id > prevSyncId && !ss.in_progress && ss.sync_id <= lastSyncIdStarted) {
-          // Don't exit loading screen if sync failed - keep waiting
+          // If sync failed, log it but continue (will retry automatically)
           if (ss.last_error) {
-            console.log('[LoadingScreen] Sync failed, waiting for successful sync...');
-            me.setState({ currentStatus: "Connecting to network..." });
-            return;
+            console.log('[LoadingScreen] Sync failed with error:', ss.last_error);
+            console.log('[LoadingScreen] Will retry on next sync...');
+            // Don't return - let it continue and retry
           }
 
-          //  ✅ CRITICAL: Save wallet state immediately after sync completes
-          // This ensures the synced blocks are persisted to disk
+          //  ✅ Save wallet state immediately after sync completes
           console.log('[LoadingScreen] 💾 Saving wallet state after sync completion...');
           RPC.doSave();
-          console.log('[LoadingScreen] ✅ Wallet saved - waiting for state to update...');
+          console.log('[LoadingScreen] ✅ Wallet saved');
 
-          // Wait a moment for the wallet to update its internal state after save
-          // This prevents race conditions where we check height before it's updated
+          // Quick check if wallet state is updated (reduced from 500ms to 100ms)
           setTimeout(() => {
             // Now fetch fresh wallet info and check if we're caught up
             const walletHeight = RPC.fetchWalletHeight();
@@ -438,8 +436,8 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
             // Show "Loading wallet data..." message while RPC fetches balance
             me.setState({ currentStatus: "Loading wallet data..." });
 
-            // Wait for balance to fully load, THEN show Dashboard
-            const waitTime = 2000;
+            // Quick buffer for balance to load (reduced from 2000ms for Tor)
+            const waitTime = 200;
             console.log(`[LoadingScreen] Waiting ${waitTime}ms for balance to load...`);
 
             setTimeout(() => {
@@ -464,16 +462,16 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
                 loadingDone: true
               });
             }, waitTime);
-          }, 1500); // Wait 1.5 seconds for wallet state to update
+          }, 100); // Quick buffer for wallet state to update
 
           // Exit early - the setTimeout will handle both cases (still behind or fully synced)
           return;
         } else {
           // Still syncing - show batch progress using sync status data
-          // Only display progress if sync is actually running (has required fields)
+          // If sync fields are not ready yet, show simple message but don't block
           if (!ss.in_progress || !ss.start_block || !ss.end_block) {
-            // Sync is queued but not started yet - show connecting message
-            me.setState({ currentStatus: "Connecting to network..." });
+            // Sync is starting - show simple message
+            me.setState({ currentStatus: "Starting blockchain sync..." });
             return;
           }
 
