@@ -492,8 +492,9 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
             // Calculate overall cumulative progress (not just current batch)
             progress = (blocksSyncedSoFar * 100) / totalBlocksToSync;
 
-            currentHeightFormatted = currentBatchStart.toLocaleString();
-            targetHeightFormatted = targetNetworkHeight.toLocaleString();
+            // Display blocks synced (not current position) so numbers increase with progress
+            currentHeightFormatted = blocksSyncedSoFar.toLocaleString();
+            targetHeightFormatted = totalBlocksToSync.toLocaleString();
             syncedBlocksFormatted = ss.synced_blocks.toLocaleString();
             totalBlocksFormatted = ss.total_blocks.toLocaleString();
           } else {
@@ -505,8 +506,9 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
               progress = (progress_blocks * 100) / ss.total_blocks;
             }
 
-            currentHeightFormatted = ss.end_block.toLocaleString();
-            targetHeightFormatted = ss.start_block.toLocaleString();
+            // Display batch progress (blocks synced so far in this batch)
+            currentHeightFormatted = ss.synced_blocks.toLocaleString();
+            targetHeightFormatted = ss.total_blocks.toLocaleString();
             syncedBlocksFormatted = ss.synced_blocks.toLocaleString();
             totalBlocksFormatted = ss.total_blocks.toLocaleString();
           }
