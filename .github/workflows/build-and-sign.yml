@@ -318,7 +318,7 @@ jobs:
 
               # Mount DMG and check app bundle signature
               echo "Mounting DMG to check app bundle..."
-              MOUNT_POINT=$(hdiutil attach "$dmg" -nobrowse | grep '/Volumes/' | awk '{print $3}')
+              MOUNT_POINT=$(hdiutil attach "$dmg" -nobrowse | tail -1 | sed 's/.*\t//')
               if [ -n "$MOUNT_POINT" ]; then
                 echo "Mounted at: $MOUNT_POINT"
                 APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 1 | head -1)
@@ -341,6 +341,9 @@ jobs:
 
               # Submit for notarization with verbose output
               echo "🔍 Running: xcrun notarytool submit (verbose mode)..."
+
+              # Temporarily disable exit on error to capture exit code
+              set +e
               NOTARIZE_OUTPUT=$(xcrun notarytool submit "$dmg" \
                 --apple-id "$APPLE_ID" \
                 --password "$APPLE_ID_PASSWORD" \
@@ -348,11 +351,12 @@ jobs:
                 --verbose \
                 --wait \
                 --timeout 30m 2>&1)
-              
+              SUBMIT_EXIT_CODE=$?  # Capture exit code immediately!
+              set -e
+
               echo "$NOTARIZE_OUTPUT"
 
               # Check if submission failed (exit code 1)
-              SUBMIT_EXIT_CODE=$?
               if [ $SUBMIT_EXIT_CODE -ne 0 ]; then
                 echo "❌ ERROR: notarytool submit command failed with exit code $SUBMIT_EXIT_CODE"
                 echo "This usually means:"
