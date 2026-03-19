@@ -676,7 +676,7 @@ export default class RPC {
       // Step 4: Last resort - try to reinitialize the wallet connection
       console.log("Step 4: Attempting wallet reinitialization...");
       try {
-        const serverUrl = "https://lightd.btcz.rocks:9067";
+        const serverUrl = "https://light.z-text.com:443";
         // Note: Using default proxy settings for error recovery (proxy disabled)
         const reinitResult = RPC.getNative().litelib_initialize_existing(serverUrl, false, "");
 

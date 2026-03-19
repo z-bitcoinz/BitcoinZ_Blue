@@ -13,9 +13,9 @@ type ModalProps = {
 // Define servers outside component to avoid re-creating on each render
 const servers = [
   {
-    name: "BitcoinZ Official (Default)",
+    name: "Z-Text Primary (Default)",
     uri: Utils.V3_LIGHTWALLETD,
-    description: "Official BitcoinZ server - Fast and reliable",
+    description: "Z-Text server - Fast, Cloudflare-backed",
     privacyNote: "⚠️ Your ISP can see you're connecting to BitcoinZ",
     icon: "fa-server"
   },

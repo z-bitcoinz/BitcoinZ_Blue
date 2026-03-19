@@ -8,13 +8,13 @@ export const NO_CONNECTION: string = "Could not connect to bitcoinzd";
 export default class Utils {
   // BitcoinZ LightwalletD servers
   // Now using proper HTTPS with valid SSL certificates
-  static V1_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
+  static V1_LIGHTWALLETD: string = "https://light.z-text.com:443";
 
   // v2 LightwalletD
-  static V2_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
+  static V2_LIGHTWALLETD: string = "https://light.z-text.com:443";
 
   // v3 LightwalletD
-  static V3_LIGHTWALLETD: string = "https://lightd.btcz.rocks:9067";
+  static V3_LIGHTWALLETD: string = "https://light.z-text.com:443";
 
   static isUnified(addr: string): boolean {
     // BitcoinZ does not support Unified addresses

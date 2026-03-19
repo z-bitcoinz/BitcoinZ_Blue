@@ -12,9 +12,9 @@ impl Parameters for BitcoinZMainNetwork {
         match nu {
             NetworkUpgrade::Overwinter => Some(BlockHeight::from(1)), 
             NetworkUpgrade::Sapling => Some(BlockHeight::from(328_500)), // BitcoinZ Sapling activation
-            NetworkUpgrade::Blossom => None, // BitcoinZ doesn't have Blossom
-            NetworkUpgrade::Heartwood => None, // BitcoinZ doesn't have Heartwood
-            NetworkUpgrade::Canopy => None, // BitcoinZ doesn't have Canopy
+            NetworkUpgrade::Blossom => None,                              // BitcoinZ skipped Blossom
+            NetworkUpgrade::Heartwood => None,                            // BitcoinZ skipped Heartwood
+            NetworkUpgrade::Canopy => Some(BlockHeight::from(1_735_000)), // BitcoinZ Canopy activation
             NetworkUpgrade::Nu5 => None, // BitcoinZ doesn't have Nu5
             #[cfg(feature = "zfuture")]
             NetworkUpgrade::ZFuture => None,
@@ -47,7 +47,7 @@ impl Parameters for BitcoinZMainNetwork {
     }
 
     fn address_network(&self) -> Option<zcash_address::Network> {
-        Some(zcash_address::Network::Main) // TODO: May need custom BitcoinZ network
+        Some(zcash_address::Network::Main)
     }
 }
 
@@ -64,7 +64,7 @@ impl Parameters for BitcoinZTestNetwork {
             NetworkUpgrade::Sapling => Some(BlockHeight::from(1)), // Testnet has Sapling from block 1
             NetworkUpgrade::Blossom => None,
             NetworkUpgrade::Heartwood => None,
-            NetworkUpgrade::Canopy => None,
+            NetworkUpgrade::Canopy => Some(BlockHeight::from(840_000)), // BitcoinZ testnet Canopy
             NetworkUpgrade::Nu5 => None,
             #[cfg(feature = "zfuture")]
             NetworkUpgrade::ZFuture => None,
@@ -97,7 +97,7 @@ impl Parameters for BitcoinZTestNetwork {
     }
 
     fn address_network(&self) -> Option<zcash_address::Network> {
-        Some(zcash_address::Network::Test) // TODO: May need custom BitcoinZ testnet
+        Some(zcash_address::Network::Test)
     }
 }
 

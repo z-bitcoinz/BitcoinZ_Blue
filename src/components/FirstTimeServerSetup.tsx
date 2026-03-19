@@ -11,7 +11,7 @@ type Props = {
 
 const servers = [
   {
-    name: "BitcoinZ Official Server",
+    name: "Z-Text Primary Server",
     uri: Utils.V3_LIGHTWALLETD,
     icon: "fa-server",
     iconColor: "#64B5F6",
@@ -19,7 +19,7 @@ const servers = [
     title: "Recommended for Most Users",
     benefits: [
       "Fast and reliable connection",
-      "Maintained by BitcoinZ community",
+      "Cloudflare-backed infrastructure",
       "No setup required"
     ],
     privacyLevel: "Standard Privacy",
