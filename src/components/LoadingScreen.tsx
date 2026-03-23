@@ -96,8 +96,15 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
     const settings = await ipcRenderer.invoke("loadSettings");
     let server = settings?.lwd?.serveruri || Utils.V3_LIGHTWALLETD;
 
-    // Automatically upgrade to v2 server if you had the previous v1 server.
-    if (server === Utils.V1_LIGHTWALLETD || server === Utils.V2_LIGHTWALLETD) {
+    // Automatically upgrade from old servers to the current default.
+    // Include hardcoded old URLs so migration works even after constants change.
+    const oldServers = [
+      "https://lightd.btcz.rocks:9067",
+      "http://lightd.btcz.rocks:9067",
+      "https://lightd.btcz.rocks:443",
+      "http://localhost:9067",
+    ];
+    if (server === Utils.V1_LIGHTWALLETD || server === Utils.V2_LIGHTWALLETD || oldServers.includes(server)) {
       server = Utils.V3_LIGHTWALLETD;
     }
 
@@ -374,9 +381,9 @@ class LoadingScreen extends Component<Props & RouteComponentProps, LoadingScreen
           });
         }
 
-        // Only process "sync complete" for syncs we've actually seen running
-        // This prevents false-positives when a new sync is queued but hasn't started yet
-        if (ss.sync_id > prevSyncId && !ss.in_progress && ss.sync_id <= lastSyncIdStarted) {
+        // Process "sync complete" when sync_id advanced and is no longer in progress.
+        // Accept completion even if we never saw in_progress (sync finished faster than polling).
+        if (ss.sync_id > prevSyncId && !ss.in_progress && (ss.sync_id <= lastSyncIdStarted || !ss.last_error)) {
           // If sync failed, log it but continue (will retry automatically)
           if (ss.last_error) {
             console.log('[LoadingScreen] Sync failed with error:', ss.last_error);

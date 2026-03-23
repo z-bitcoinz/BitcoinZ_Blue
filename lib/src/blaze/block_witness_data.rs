@@ -340,10 +340,9 @@ impl BlockAndWitnessData {
                 let orchard_witnesses = orchard_witnesses.clone();
 
                 //println!("block_witness recieved {:?}", cb.height);
-                // We'll process batch_size (1_000) blocks at a time.
-                // println!("Recieved block # {}", cb.height);
-                if cb.height % batch_size == 0 {
-                    // println!("Batch size hit at height {} with len {}", cb.height, blks.len());
+                // Flush blocks frequently (every 50) so that trial decryption workers
+                // calling wait_for_block() don't spin waiting for the channel to close.
+                if cb.height % batch_size == 0 || blks.len() >= 50 {
                     if !blks.is_empty() {
                         // Add these blocks to the list
                         sync_status.write().await.blocks_done += blks.len() as u64;
@@ -605,10 +604,10 @@ impl BlockAndWitnessData {
                 self.wait_for_block(height).await;
 
                 {
-                    let mut blocks = self.blocks.write().await;
+                    let blocks = self.blocks.read().await;
 
                     let pos = blocks.first().unwrap().height - height;
-                    let bd = blocks.get_mut(pos as usize).unwrap();
+                    let bd = blocks.get(pos as usize).unwrap();
 
                     bd.cb()
                 }
