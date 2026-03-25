@@ -1335,9 +1335,18 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
                     let price = lc1.wallet.price.clone();
 
                     while let Some(rtx) = mempool_rx.recv().await {
+                        // For mempool transactions, server sends height 0.
+                        // BranchId::for_height(params, 0) returns pre-Overwinter branch,
+                        // but mempool txs use current (Canopy) format. Use Canopy
+                        // activation height to ensure correct BranchId and note decryption.
+                        let branch_height = if rtx.height == 0 {
+                            1_735_001 // Just past Canopy activation for BitcoinZ
+                        } else {
+                            rtx.height as u32
+                        };
                         if let Ok(tx) = Transaction::read(
                             &rtx.data[..],
-                            BranchId::for_height(&parameters, BlockHeight::from_u32(rtx.height as u32)),
+                            BranchId::for_height(&parameters, BlockHeight::from_u32(branch_height)),
                         ) {
                             let price = price.read().await.clone();
                             //info!("Mempool attempting to scan {}", tx.txid());
@@ -1345,7 +1354,7 @@ impl<P: consensus::Parameters + Send + Sync + 'static> LightClient<P> {
                             FetchFullTxns::<P>::scan_full_tx(
                                 config.clone(),
                                 tx,
-                                BlockHeight::from_u32(rtx.height as u32),
+                                BlockHeight::from_u32(branch_height),
                                 true,
                                 now() as u32,
                                 keys.clone(),
